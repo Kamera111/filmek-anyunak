@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filmek Anyunak</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:700,500,400&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #ececec;
+      font-family: 'Roboto', Arial, sans-serif;
+      min-height: 100vh;
+    }
+    .mainbox {
+      max-width: 450px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+      padding: 18px 10px 28px 10px;
+      display: none;
+      min-height: 98vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    .title {
+      font-size: 2.3rem;
+      font-weight: bold;
+      margin: 12px 0 20px 0;
+      text-align: center;
+      letter-spacing: -1px;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      width: 100%;
+      justify-content: center;
+    }
+    .catbtn, .bigbtn, .exitbtn, .uploadbtn, .linkbtn {
+      width: 100%;
+      font-size: 1.25rem;
+      background: #8461be;
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      border-radius: 16px;
+      padding: 18px 0;
+      margin: 0;
+      box-shadow: 0 2px 8px #dccfff3b;
+      cursor: pointer;
+      transition: filter 0.13s, background 0.13s;
+      text-shadow: 1px 1px 1px #553e85;
+    }
+    .catbtn:hover, .bigbtn:hover, .exitbtn:hover, .uploadbtn:hover, .linkbtn:hover {
+      filter: brightness(1.09);
+    }
+    .exitbtn {
+      background: #b3071b;
+      color: #fff;
+      font-size: 1.25rem;
+      margin: 30px 0 0 0;
+      text-shadow: 1px 2px #3e050e;
+      box-shadow: 0 3px 14px #0001;
+      padding: 18px 0;
+    }
+    .movielistbox {
+      margin-top: 24px;
+      background: #f4f1fa;
+      border-radius: 10px;
+      box-shadow: 0 0 8px #eee;
+      padding: 13px 9px;
+      display: none;
+    }
+    .movielink {
+      display: block;
+      background: #e2daf8;
+      margin: 0 0 12px 0;
+      border-radius: 12px;
+      color: #333;
+      font-weight: bold;
+      padding: 14px 8px;
+      text-decoration: none;
+      font-size: 1.1rem;
+      transition: color 0.17s, background 0.17s;
+      word-break: break-all;
+    }
+    .movielink:hover { background: #ccbaf5; color: #3c2470; }
+    /* PIN overlay */
+    .pin-overlay {
+      position:fixed; z-index:99; inset:0; background:rgba(200,200,200,0.98); display:flex;
+      flex-direction:column; align-items:center; justify-content:center;
+    }
+    .pin-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px 24px 18px 24px;
+      box-shadow: 0 2px 16px #0002;
+      min-width: 280px;
+      text-align: center;
+    }
+    .pin-title {font-size:1.28rem; margin-bottom:13px; font-weight:bold;}
+    .pin-input {
+      font-size: 2rem;
+      padding: 8px 20px;
+      border-radius: 10px;
+      border: 1px solid #bbb;
+      width: 130px;
+      text-align: center;
+    }
+    .pin-error { color: #b3071b; font-weight: bold; margin-top: 10px;}
+    .addform input, .addform button { margin: 4px 0; padding: 8px 7px; font-size: 1rem;}
+    .addform input { border-radius:6px; border:1px solid #aaa; width:90%; margin-bottom:12px;}
+    .addform button { border-radius:8px; border:none; background:#8461be; color:#fff; font-weight:bold;}
+    .addform button:hover { background: #684a9a;}
+    .uploadbtn { background: #553e85; }
+    /* Mobil optimalizáció */
+    @media (max-width:600px) {
+      .mainbox { max-width:100vw; min-width:0; border-radius:0; box-shadow:none; padding:4vw 2vw 6vw 2vw; }
+      .row { gap:7px; }
+      .catbtn, .bigbtn, .exitbtn, .uploadbtn, .linkbtn { font-size: 1.08rem; padding: 12px 0;}
+      .pin-box { min-width:0; }
+    }
+  </style>
+</head>
+<body>
+  <!-- PIN overlay -->
+  <div id="pinOverlay" class="pin-overlay">
+    <div class="pin-box">
+      <div class="pin-title">Írd be a PIN-kódot a belépéshez</div>
+      <input id="pinInput" class="pin-input" type="password" maxlength="8" autocomplete="off" autofocus>
+      <div id="pinError" class="pin-error"></div>
+      <div style="font-size:0.95rem; margin-top:10px;">(Csak te tudod szerkeszteni, PIN: <b>1954</b>)</div>
+    </div>
+  </div>
+
+  <!-- F PIN overlay -->
+  <div id="fPinOverlay" class="pin-overlay" style="display:none;">
+    <div class="pin-box">
+      <div class="pin-title">Írd be az admin PIN-t a feltöltéshez</div>
+      <input id="fPinInput" class="pin-input" type="password" maxlength="8" autocomplete="off">
+      <div id="fPinError" class="pin-error"></div>
+      <div style="font-size:0.93rem; margin-top:10px;">(Admin PIN: <b>2014</b>)</div>
+      <button onclick="checkFPin()" class="uploadbtn" style="margin-top:14px;">Belépés</button>
+    </div>
+  </div>
+
+  <!-- Fő tartalom -->
+  <div class="mainbox" id="mainBox">
+    <div class="title">Filmek Anyunak</div>
+
+    <div class="row">
+      <button class="catbtn" onclick="showMovies('Krimi')">Krimi</button>
+      <button class="catbtn" onclick="showMovies('Akció')">Akció</button>
+    </div>
+    <div class="row">
+      <button class="catbtn" onclick="showMovies('Thriller')">Thriller</button>
+      <button class="catbtn" onclick="showMovies('Kaland')">Kaland</button>
+    </div>
+    <div class="row">
+      <button class="catbtn" onclick="showMovies('Vígjáték')">Vígjáték</button>
+      <button class="catbtn" onclick="showMovies('Sorozatok')">Sorozatok</button>
+    </div>
+    <div class="row">
+      <button class="bigbtn" style="width:100%;" onclick="showMovies('Színészek szerint')">Színészek szerint</button>
+    </div>
+    <div class="row">
+      <button class="uploadbtn" style="width:50%;" onclick="fPinStep()">F</button>
+      <button class="catbtn" style="width:50%;" onclick="showMovies('Új filmek')">Új filmek</button>
+    </div>
+    <!-- Itt kezdődik a bővíthető linkgombsor -->
+    <div class="row">
+      <button class="linkbtn" style="width:100%;" onclick="window.open('https://sweet.tv/hu/free_tv/2016-thriller-time-hd','_blank')">thriller TV</button>
+      <!-- ide lehet később új gombokat másolni -->
+    </div>
+    <!-- Térköz a jövőbeli gomboknak -->
+    <div style="height:20px"></div>
+
+    <button class="exitbtn" onclick="logout()">Kilépés mindenből</button>
+
+    <!-- Film lista doboz -->
+    <div class="movielistbox" id="movielistBox">
+      <div id="movielistTitle" style="font-size:1.25rem;font-weight:bold;margin-bottom:16px;"></div>
+      <div id="movielinks"></div>
+      <button onclick="hideMovies()" class="bigbtn" style="margin-top:16px;">Bezár</button>
+    </div>
+    <!-- Feltöltés (admin funkció, csak F PIN-nel) -->
+    <div class="movielistbox" id="uploadBox">
+      <div style="font-weight:bold;font-size:1.15rem; margin-bottom:10px;">Új film hozzáadása</div>
+      <form onsubmit="addMovie(event)" class="addform">
+        <input type="text" id="newTitle" placeholder="Film címe" required>
+        <input type="url" id="newUrl" placeholder="Film linkje (https://...)" required>
+        <button type="submit">Hozzáadás</button>
+        <button type="button" onclick="hideUploadForm()">Mégse</button>
+      </form>
+      <div id="uploadError" class="pin-error"></div>
+    </div>
+  </div>
+
+<script>
+const PIN = "1954";
+const F_PIN = "2014";
+const MOVIES_KEY = "filmekanyunak_f";
+let fPinPassed = false;
+
+// Alapértelmezett filmek (kategóriák)
+const defaultMovies = [
+  { title: "Jason Statham: The Beekeeper", url: "https://www.youtube.com/watch?v=thebeekeeper", category: "Akció" },
+  { title: "Poirot: Gyilkosság az Orient expresszen", url: "https://videa.hu/videok/film-animacio/poirot-gyilkossag-az-orient-expresszen-1996-teljes-magyarul-feliratos-film-8Dq5ShXPUBUzkzM8", category: "Krimi" }
+];
+
+let fMovies = []; // Az F kategóriába feltöltött filmek
+
+// PIN overlay elemek
+const pinOverlay = document.getElementById('pinOverlay');
+const mainBox = document.getElementById('mainBox');
+const pinInput = document.getElementById('pinInput');
+const pinError = document.getElementById('pinError');
+const fPinOverlay = document.getElementById('fPinOverlay');
+const fPinInput = document.getElementById('fPinInput');
+const fPinError = document.getElementById('fPinError');
+const uploadBox = document.getElementById('uploadBox');
+
+// PIN check
+function checkPin() {
+  if (pinInput.value === PIN) {
+    pinOverlay.style.display = "none";
+    mainBox.style.display = "flex";
+    pinError.textContent = "";
+    loadFMovies();
+  } else {
+    pinError.textContent = "Hibás PIN!";
+    pinInput.value = "";
+    setTimeout(() => pinError.textContent = "", 1800);
+  }
+}
+pinInput.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") checkPin();
+});
+pinOverlay.addEventListener("click", e => pinInput.focus());
+
+// F PIN check
+function fPinStep() {
+  fPinInput.value = "";
+  fPinError.textContent = "";
+  fPinOverlay.style.display = "";
+  setTimeout(()=>fPinInput.focus(),100);
+}
+function checkFPin() {
+  if (fPinInput.value === F_PIN) {
+    fPinOverlay.style.display = "none";
+    fPinPassed = true;
+    showUploadForm();
+  } else {
+    fPinError.textContent = "Hibás PIN!";
+    fPinInput.value = "";
+    setTimeout(() => fPinError.textContent = "", 1600);
+  }
+}
+fPinInput.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") checkFPin();
+});
+fPinOverlay.addEventListener("click", e => fPinInput.focus());
+
+// Filmek mentése/betöltése (csak F kategória!)
+function saveFMovies() {
+  localStorage.setItem(MOVIES_KEY, JSON.stringify(fMovies));
+}
+function loadFMovies() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(MOVIES_KEY));
+    fMovies = Array.isArray(saved) ? saved : [];
+  } catch { fMovies = []; }
+}
+
+// Filmek listázása kategória szerint
+function showMovies(category) {
+  hideUploadForm();
+  const box = document.getElementById('movielistBox');
+  const list = document.getElementById('movielinks');
+  const title = document.getElementById('movielistTitle');
+  list.innerHTML = "";
+  let found = false;
+
+  if(category === "Új filmek") {
+    loadFMovies();
+    if(fMovies.length > 0) {
+      fMovies.forEach(movie => {
+        const a = document.createElement('a');
+        a.href = movie.url;
+        a.target = "_blank";
+        a.className = "movielink";
+        a.innerText = movie.title;
+        list.appendChild(a);
+        found = true;
+      });
+    }
+    title.innerText = found ? "Új filmek:" : "Nincs feltöltött új film!";
+    box.style.display = "";
+    setTimeout(()=>box.scrollIntoView({behavior:'smooth'}),80);
+    return;
+  }
+
+  // Alap kategóriák
+  let demoMovies = {
+    "Krimi": [
+      { title: "Poirot: Gyilkosság az Orient expresszen", url: "https://videa.hu/videok/film-animacio/poirot-gyilkossag-az-orient-expresszen-1996-teljes-magyarul-feliratos-film-8Dq5ShXPUBUzkzM8" }
+    ],
+    "Akció": [
+      { title: "Jason Statham: The Beekeeper", url: "https://www.youtube.com/watch?v=thebeekeeper" }
+    ],
+    "Thriller": [
+      { title: "A falu", url: "https://www.youtube.com/watch?v=XY3IvMU41Vw" }
+    ],
+    "Kaland": [
+      { title: "Indiana Jones: Az elveszett frigyláda fosztogatói", url: "https://www.youtube.com/watch?v=RhRQI9EKEvA" }
+    ],
+    "Vígjáték": [
+      { title: "Reszkessetek betörők!", url: "https://www.youtube.com/watch?v=betorok" }
+    ],
+    "Sorozatok": [
+      { title: "Szomszédok – 1. rész", url: "https://videa.hu/videok/film-animacio/szomszedok-1-resz-teljes-YgCxtcsz3F9wWgFS" }
+    ],
+    "Színészek szerint": [
+      { title: "Schwarzenegger: Terminátor 2", url: "https://www.youtube.com/watch?v=terminator2" },
+      { title: "Bruce Willis: Die Hard", url: "https://www.youtube.com/watch?v=diehard" }
+    ]
+  };
+  if(demoMovies[category]) {
+    demoMovies[category].forEach(movie => {
+      const a = document.createElement('a');
+      a.href = movie.url;
+      a.target = "_blank";
+      a.className = "movielink";
+      a.innerText = movie.title;
+      list.appendChild(a);
+      found = true;
+    });
+    title.innerText = found ? `${category} filmek:` : "Nincs találat!";
+    box.style.display = "";
+    setTimeout(()=>box.scrollIntoView({behavior:'smooth'}),80);
+  }
+}
+function hideMovies() { document.getElementById('movielistBox').style.display = "none"; }
+
+// Feltöltés admin felület
+function showUploadForm() {
+  uploadBox.style.display = "";
+  hideMovies();
+}
+function hideUploadForm() {
+  uploadBox.style.display = "none";
+  document.getElementById('uploadError').textContent = "";
+}
+function addMovie(e) {
+  e.preventDefault();
+  const title = document.getElementById('newTitle').value.trim();
+  const url = document.getElementById('newUrl').value.trim();
+  if (!title || !url) {
+    document.getElementById('uploadError').textContent = "Minden mező kitöltése kötelező!";
+    return;
+  }
+  if (!/^https?:\/\//.test(url)) {
+    document.getElementById('uploadError').textContent = "A linknek http
+</html> 
