@@ -308,7 +308,8 @@
     <button class="menu-btn" onclick="openCategory('sorozatok')">
       Sorozatok <span id="badge-sorozatok" class="badge" style="display:none"></span>
     </button>
-    <button class="menu-btn admin-btn" onclick="openAdminPanel()">F</button>
+   <!-- F gomb az adminnak -->
+    <button class="main-btn" id="adminBtn" onclick="openAdminUpload()">F</button>
     <button class="menu-btn" onclick="openCategory('ujfilmek')">
       Új filmek <span id="badge-ujfilmek" class="badge" style="display:none"></span>
     </button>
@@ -340,21 +341,20 @@
       <div id="pinError" class="pin-error"></div>
     </div>
   </div>
-  <!-- Film lista overlay -->
-  <div id="filmListOverlay" class="film-list-overlay" style="display:none;">
-    <div class="film-list-box">
-      <div id="filmListTitle" class="film-list-title"></div>
-      <div id="filmListContent"></div>
-      <button class="film-list-close" onclick="closeFilmList()">Bezárás</button>
-    </div>
+<!-- Film lista overlay -->
+<div id="filmListOverlay" class="film-list-overlay" style="display:none;">
+  <div class="film-list-box">
+    <div id="filmListTitle" class="film-list-title"></div>
+    <div id="filmListContent"></div>
+    <button class="film-list-close" onclick="closeFilmList()">Bezárás</button>
   </div>
-  <!-- Színészek overlay -->
-  <div id="actorsOverlay" class="actors-overlay" style="display:none;">
-    <div class="actors-title">Színészek szerint</div>
-    <div class="actors-list-row" id="actorsList"></div>
-    <button class="actors-close-btn" onclick="closeActorsList()">Bezárás</button>
-  </div>
-  <script>
+</div>
+<!-- Színészek overlay -->
+<div id="actorsOverlay" class="actors-overlay" style="display:none;">
+  <div class="actors-title">Színészek szerint</div>
+  <div class="actors-list-row" id="actorsList"></div>
+  <button class="actors-close-btn" onclick="closeActorsList()">Bezárás</button>
+</div>
     // --------- PIN BELÉPÉS (helyi tárolás) -----------
     const USER_PIN = "1954";
     function showPinOverlay() {
