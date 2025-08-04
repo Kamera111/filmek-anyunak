@@ -8,76 +8,316 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Filmek Anyunak</title>
   <style>
-/* =======================
-   == 2. RÉSZ: ALAP CSS, STÍLUSOK, MOBIL DIZÁJN ==
-   ======================= */
+/* ========================================================= */
+/* == 2. RÉSZ: ALAP CSS, STÍLUSOK, MOBIL DIZÁJN          == */
+/* ========================================================= */
+
+/* Alap háttér, szín */
 body {
-  background: #10202a;
-  color: #25f6ff;
-  font-family: 'Roboto', Arial, sans-serif;
+  background: #11222a;
+  color: #21e9fc;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 16px;
   margin: 0;
   min-height: 100vh;
 }
-h1 {
+
+h1, .main-title {
+  color: #21e9fc;
+  font-size: 3.3rem;
+  margin: 32px 0 32px 0;
   text-align: center;
-  margin-top: 36px;
-  margin-bottom: 28px;
-  font-size: 2.2rem;
   font-weight: bold;
-  color: #25f6ff;
-  text-shadow: 0 3px 16px #101a22;
-}
-.menu-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px 18px;
-  width: 96%;
-  max-width: 440px;
-  margin: 0 auto 16px auto;
-}
-.menu-btn {
-  font-size: 1.13rem;
-  background: #122e3b;
-  border: none;
-  border-radius: 14px;
-  color: #25f6ff;
-  padding: 8px 0;
-  margin: 0;
-  cursor: pointer;
-  font-weight: bold;
-  box-shadow: 0 2px 10px #09121a4c;
-  transition: background 0.15s;
-  outline: none;
-  min-width: 0;
-  min-height: 0;
-  letter-spacing: 0.5px;
-}
-.menu-btn:active, .menu-btn.selected {
-  background: #25f6ff;
-  color: #10202a;
-}
-.exit-btn {
-  width: 100%;
-  background: #ee3344;
-  color: #fff;
-  font-size: 1.1rem;
-  margin: 28px auto 0 auto;
-  border-radius: 14px;
-  border: none;
-  padding: 11px 0;
-  font-weight: bold;
-  cursor: pointer;
-  display: block;
-  max-width: 360px;
   letter-spacing: 1px;
-  transition: background 0.13s;
+  text-shadow: 0 2px 12px #00101880;
 }
-.exit-btn:active { background: #b3161d; }
+
+/* ======== FŐ GOMBOK ======== */
+.menu-btn, .main-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;           /* Betűméret */
+  font-weight: bold;
+  color: #27e9ff;
+  background: #11242e;
+  border: none;
+  border-radius: 22px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+  margin: 18px 14px;
+  cursor: pointer;
+  padding: 14px 38px;
+  min-width: 210px;
+  max-width: 380px;
+  min-height: 44px;
+  max-height: 54px;
+  transition: background 0.16s, color 0.2s, box-shadow 0.12s;
+}
+
+.menu-btn:active, .main-btn:active,
+.menu-btn.selected, .main-btn.selected {
+  background: #27e9ff;
+  color: #11242e;
+}
+
+/* Badge (új filmek jelzés) */
+.badge {
+  background: #ee3232;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.1rem;
+  border-radius: 15px;
+  padding: 2px 12px;
+  margin-left: 12px;
+  vertical-align: middle;
+  box-shadow: 0 1px 4px #0008;
+  display: inline-block;
+}
+
+/* Kijelölt gomb */
+.menu-btn.selected, .main-btn.selected {
+  background: #27e9ff;
+  color: #11242e;
+  border: 2px solid #21e9fc;
+}
+
+/* Film lista overlay */
+.film-list-overlay {
+  position: fixed;
+  z-index: 100;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #000b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.film-list-box {
+  background: #11242e;
+  border-radius: 30px;
+  padding: 36px 30px 28px 30px;
+  min-width: 330px;
+  max-width: 96vw;
+  box-shadow: 0 4px 32px #000b;
+  text-align: center;
+}
+.film-list-title {
+  color: #21e9fc;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+/* Film lista felsorolás */
+.film-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.film-list-item {
+  margin: 0;
+  border-bottom: 2px solid #202e38;
+  padding: 10px 0 10px 0;
+}
+.film-list-item a {
+  color: #21e9fc;
+  text-decoration: underline;
+  font-size: 1.3rem;
+}
+
+/* Film lista bezárás */
+.film-list-close {
+  background: #ee3232;
+  color: #fff;
+  border: none;
+  border-radius: 18px;
+  font-size: 1.12rem;
+  font-weight: bold;
+  padding: 9px 26px;
+  margin-top: 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #0008;
+}
+
+/* Admin/Feltöltő overlay */
+.admin-overlay {
+  position: fixed;
+  z-index: 110;
+  left: 0; right: 0; top: 0; bottom: 0;
+  background: #000c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.admin-box {
+  background: #fff;
+  color: #222;
+  border-radius: 50px;
+  min-width: 330px;
+  max-width: 98vw;
+  padding: 38px 34px 32px 34px;
+  box-shadow: 0 4px 32px #000c;
+  text-align: center;
+}
+.admin-title {
+  font-size: 2.4rem;
+  font-weight: bold;
+  margin-bottom: 34px;
+  color: #111;
+}
+.admin-input, .admin-select {
+  font-size: 1.08rem;
+  padding: 8px 12px;
+  margin: 10px 0 16px 0;
+  border-radius: 12px;
+  border: 1.7px solid #27e9ff;
+  width: 90%;
+  outline: none;
+}
+.admin-input:focus, .admin-select:focus {
+  border-color: #21e9fc;
+  background: #e9fcff;
+}
+
+/* PIN overlay */
+.pin-overlay {
+  position: fixed;
+  z-index: 200;
+  left: 0; right: 0; top: 0; bottom: 0;
+  background: #000d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pin-box {
+  background: #fff;
+  color: #222;
+  border-radius: 48px;
+  min-width: 310px;
+  max-width: 94vw;
+  padding: 36px 34px 30px 34px;
+  box-shadow: 0 4px 32px #000b;
+  text-align: center;
+}
+.pin-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 24px;
+}
+.pin-input {
+  font-size: 2rem;
+  padding: 8px 22px;
+  letter-spacing: 14px;
+  border-radius: 12px;
+  border: 2px solid #27e9ff;
+  width: 62%;
+  margin-bottom: 16px;
+  outline: none;
+}
+.pin-input:focus {
+  border-color: #21e9fc;
+  background: #e9fcff;
+}
+.pin-error {
+  color: #e83232;
+  margin-top: 7px;
+  font-weight: bold;
+}
+
+/* Színészek overlay (lista) */
+.actors-overlay {
+  position: fixed;
+  z-index: 150;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #000c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.actors-title {
+  color: #21e9fc;
+  font-size: 2.1rem;
+  font-weight: bold;
+  margin-bottom: 26px;
+}
+.actors-list-row {
+  background: #11242e;
+  border-radius: 30px;
+  padding: 24px 12px;
+  max-height: 380px;
+  overflow-y: auto;
+  min-width: 320px;
+  box-shadow: 0 4px 20px #000a;
+}
+.actor-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 2px solid #222;
+  transition: background 0.17s;
+  cursor: pointer;
+}
+.actor-item:last-child { border-bottom: none; }
+.actor-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f0f8ff;
+  margin-right: 20px;
+  border: 2px solid #21e9fc;
+}
+.actor-name {
+  color: #21e9fc;
+  font-size: 1.34rem;
+  font-weight: bold;
+}
+.actors-close-btn {
+  background: #ee3232;
+  color: #fff;
+  border: none;
+  border-radius: 18px;
+  font-size: 1.15rem;
+  font-weight: bold;
+  padding: 8px 22px;
+  margin: 18px auto 0 auto;
+  display: block;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #0008;
+}
+
+/* Kilépés gomb */
+.exit-btn {
+  background: #ee3232;
+  color: #fff;
+  border: none;
+  border-radius: 18px;
+  font-size: 1.4rem;
+  font-weight: bold;
+  padding: 14px 42px;
+  margin: 28px auto 10px auto;
+  display: block;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #0008;
+  letter-spacing: 1.2px;
+}
+
+/* Mobil dizájn */
 @media (max-width: 700px) {
-  h1 { font-size: 1.2rem; margin-top: 16px; }
-  .menu-grid { grid-template-columns: 1fr; max-width: 98vw; }
-  .menu-btn { font-size: 1rem; padding: 7px 0; }
-  .exit-btn { font-size: 0.99rem; padding: 8px 0;}
+  h1, .main-title { font-size: 2rem; }
+  .menu-btn, .main-btn {
+    font-size: 1.28rem;
+    padding: 8px 10px;
+    min-width: 98px;
+    max-width: 95vw;
+    min-height: 34px;
+    max-height: 44px;
+    margin: 10px 6px;
+  }
+  .film-list-box, .actors-list-row, .admin-box, .pin-box {
+    min-width: 180px;
+    padding: 18px 7vw;
+  }
+  .actors-title { font-size: 1.26rem; }
 }
 <!-- ========================================================= -->
 <!-- == 3. RÉSZ: FŐ GOMBOK, KATEGÓRIÁK, KILÉPÉS GOMB         == -->
