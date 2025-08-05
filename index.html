@@ -562,100 +562,101 @@ function uploadFilm() {
     location.reload();
   }
 
-  // ==== 8.2 KATEGÓRIÁK, FILMLISTA ====
-  const titleMap = {
-    krimi: "Krimi filmek",
-    akcio: "Akció filmek",
-    thriller: "Thriller filmek",
-    kaland: "Kaland filmek",
-    vigjatek: "Vígjátékok",
-    sorozatok: "Sorozatok",
-    ujfilmek: "Új filmek",
-    thrillertv: "Thriller TV",
-    topfilmek: "Top Filmek",
-    akciotv: "Akció TV",
-    vigjatektv: "Vígjáték TV",
-    beszelgetes: "Beszélgetés",
-    f: "Admin feltöltések"
-  };
+// ==== 8.2 KATEGÓRIÁK, FILMLISTA (helyes PIN, admin funkcióval) ====
 
-  function openCategory(cat) {
+const titleMap = {
+  krimi: "Krimi filmek",
+  akcio: "Akció filmek",
+  thriller: "Thriller filmek",
+  kaland: "Kaland filmek",
+  vigjatek: "Vígjátékok",
+  sorozatok: "Sorozatok",
+  ujfilmek: "Új filmek",
+  thrillertv: "Thriller TV",
+  topfilmek: "Top Filmek",
+  akciotv: "Akció TV",
+  vigjatektv: "Vígjáték TV",
+  beszelgetes: "Beszélgetés",
+  f: "Admin feltöltések"
+};
+
+function openCategory(cat) {
+  // ---- F kategória: csak admin PIN-nel ----
+  if (cat === "f") {
     if (!localStorage.getItem("filmek_anyunak_access")) { showPinOverlay(); return; }
-    if (cat === "beszelgetes") {
-      showFilmList("Beszélgetés", [ {title: "ChatGPT", url: "https://chat.openai.com/", uj: false} ]);
-      return;
-    }
-    let stored = localStorage.getItem("cat_"+cat) || "[]";
-    let list = JSON.parse(stored);
-
-    // ABC sorrend
-    list.sort((a, b) => a.title.localeCompare(b.title));
-
-    showFilmList(titleMap[cat] || cat, list);
-
-    // jelöljük az összes "új" státuszt nézettnek
-    list.forEach(f => f.uj = false);
-    localStorage.setItem("cat_" + cat, JSON.stringify(list));
+    openAdminUpload(); // ez nyitja meg a feltöltő overlayt PIN ellenőrzéssel!
+    return;
   }
 
-  function showFilmList(title, list) {
-    document.getElementById("filmListOverlay").style.display = "";
-    document.getElementById("filmListTitle").textContent = title;
-    let html = "";
-    if (!list.length) {
-      html = `<div>Nincs feltöltött film ebben a kategóriában.</div>`;
-    } else {
-      html = '<ul class="film-list">';
-      list.forEach((film, idx) => {
-        html += `
-          <li class="film-list-item${film.uj ? ' uj-film' : ''}">
-            <a href="${film.url}" target="_blank">${film.title}${film.uj ? ' <span style="color:#d00;font-size:1.2em;">🔥</span>' : ''}</a>
-          </li>
-        `;
-      });
-      html += "</ul>";
-    }
-    document.getElementById("filmListBody").innerHTML = html;
-  }
-  function closeFilmList() {
-    document.getElementById("filmListOverlay").style.display = "none";
-    document.getElementById("filmListBody").innerHTML = "";
-  }
+  // Minden más: PIN ellenőrzés
+  if (!localStorage.getItem("filmek_anyunak_access")) { showPinOverlay(); return; }
 
-  // ==== 8.3 SZÍNÉSZEK LISTA, KÉPEK ====
-  const actorsData = [
-    // ... (itt legyen a színészek tömb, ahogy eddig is)
-    { name: "Jason Statham", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Jason_Statham_2018.jpg/320px-Jason_Statham_2018.jpg" },
-    { name: "Sylvester Stallone", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Sylvester_Stallone_Cannes_2019.jpg/320px-Sylvester_Stallone_Cannes_2019.jpg" },
-    // stb...
-  ];
-  actorsData.sort((a, b) => a.name.localeCompare(b.name));
-  function openActorsList() {
-    if (!localStorage.getItem("filmek_anyunak_access")) { showPinOverlay(); return; }
-    document.getElementById("actorsOverlay").style.display = "flex";
-    let html = "";
-    actorsData.forEach((a, i) => {
+  if (cat === "beszelgetes") {
+    showFilmList("Beszélgetés", [ {title: "ChatGPT", url: "https://chat.openai.com/", uj: false} ]);
+    return;
+  }
+  let stored = localStorage.getItem("cat_"+cat) || "[]";
+  let list = JSON.parse(stored);
+  list.sort((a, b) => a.title.localeCompare(b.title));
+  showFilmList(titleMap[cat] || cat, list);
+  list.forEach(f => f.uj = false);
+  localStorage.setItem("cat_" + cat, JSON.stringify(list));
+}
+
+// ---- FILMLISTA MEGJELENÍTÉS/JELZÉS ÚJ FILMRE ----
+function showFilmList(title, list) {
+  document.getElementById("filmListOverlay").style.display = "";
+  document.getElementById("filmListTitle").textContent = title;
+  let html = "";
+  if (!list.length) {
+    html = `<div>Nincs feltöltött film ebben a kategóriában.</div>`;
+  } else {
+    html = '<ul class="film-list">';
+    list.forEach((film, idx) => {
       html += `
-        <div class="actor-item" onclick="showActorFilms('${a.name.replace(/'/g,"\\'")}')">
-          <img class="actor-img" src="${a.img}" alt="${a.name}">
-          <div class="actor-name">${a.name}</div>
-        </div>
+        <li class="film-list-item${film.uj ? ' uj-film' : ''}">
+          <a href="${film.url}" target="_blank">${film.title}${film.uj ? ' <span style="color:#d00;font-size:1.2em;">🔥</span>' : ''}</a>
+        </li>
       `;
     });
-    document.getElementById("actorsList").innerHTML = html;
+    html += "</ul>";
   }
-  function closeActorsList() {
-    document.getElementById("actorsOverlay").style.display = "none";
-  }
-  function showActorFilms(actor) {
-    const films = JSON.parse(localStorage.getItem("films_actor_" + actor)) || [];
-    let list = films.length
-      ? films
-      : [{title: `${actor} filmjei (demó)`, url: "https://www.imdb.com/find/?q=" + encodeURIComponent(actor), uj:false}];
-    showFilmList(actor + " filmjei", list);
-    closeActorsList();
-  }
+  document.getElementById("filmListBody").innerHTML = html;
+}
+// ==== 8.3 SZÍNÉSZEK LISTA, KÉPEK (kattintható, IMDB demóval) ====
 
+const actorsData = [
+  { name: "Jason Statham", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Jason_Statham_2018.jpg/320px-Jason_Statham_2018.jpg" },
+  { name: "Sylvester Stallone", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Sylvester_Stallone_Cannes_2019.jpg/320px-Sylvester_Stallone_Cannes_2019.jpg" },
+  // ... (többi színész)
+];
+actorsData.sort((a, b) => a.name.localeCompare(b.name));
+
+function openActorsList() {
+  if (!localStorage.getItem("filmek_anyunak_access")) { showPinOverlay(); return; }
+  document.getElementById("actorsOverlay").style.display = "flex";
+  let html = "";
+  actorsData.forEach((a, i) => {
+    html += `
+      <div class="actor-card" onclick="showActorFilms('${a.name.replace(/'/g,"\\'")}')">
+        <img src="${a.img}" alt="${a.name}">
+        <span>${a.name}</span>
+      </div>
+    `;
+  });
+  document.getElementById("actorsList").innerHTML = html;
+}
+function closeActorsList() {
+  document.getElementById("actorsOverlay").style.display = "none";
+}
+function showActorFilms(actor) {
+  const films = JSON.parse(localStorage.getItem("films_actor_" + actor)) || [];
+  let list = films.length
+    ? films
+    : [{title: `${actor} filmjei (IMDB keresés)`, url: "https://www.imdb.com/find/?q=" + encodeURIComponent(actor), uj:false}];
+  showFilmList(actor + " filmjei", list);
+  closeActorsList();
+}
   // ==== 8.4 ADMIN FELTÖLTŐ ====
   function openAdminUpload() {
     if (!localStorage.getItem("filmek_anyunak_access")) { showPinOverlay(); return; }
