@@ -9,7 +9,7 @@
   <title>Filmek Anyunak</title>
   <style>
 /* ========================================================= */
-/* == 2. RÉSZ: ALAP CSS, STÍLUSOK, MOBIL DIZÁJN          == */
+/* == 2. RÉSZ: ALAP CSS, STÍLUSOK, MOBIL DIZÁJN           == */
 /* ========================================================= */
 
 /* Alap háttér, szín */
@@ -22,13 +22,13 @@ body {
   min-height: 100vh;
 }
 
+/* Főcím */
 h1, .main-title {
   color: #21e9fc;
-  font-size: 3.3rem;
-  margin: 32px 0 32px 0;
+  font-size: 2.1rem;
+  margin: 32px 0 28px 0;
   text-align: center;
   font-weight: bold;
-  letter-spacing: 1px;
   text-shadow: 0 2px 12px #00101880;
 }
 
@@ -37,27 +37,29 @@ h1, .main-title {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.4rem;           /* Betűméret */
+  font-size: 1.13rem;
   font-weight: bold;
   color: #27e9ff;
   background: #11242e;
   border: none;
-  border-radius: 22px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.18);
-  margin: 18px 14px;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  margin: 8px 6px;
   cursor: pointer;
-  padding: 14px 38px;
-  min-width: 210px;
-  max-width: 380px;
-  min-height: 44px;
-  max-height: 54px;
-  transition: background 0.16s, color 0.2s, box-shadow 0.12s;
+  padding: 8px 0;
+  width: 100%;
+  max-width: 270px;
+  min-height: 36px;
 }
 
-.menu-btn:active, .main-btn:active,
-.menu-btn.selected, .main-btn.selected {
+.menu-btn.selected, .main-btn.selected,
+.menu-btn:active, .main-btn:active {
   background: #27e9ff;
   color: #11242e;
+}
+
+.menu-btn:focus, .main-btn:focus {
+  outline: 2px solid #21e9fc;
 }
 
 /* Badge (új filmek jelzés) */
@@ -65,20 +67,22 @@ h1, .main-title {
   background: #ee3232;
   color: #fff;
   font-weight: bold;
-  font-size: 1.1rem;
-  border-radius: 15px;
-  padding: 2px 12px;
-  margin-left: 12px;
+  font-size: 1rem;
+  padding: 1px 7px;
+  border-radius: 14px;
+  margin-left: 10px;
   vertical-align: middle;
-  box-shadow: 0 1px 4px #0008;
   display: inline-block;
 }
 
-/* Kijelölt gomb */
-.menu-btn.selected, .main-btn.selected {
-  background: #27e9ff;
-  color: #11242e;
-  border: 2px solid #21e9fc;
+/* ======== GRID ELRENDEZÉS A FŐ GOMBOKNAK ======== */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin: 0 auto 18px auto;
+  max-width: 620px;
+  padding: 0 12px;
 }
 
 /* Film lista overlay */
@@ -91,20 +95,22 @@ h1, .main-title {
   align-items: center;
   justify-content: center;
 }
+
 .film-list-box {
-  background: #11242e;
-  border-radius: 30px;
-  padding: 36px 30px 28px 30px;
-  min-width: 330px;
+  background: #182933;
+  border-radius: 16px;
+  padding: 20px 12px 14px 12px;
+  min-width: 220px;
   max-width: 96vw;
-  box-shadow: 0 4px 32px #000b;
+  box-shadow: 0 4px 24px #000b;
   text-align: center;
 }
+
 .film-list-title {
   color: #21e9fc;
-  font-size: 2rem;
+  font-size: 1.12rem;
   font-weight: bold;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 /* Film lista felsorolás */
@@ -112,294 +118,401 @@ h1, .main-title {
   padding: 0;
   margin: 0;
   list-style: none;
+  max-height: 340px;
+  overflow-y: auto;
 }
 .film-list-item {
   margin: 0;
-  border-bottom: 2px solid #202e38;
-  padding: 10px 0 10px 0;
+  border-bottom: 1px solid #202e38;
+  padding: 7px 0;
 }
+.film-list-item:last-child { border-bottom: none; }
 .film-list-item a {
+  color: #27e9ff;
+  text-decoration: none;
+  font-size: 0.98rem;
+  transition: color .2s;
+}
+.film-list-item a:hover {
   color: #21e9fc;
-  text-decoration: underline;
-  font-size: 1.3rem;
 }
 
-/* Film lista bezárás */
-.film-list-close {
-  background: #ee3232;
-  color: #fff;
-  border: none;
-  border-radius: 18px;
-  font-size: 1.12rem;
-  font-weight: bold;
-  padding: 9px 26px;
-  margin-top: 30px;
-  cursor: pointer;
-  box-shadow: 0 2px 8px #0008;
-}
-
-/* Admin/Feltöltő overlay */
-.admin-overlay {
-  position: fixed;
-  z-index: 110;
-  left: 0; right: 0; top: 0; bottom: 0;
-  background: #000c;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.admin-box {
-  background: #fff;
-  color: #222;
-  border-radius: 50px;
-  min-width: 330px;
-  max-width: 98vw;
-  padding: 38px 34px 32px 34px;
-  box-shadow: 0 4px 32px #000c;
-  text-align: center;
-}
-.admin-title {
-  font-size: 2.4rem;
-  font-weight: bold;
-  margin-bottom: 34px;
-  color: #111;
-}
-.admin-input, .admin-select {
-  font-size: 1.08rem;
-  padding: 8px 12px;
-  margin: 10px 0 16px 0;
-  border-radius: 12px;
-  border: 1.7px solid #27e9ff;
-  width: 90%;
-  outline: none;
-}
-.admin-input:focus, .admin-select:focus {
-  border-color: #21e9fc;
-  background: #e9fcff;
-}
-
-/* PIN overlay */
-.pin-overlay {
+/* PIN/ADMIN/SZÍNÉSZ OVERLAY-K STÍLUSAI */
+.pin-overlay, .admin-overlay, .actors-overlay {
   position: fixed;
   z-index: 200;
-  left: 0; right: 0; top: 0; bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: #000d;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.pin-box {
+
+.pin-box, .admin-box, .actors-box {
   background: #fff;
   color: #222;
-  border-radius: 48px;
-  min-width: 310px;
-  max-width: 94vw;
-  padding: 36px 34px 30px 34px;
-  box-shadow: 0 4px 32px #000b;
+  border-radius: 22px;
+  min-width: 160px;
+  max-width: 98vw;
+  padding: 14px 9px 10px 9px;
+  box-shadow: 0 4px 24px #000c;
   text-align: center;
 }
-.pin-title {
-  font-size: 2rem;
+.pin-title, .admin-cím, .actors-title {
+  font-size: 1.13rem;
+  color: #21e9fc;
+  margin-bottom: 12px;
   font-weight: bold;
-  margin-bottom: 24px;
 }
-.pin-input {
-  font-size: 2rem;
-  padding: 8px 22px;
-  letter-spacing: 14px;
+.pin-input, .admin-input {
+  font-size: 1.09rem;
+  padding: 7px 14px;
   border-radius: 12px;
   border: 2px solid #27e9ff;
-  width: 62%;
-  margin-bottom: 16px;
+  margin-bottom: 11px;
+  width: 82%;
   outline: none;
+  text-align: center;
 }
-.pin-input:focus {
-  border-color: #21e9fc;
-  background: #e9fcff;
-}
-.pin-error {
-  color: #e83232;
-  margin-top: 7px;
-  font-weight: bold;
-}
+.pin-input:focus, .admin-input:focus { border-color: #21e9fc; }
 
-/* Színészek overlay (lista) */
-.actors-overlay {
-  position: fixed;
-  z-index: 150;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: #000c;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.actors-title {
-  color: #21e9fc;
-  font-size: 2.1rem;
-  font-weight: bold;
-  margin-bottom: 26px;
-}
 .actors-list-row {
   background: #11242e;
-  border-radius: 30px;
-  padding: 24px 12px;
-  max-height: 380px;
+  border-radius: 14px;
+  padding: 12px 5px;
+  max-height: 200px;
   overflow-y: auto;
-  min-width: 320px;
-  box-shadow: 0 4px 20px #000a;
+  min-width: 90px;
 }
 .actor-item {
   display: flex;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 2px solid #222;
-  transition: background 0.17s;
+  border-bottom: 1px solid #223e4e;
+  padding: 6px 0;
   cursor: pointer;
+  font-size: 0.97rem;
+  color: #21e9fc;
 }
 .actor-item:last-child { border-bottom: none; }
 .actor-img {
-  width: 48px;
-  height: 48px;
+  width: 26px; height: 26px;
   border-radius: 50%;
-  object-fit: cover;
   background: #f0f8ff;
-  margin-right: 20px;
-  border: 2px solid #21e9fc;
+  margin-right: 8px;
+  border: 1px solid #21e9fc;
+  object-fit: cover;
 }
 .actor-name {
   color: #21e9fc;
-  font-size: 1.34rem;
+  font-size: 0.98rem;
   font-weight: bold;
 }
 .actors-close-btn {
   background: #ee3232;
   color: #fff;
   border: none;
-  border-radius: 18px;
-  font-size: 1.15rem;
-  font-weight: bold;
-  padding: 8px 22px;
-  margin: 18px auto 0 auto;
-  display: block;
+  border-radius: 10px;
+  padding: 7px 18px;
+  font-size: 1.07rem;
+  margin-top: 9px;
   cursor: pointer;
-  box-shadow: 0 2px 8px #0008;
+  font-weight: bold;
+  transition: background .13s;
 }
-
-/* Kilépés gomb */
+.actors-close-btn:hover { background: #d62c2c; }
 .exit-btn {
   background: #ee3232;
   color: #fff;
   border: none;
-  border-radius: 18px;
-  font-size: 1.4rem;
-  font-weight: bold;
-  padding: 14px 42px;
-  margin: 28px auto 10px auto;
+  border-radius: 14px;
+  padding: 10px 0;
+  font-size: 1.09rem;
+  margin: 24px auto 11px auto;
   display: block;
+  max-width: 340px;
+  width: 90vw;
   cursor: pointer;
-  box-shadow: 0 2px 8px #0008;
-  letter-spacing: 1.2px;
+  font-weight: bold;
+  transition: background .13s;
 }
+.exit-btn:hover { background: #d62c2c; }
 
 /* Mobil dizájn */
-@media (max-width: 700px) {
-  h1, .main-title { font-size: 2rem; }
-  .menu-btn, .main-btn {
-    font-size: 1.28rem;
-    padding: 8px 10px;
-    min-width: 98px;
-    max-width: 95vw;
-    min-height: 34px;
-    max-height: 44px;
-    margin: 10px 6px;
-  }
-  .film-list-box, .actors-list-row, .admin-box, .pin-box {
-    min-width: 180px;
-    padding: 18px 7vw;
-  }
-  .actors-title { font-size: 1.26rem; }
+@media (max-width: 600px) {
+  h1, .main-title { font-size: 1.13rem; }
+  .menu-btn, .main-btn { font-size: 1rem; padding: 10px 0; }
+  .film-list-title { font-size: 0.91rem; }
+  .exit-btn { font-size: 0.89rem; padding: 8px 0; }
+  .film-list-box, .pin-box, .admin-box, .actors-box { min-width: 80px; }
+}/* == SZÍNÉSZ KÁRTYÁK, OVERLAY - MODERN STÍLUS == */
+.actors-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
+.actors-box {
+  background: #fff;
+  padding: 30px 16px;
+  border-radius: 20px;
+  max-width: 740px;
+  width: 96vw;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.33);
+  text-align: center;
+}
+.actors-title {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 18px;
+  color: #11222a;
+  letter-spacing: 1px;
+}
+.actors-list-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: center;
+  max-height: 58vh;
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+.actor-card {
+  width: 110px;
+  text-align: center;
+  background: #f8fcff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px #bbb3;
+  padding: 8px 5px 14px 5px;
+  transition: transform .12s;
+  cursor: pointer;
+}
+.actor-card:hover {
+  transform: translateY(-5px) scale(1.04);
+  box-shadow: 0 8px 22px #bdf1fc77;
+  background: #e2f3fa;
+}
+.actor-card img {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.actor-card span {
+  display: block;
+  margin-top: 8px;
+  font-weight: bold;
+  font-size: 1rem;
+  color: #23708c;
+  letter-spacing: .5px;
+}
+.actors-close-btn {
+  background: #b3071b;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 24px;
+  cursor: pointer;
+  box-shadow: 0 2px 9px #c14a7c33;
+  margin: 0 auto 0 auto;
+  display: block;
+}
+.actors-close-btn:hover { background: #930617; }
+
 <!-- ========================================================= -->
 <!-- == 3. RÉSZ: FŐ GOMBOK, KATEGÓRIÁK, KILÉPÉS GOMB         == -->
 <!-- ========================================================= -->
 <h1>Filmek Anyunak</h1>
 <div class="menu-grid">
-  <button class="menu-btn" onclick="openCategory('krimi')">Krimi</button>
-  <button class="menu-btn" onclick="openCategory('akcio')">Akció</button>
-  <button class="menu-btn" onclick="openCategory('thriller')">Thriller</button>
-  <button class="menu-btn" onclick="openCategory('kaland')">Kaland</button>
-  <button class="menu-btn" onclick="openCategory('vigjatek')">Vígjáték</button>
-  <button class="menu-btn" onclick="openCategory('sorozatok')">Sorozatok</button>
-  <button class="menu-btn" onclick="openCategory('f')">F</button>
-  <button class="menu-btn" onclick="openCategory('ujfilmek')">Új filmek</button>
-  <button class="menu-btn" onclick="openCategory('thrillertv')">Thriller TV</button>
-  <button class="menu-btn" onclick="openCategory('topfilmek')">Top Filmek</button>
-  <button class="menu-btn" onclick="openCategory('akciotv')">Akció TV</button>
-  <button class="menu-btn" onclick="openCategory('vigjatektv')">Vígjáték TV</button>
-  <button class="menu-btn" onclick="openCategory('beszelgetes')">Beszélgetés</button>
-  <button class="menu-btn" onclick="openActorsList()">Színészek szerint</button>
+  <button class="menu-btn" onclick="openCategory('krimi')" aria-label="Krimi kategória">Krimi</button>
+  <button class="menu-btn" onclick="openCategory('akcio')" aria-label="Akció kategória">Akció</button>
+  <button class="menu-btn" onclick="openCategory('thriller')" aria-label="Thriller kategória">Thriller</button>
+  <button class="menu-btn" onclick="openCategory('kaland')" aria-label="Kaland kategória">Kaland</button>
+  <button class="menu-btn" onclick="openCategory('vigjatek')" aria-label="Vígjáték kategória">Vígjáték</button>
+  <button class="menu-btn" onclick="openCategory('sorozatok')" aria-label="Sorozatok kategória">Sorozatok</button>
+  <button class="menu-btn" onclick="openCategory('f')" aria-label="Admin (F) kategória">F</button>
+  <button class="menu-btn" onclick="openCategory('ujfilmek')" aria-label="Új filmek kategória">Új filmek</button>
+  <button class="menu-btn" onclick="openCategory('thrillertv')" aria-label="Thriller TV">Thriller TV</button>
+  <button class="menu-btn" onclick="openCategory('topfilmek')" aria-label="Top Filmek">Top Filmek</button>
+  <button class="menu-btn" onclick="openCategory('akciotv')" aria-label="Akció TV">Akció TV</button>
+  <button class="menu-btn" onclick="openCategory('vigjatektv')" aria-label="Vígjáték TV">Vígjáték TV</button>
+  <button class="menu-btn" onclick="openCategory('beszelgetes')" aria-label="Beszélgetés">Beszélgetés</button>
+  <button class="menu-btn" onclick="openActorsList()" aria-label="Színészek szerint">Színészek szerint</button>
 </div>
-<button class="exit-btn" onclick="logout()">Kilépés mindenből</button>
+<button class="exit-btn" onclick="logout()" aria-label="Kilépés mindenből">Kilépés mindenből</button>
 <!-- ========================================================= -->
 <!-- == 4. RÉSZ: PIN OVERLAY                                 == -->
 <!-- ========================================================= -->
-  <div id="pinOverlay" class="pin-overlay" style="display:none;">
-    <div class="pin-box">
-      <div class="pin-title">Írd be a PIN-kódot a belépéshez</div>
-      <input id="pinInput" class="pin-input" type="password" maxlength="8" autocomplete="off" autofocus>
-      <div id="pinError" class="pin-error"></div>
-    </div>
+<div id="pinOverlay" class="pin-overlay" style="display:none;">
+  <div class="pin-box">
+    <div class="pin-title">Írd be a PIN-kódot a belépéshez</div>
+    <label for="pinInput" style="position:absolute; left:-9999px;">PIN-kód bevitel</label>
+    <input
+      id="pinInput"
+      class="pin-input"
+      type="password"
+      maxlength="8"
+      autocomplete="off"
+      autofocus
+      aria-label="PIN-kód bevitel"
+      onkeydown="if(event.key==='Enter'){validatePin();}"
+    >
+    <div id="pinError" class="pin-error" role="alert"></div>
+    <button type="button" class="exit-btn" onclick="hidePinOverlay()" style="margin-top:18px;">Kilépés</button>
   </div>
+</div>
 <!-- ========================================================= -->
 <!-- == 5. RÉSZ: FILMLISTA MODAL OVERLAY                      == -->
 <!-- ========================================================= -->
-  <div id="filmListOverlay" class="film-list-overlay" style="display:none;">
-    <div class="film-list-box">
-      <div id="filmListTitle" class="film-list-title"></div>
-      <div id="filmListBody" class="film-list"></div>
-      <button class="film-list-close" onclick="closeFilmList()">Bezárás</button>
+<div id="filmListOverlay" class="film-list-overlay" style="display:none;">
+  <div class="film-list-box">
+    <h2 id="filmListTitle" class="film-list-title"></h2>
+    <div id="filmListBody" class="film-list"></div>
+    <button class="film-list-close" onclick="closeFilmList()" aria-label="Bezárás">Bezárás</button>
+  </div>
+</div>
+<!-- ========================================================= -->
+<!-- == 6. RÉSZ: SZÍNÉSZEK OVERLAY, KÉPEK (KÁRTYA STÍLUS)    == -->
+<!-- ========================================================= -->
+<div id="actorsOverlay" class="actors-overlay" style="display:none;">
+  <div class="actors-box">
+    <div class="actors-title">Színészek szerint</div>
+    <div class="actors-list-row" id="actorsList"></div>
+    <button class="actors-close-btn" onclick="closeActorsList()" aria-label="Színészek listájának bezárása">Bezárás</button>
+  </div>
+</div>
+<!-- ========================================================= -->
+<!-- == 7. RÉSZ: ADMIN FELTÖLTŐ OVERLAY + FUNKCIÓK           == -->
+<!-- ========================================================= -->
+
+<!-- ======= HTML ======= -->
+<div id="adminOverlay" class="pin-overlay" style="display:none;">
+  <div class="pin-box">
+    <div class="pin-title">Admin PIN a feltöltéshez</div>
+    <input id="adminPinInput" class="pin-input" type="password" maxlength="8" autocomplete="off" placeholder="Admin PIN">
+    <button onclick="checkAdminPin()" style="margin:14px 0 6px 0;padding:8px 30px;border-radius:12px;background:#24eaff;color:#222;border:none;font-weight:bold;font-size:1.17rem;cursor:pointer;">Belépés</button>
+    <div id="adminPinError" class="pin-error"></div>
+    <div id="adminUploadSection" style="margin-top:30px;display:none;">
+      <select id="uploadCategory" style="padding:6px;font-size:1rem;margin-bottom:14px;">
+        <option value="krimi">Krimi</option>
+        <option value="akcio">Akció</option>
+        <option value="thriller">Thriller</option>
+        <option value="kaland">Kaland</option>
+        <option value="vigjatek">Vígjáték</option>
+        <option value="sorozatok">Sorozatok</option>
+        <option value="ujfilmek">Új filmek</option>
+        <option value="thrillertv">Thriller TV</option>
+        <option value="topfilmek">Top Filmek</option>
+        <option value="akciotv">Akció TV</option>
+        <option value="vigjatektv">Vígjáték TV</option>
+      </select>
+      <input id="uploadFilmTitle" style="padding:7px;font-size:1rem;" placeholder="Film címe"><br>
+      <input id="uploadFilmUrl" style="padding:7px;font-size:1rem;margin-top:10px;" placeholder="YouTube/Videa link"><br>
+      <button onclick="uploadFilm()" style="margin:13px 0 0 0;padding:8px 30px;border-radius:12px;background:#24eaff;color:#222;border:none;font-weight:bold;font-size:1.17rem;cursor:pointer;">Mentés</button>
+      <div id="uploadSuccess" style="margin-top:18px;color:#0c9b00;font-size:1rem;"></div>
     </div>
   </div>
-<!-- ========================================================= -->
-<!-- == 6. RÉSZ: SZÍNÉSZEK OVERLAY, KÉPEK                    == -->
-<!-- ========================================================= -->
-  <div id="actorsOverlay" class="actors-overlay" style="display:none;">
-    <div class="actors-modal">
-      <div class="actors-title">Színészek szerint</div>
-      <div class="actors-list-row" id="actorsList"></div>
-      <button class="actors-close-btn" onclick="closeActorsList()">Bezárás</button>
-    </div>
-  </div>
-<!-- ========================================================= -->
-<!-- == 7. RÉSZ: ADMIN FELTÖLTŐ OVERLAY                       == -->
-<!-- ========================================================= -->
-  <div id="adminOverlay" class="pin-overlay" style="display:none;">
-    <div class="pin-box">
-      <div class="pin-title">Admin PIN a feltöltéshez</div>
-      <input id="adminPinInput" class="pin-input" type="password" maxlength="8" autocomplete="off">
-      <button onclick="checkAdminPin()" style="margin:14px 0 6px 0;padding:8px 30px;border-radius:12px;background:#24eaff;color:#222;border:none;font-weight:bold;font-size:1.17rem;cursor:pointer;">Belépés</button>
-      <div id="adminPinError" class="pin-error"></div>
-      <div id="adminUploadSection" style="margin-top:30px;display:none;">
-        <select id="uploadCategory" style="padding:6px;font-size:1rem;margin-bottom:14px;">
-          <option value="krimi">Krimi</option>
-          <option value="akcio">Akció</option>
-          <option value="thriller">Thriller</option>
-          <option value="kaland">Kaland</option>
-          <option value="vigjatek">Vígjáték</option>
-          <option value="sorozatok">Sorozatok</option>
-          <option value="ujfilmek">Új filmek</option>
-          <option value="thrillertv">Thriller TV</option>
-          <option value="topfilmek">Top Filmek</option>
-          <option value="akciotv">Akció TV</option>
-          <option value="vigjatektv">Vígjáték TV</option>
-        </select>
-        <input id="uploadFilmTitle" style="padding:7px;font-size:1rem;" placeholder="Film címe"><br>
-        <input id="uploadFilmUrl" style="padding:7px;font-size:1rem;margin-top:10px;" placeholder="YouTube/Videa link"><br>
-        <button onclick="uploadFilm()" style="margin:13px 0 0 0;padding:8px 30px;border-radius:12px;background:#24eaff;color:#222;border:none;font-weight:bold;font-size:1.17rem;cursor:pointer;">Mentés</button>
-        <div id="uploadSuccess" style="margin-top:18px;color:#0c9b00;font-size:1rem;"></div>
-      </div>
-    </div>
-  </div>
+</div>
+
+<!-- ======= CSS (tedd a 2. rész végére, ha még nincs!) ======= -->
+<style>
+#adminOverlay { z-index: 300; }
+#adminUploadSection select,
+#adminUploadSection input {
+  border: 1.7px solid #21e9fc;
+  border-radius: 10px;
+  margin-bottom: 7px;
+  width: 92%;
+  outline: none;
+}
+#adminUploadSection input:focus,
+#adminUploadSection select:focus {
+  border-color: #24eaff;
+  background: #f2fcff;
+}
+#adminUploadSection button {
+  transition: background 0.18s;
+}
+#adminUploadSection button:hover {
+  background: #1dc0cc;
+}
+</style>
+
+<!-- ======= JAVASCRIPT (a fő <script> blokkba, pl. az oldal végére!) ======= -->
+<script>
+// =========================================================
+// == ADMIN FELTÖLTŐ OVERLAY FUNKCIÓK                      ==
+// =========================================================
+
+// 1. Admin PIN validáció és feltöltő szekció nyitása
+function checkAdminPin() {
+  const correctPin = "2014"; // Itt állítsd be az admin PIN-t!
+  const input = document.getElementById("adminPinInput").value;
+  const errorDiv = document.getElementById("adminPinError");
+  const uploadSection = document.getElementById("adminUploadSection");
+
+  if (input === "") {
+    errorDiv.textContent = "Kérlek, add meg a PIN kódot!";
+    errorDiv.style.color = "#b3071b";
+    uploadSection.style.display = "none";
+    return;
+  }
+
+  if (input === correctPin) {
+    errorDiv.textContent = "";
+    uploadSection.style.display = "block";
+    setTimeout(() => document.getElementById("uploadFilmTitle").focus(), 50);
+  } else {
+    errorDiv.textContent = "Hibás PIN kód!";
+    errorDiv.style.color = "#b3071b";
+    uploadSection.style.display = "none";
+    // Animált hiba: villogás
+    errorDiv.animate([
+      { color: "#b3071b" },
+      { color: "#fff" },
+      { color: "#b3071b" }
+    ], { duration: 400, iterations: 2 });
+  }
+}
+
+// 2. Film feltöltés kezelése
+function uploadFilm() {
+  const category = document.getElementById("uploadCategory").value;
+  const title = document.getElementById("uploadFilmTitle").value.trim();
+  const url = document.getElementById("uploadFilmUrl").value.trim();
+  const successDiv = document.getElementById("uploadSuccess");
+
+  if (!title || !url) {
+    successDiv.style.color = "#b3071b";
+    successDiv.textContent = "Kérlek, töltsd ki a film címét és linkjét!";
+    return;
+  }
+
+  // Helyi tárolásba mentés (localStorage)
+  let key = "cat_" + category;
+  let films = [];
+  try {
+    films = JSON.parse(localStorage.getItem(key)) || [];
+  } catch {}
+  films.unshift({ title: title, url: url, uj: true }); // újként jelölés
+  localStorage.setItem(key, JSON.stringify(films));
+  successDiv.style.color = "#0c9b00";
+  successDiv.textContent = `Sikeresen mentve: "${title}" (${category})`;
+
+  // Mezők törlése
+  document.getElementById("uploadFilmTitle").value = "";
+  document.getElementById("uploadFilmUrl").value = "";
+
+  // Gombon jelzés, hogy van új (badge frissítés)
+  if (typeof setBadge === 'function') setBadge(category, films.filter(f=>f.uj).length);
+}
+</script>
 <!-- ========================================================= -->
 <!-- == 8. RÉSZ: JAVASCRIPT – MINDEN FUNKCIÓ, SZÁMOZVA!      == -->
 <!-- ========================================================= -->
@@ -432,49 +545,92 @@ h1, .main-title {
     location.reload();
   }
 
-  // ==== 8.2 KATEGÓRIÁK, FILMLISTA ====
-  function openCategory(cat) {
-    if (!localStorage.getItem("filmek_anyunak_access")) { showPinOverlay(); return; }
-    if (cat === "beszelgetes") {
-      showFilmList("Beszélgetés", [ {title: "ChatGPT", url: "https://chat.openai.com/", uj: false} ]);
-      return;
-    }
-    let titleMap = {
-      krimi: "Krimi filmek", akcio: "Akció filmek", thriller: "Thriller filmek", kaland: "Kaland filmek",
-      vigjatek: "Vígjátékok", sorozatok: "Sorozatok", ujfilmek: "Új filmek", thrillertv: "Thriller TV",
-      topfilmek: "Top Filmek", akciotv: "Akció TV", vigjatektv: "Vígjáték TV"
-    };
-    let stored = localStorage.getItem("cat_"+cat) || "[]";
-    let list = JSON.parse(stored);
-    showFilmList(titleMap[cat] || cat, list);
-    // jelöljük az összes "új" státuszt nézettnek
-    list.forEach(f => f.uj = false);
-    localStorage.setItem("cat_" + cat, JSON.stringify(list));
-  }
-  function showFilmList(title, list) {
-    document.getElementById("filmListOverlay").style.display = "";
-    document.getElementById("filmListTitle").textContent = title;
-    let html = "";
-    if (!list.length) {
-      html = `<div>Nincs feltöltött film ebben a kategóriában.</div>`;
-    } else {
-      html = '<ul class="film-list">';
-      list.forEach((film, idx) => {
-        html += `
-          <li class="film-list-item">
-            <a href="${film.url}" target="_blank">${film.title}</a>
-          </li>
-        `;
-      });
-      html += "</ul>";
-    }
-    document.getElementById("filmListBody").innerHTML = html;
-  }
-  function closeFilmList() {
-    document.getElementById("filmListOverlay").style.display = "none";
-    document.getElementById("filmListBody").innerHTML = "";
-  }
+// ==== 8.2 KATEGÓRIÁK, FILMLISTA (javított) ====
 
+// Kategória címek (ide most betesszük az "f"-et is)
+const titleMap = {
+  krimi: "Krimi filmek",
+  akcio: "Akció filmek",
+  thriller: "Thriller filmek",
+  kaland: "Kaland filmek",
+  vigjatek: "Vígjátékok",
+  sorozatok: "Sorozatok",
+  ujfilmek: "Új filmek",
+  thrillertv: "Thriller TV",
+  topfilmek: "Top Filmek",
+  akciotv: "Akció TV",
+  vigjatektv: "Vígjáték TV",
+  beszelgetes: "Beszélgetés",
+  f: "Admin feltöltések"
+};
+
+// (opcionális) Kategóriagombok automatikus létrehozása
+// Ezt CSAK AKKOR tedd be, ha szeretnéd, hogy automatikusan generálódjanak a gombok a titleMap-ből
+/*
+function renderCategoryButtons() {
+  const container = document.querySelector(".menu-grid");
+  container.innerHTML = ""; // Ürítsd ki előbb!
+  Object.keys(titleMap).forEach(cat => {
+    const btn = document.createElement("button");
+    btn.className = "menu-btn";
+    btn.textContent = titleMap[cat];
+    btn.onclick = () => openCategory(cat);
+    btn.setAttribute("aria-label", titleMap[cat]);
+    container.appendChild(btn);
+  });
+}
+// A HTML-ben a menu-grid legyen üres <div class="menu-grid"></div>
+// ...és a DOMContentLoaded-nál hívd meg: renderCategoryButtons();
+*/
+
+function openCategory(cat) {
+  if (!localStorage.getItem("filmek_anyunak_access")) { showPinOverlay(); return; }
+  if (cat === "beszelgetes") {
+    showFilmList("Beszélgetés", [ {title: "ChatGPT", url: "https://chat.openai.com/", uj: false} ]);
+    return;
+  }
+  let stored = localStorage.getItem("cat_"+cat) || "[]";
+  let list = JSON.parse(stored);
+
+  // 🔎 Filmek ABC sorrendbe
+  list.sort((a, b) => a.title.localeCompare(b.title));
+
+  showFilmList(titleMap[cat] || cat, list);
+
+  // jelöljük az összes "új" státuszt nézettnek
+  list.forEach(f => f.uj = false);
+  localStorage.setItem("cat_" + cat, JSON.stringify(list));
+}
+
+// ---- FILMLISTA MEGJELENÍTÉS/JELZÉS ÚJ FILMRE ----
+function showFilmList(title, list) {
+  document.getElementById("filmListOverlay").style.display = "";
+  document.getElementById("filmListTitle").textContent = title;
+  let html = "";
+  if (!list.length) {
+    html = `<div>Nincs feltöltött film ebben a kategóriában.</div>`;
+  } else {
+    html = '<ul class="film-list">';
+    list.forEach((film, idx) => {
+      html += `
+        <li class="film-list-item${film.uj ? ' uj-film' : ''}">
+          <a href="${film.url}" target="_blank">${film.title}${film.uj ? ' <span style="color:#d00;font-size:1.2em;">🔥</span>' : ''}</a>
+        </li>
+      `;
+    });
+    html += "</ul>";
+  }
+  document.getElementById("filmListBody").innerHTML = html;
+}
+
+// ---- ÚJ FILM KIEMELÉS CSS-HEZ ----
+// Tedd a CSS-edbe (vagy 2. rész végére):
+/*
+.uj-film a {
+  font-weight: bold;
+  color: #d00;
+}
+*/
   // ==== 8.3 SZÍNÉSZEK LISTA, KÉPEK ====
   const actorsData = [
     // Expendables, + sajátjaid (ABC-sorrend)
@@ -534,55 +690,75 @@ h1, .main-title {
     closeActorsList();
   }
 
-  // ==== 8.4 ADMIN FELTÖLTŐ ====
-  function openAdminUpload() {
-    if (!localStorage.getItem("filmek_anyunak_access")) { showPinOverlay(); return; }
-    document.getElementById("adminOverlay").style.display = "";
-    document.getElementById("adminPinInput").value = "";
-    document.getElementById("adminPinError").textContent = "";
+// ==== 8.4 ADMIN FELTÖLTŐ (modernizált) ====
+function openAdminUpload() {
+  if (!localStorage.getItem("filmek_anyunak_access")) { showPinOverlay(); return; }
+  document.getElementById("adminOverlay").style.display = "";
+  document.getElementById("adminPinInput").value = "";
+  document.getElementById("adminPinError").textContent = "";
+  document.getElementById("adminUploadSection").style.display = "none";
+  document.getElementById("uploadSuccess").textContent = "";
+}
+
+function checkAdminPin() {
+  const pin = document.getElementById("adminPinInput").value.trim();
+  if (!pin) {
+    document.getElementById("adminPinError").textContent = "Kérlek, add meg a PIN kódot!";
     document.getElementById("adminUploadSection").style.display = "none";
-    document.getElementById("uploadSuccess").textContent = "";
+    return;
   }
-  function checkAdminPin() {
-    const pin = document.getElementById("adminPinInput").value.trim();
-    if (pin === ADMIN_PIN) {
-      document.getElementById("adminPinError").textContent = "";
-      document.getElementById("adminUploadSection").style.display = "";
-    } else {
-      document.getElementById("adminPinError").textContent = "Hibás admin PIN!";
-      document.getElementById("adminUploadSection").style.display = "none";
-    }
+  if (pin === ADMIN_PIN) {
+    document.getElementById("adminPinError").textContent = "";
+    document.getElementById("adminUploadSection").style.display = "";
+  } else {
+    document.getElementById("adminPinError").textContent = "Hibás admin PIN!";
+    document.getElementById("adminUploadSection").style.display = "none";
   }
-  function uploadFilm() {
-    const cat = document.getElementById("uploadCategory").value;
-    const title = document.getElementById("uploadFilmTitle").value.trim();
-    const url = document.getElementById("uploadFilmUrl").value.trim();
-    if (!title || !url) {
-      document.getElementById("uploadSuccess").textContent = "Adj meg címet és linket!";
-      return;
-    }
-    let stored = localStorage.getItem("cat_" + cat) || "[]";
-    let list = JSON.parse(stored);
-    list.push({title, url, uj:true});
-    localStorage.setItem("cat_" + cat, JSON.stringify(list));
-    document.getElementById("uploadSuccess").textContent = "Film mentve!";
-    document.getElementById("uploadFilmTitle").value = "";
-    document.getElementById("uploadFilmUrl").value = "";
+}
+
+function uploadFilm() {
+  const cat = document.getElementById("uploadCategory").value;
+  const title = document.getElementById("uploadFilmTitle").value.trim();
+  const url = document.getElementById("uploadFilmUrl").value.trim();
+  const msgDiv = document.getElementById("uploadSuccess");
+
+  if (!title || !url) {
+    msgDiv.textContent = "Adj meg címet és linket!";
+    msgDiv.style.color = "#b3071b";
+    return;
+  }
+  let stored = localStorage.getItem("cat_" + cat) || "[]";
+  let list = JSON.parse(stored);
+
+  // Ellenőrzés, hogy ugyanaz a film ne legyen többször
+  if (list.some(f => f.title === title && f.url === url)) {
+    msgDiv.textContent = "Ez a film már fel van töltve!";
+    msgDiv.style.color = "#b3071b";
+    return;
   }
 
-  // ==== 8.5 BILLENTYŰ FIGYELÉS ====
-  document.addEventListener("keydown", function(e){
-    if(e.key==="Escape"){
-      document.getElementById("filmListOverlay").style.display="none";
-      document.getElementById("actorsOverlay").style.display="none";
-      document.getElementById("pinOverlay").style.display="none";
-      document.getElementById("adminOverlay").style.display="none";
-    }
-  });
-  document.getElementById("adminPinInput").addEventListener("keyup", function(e){
+  list.push({title, url, uj:true});
+  localStorage.setItem("cat_" + cat, JSON.stringify(list));
+  msgDiv.textContent = "Film mentve!";
+  msgDiv.style.color = "#0c9b00";
+  document.getElementById("uploadFilmTitle").value = "";
+  document.getElementById("uploadFilmUrl").value = "";
+}
+// ==== 8.5 BILLENTYŰ FIGYELÉS ====
+document.addEventListener("keydown", function(e){
+  if(e.key==="Escape"){
+    document.getElementById("filmListOverlay").style.display="none";
+    document.getElementById("actorsOverlay").style.display="none";
+    document.getElementById("pinOverlay").style.display="none";
+    document.getElementById("adminOverlay").style.display="none";
+  }
+});
+
+// Csak ha létezik ilyen input!
+let adminPinInput = document.getElementById("adminPinInput");
+if (adminPinInput) {
+  adminPinInput.addEventListener("keyup", function(e){
     if (e.key === "Enter") checkAdminPin();
     else document.getElementById("adminPinError").textContent = "";
   });
-</script>
-</body>
-</html>
+}
