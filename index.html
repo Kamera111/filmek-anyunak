@@ -392,10 +392,8 @@ h1, .main-title {
   </div>
 </div>
 <!-- ========================================================= -->
-<!-- == 7. RÉSZ: ADMIN FELTÖLTŐ OVERLAY + FUNKCIÓK           == -->
+<!-- == 7. RÉSZ: ADMIN FELTÖLTŐ OVERLAY                       == -->
 <!-- ========================================================= -->
-
-<!-- ======= HTML ======= -->
 <div id="adminOverlay" class="pin-overlay" style="display:none;">
   <div class="pin-box">
     <div class="pin-title">Admin PIN a feltöltéshez</div>
@@ -420,10 +418,10 @@ h1, .main-title {
       <input id="uploadFilmUrl" style="padding:7px;font-size:1rem;margin-top:10px;" placeholder="YouTube/Videa link"><br>
       <button onclick="uploadFilm()" style="margin:13px 0 0 0;padding:8px 30px;border-radius:12px;background:#24eaff;color:#222;border:none;font-weight:bold;font-size:1.17rem;cursor:pointer;">Mentés</button>
       <div id="uploadSuccess" style="margin-top:18px;color:#0c9b00;font-size:1rem;"></div>
+      <button class="exit-btn" onclick="location.reload();">Vissza a főoldalra</button>
     </div>
   </div>
 </div>
-
 <!-- ======= CSS (tedd a 2. rész végére, ha még nincs!) ======= -->
 <style>
 #adminOverlay { z-index: 300; }
