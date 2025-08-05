@@ -613,13 +613,24 @@ function showFilmList(title, list) {
     list.forEach((film, idx) => {
       html += `
         <li class="film-list-item${film.uj ? ' uj-film' : ''}">
-          <a href="${film.url}" target="_blank">${film.title}${film.uj ? ' <span style="color:#d00;font-size:1.2em;">🔥</span>' : ''}</a>
+          <a href="${film.url}" target="_blank" onclick="closeFilmList()">${film.title}${film.uj ? ' <span style=&quot;color:#d00;font-size:1.2em;&quot;>🔥</span>' : ''}</a>
         </li>
       `;
     });
     html += "</ul>";
   }
   document.getElementById("filmListBody").innerHTML = html;
+}
+
+// ---- FILMLISTA OVERLAY BEZÁRÁS ----
+function closeFilmList() {
+  const filmOverlay = document.getElementById("filmListOverlay");
+  const filmListBody = document.getElementById("filmListBody");
+  if (filmOverlay) filmOverlay.style.display = "none";
+  if (filmListBody) filmListBody.innerHTML = "";
+  if (document.querySelector('.menu-btn')) {
+    document.querySelector('.menu-btn').focus();
+  }
 }
 // ==== 8.3 SZÍNÉSZEK LISTA, KÉPEK (kattintható, IMDB demóval) ====
 
