@@ -1,334 +1,618 @@
-<!-- ========================================================= -->
-<!-- == 1. RÉSZ: HTML, FEJLÉC, ALAP BEÁLLÍTÁSOK               == -->
-<!-- ========================================================= -->
-<!DOCTYPE html>
-<html lang="hu">
+<!-- 1. RÉSZ: HTML FEJLÉC, ALAPOK -->
+<!DOCTYPE html> <!-- Dokumentum típusa: HTML5 -->
+<html lang="hu"> <!-- Oldal nyelve: magyar -->
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Filmek Anyunak</title>
-  <style>
-/* ========================================================= */
-/* == 2. RÉSZ: ALAP CSS, STÍLUSOK, MOBIL DIZÁJN           == */
-/* ========================================================= */
-
-/* Alap háttér, szín */
-body {
-  background: #11222a;
-  color: #21e9fc;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  font-size: 16px;
-  margin: 0;
-  min-height: 100vh;
-}
-
-/* Főcím */
-h1, .main-title {
-  color: #21e9fc;
-  font-size: 2.1rem;
-  margin: 32px 0 28px 0;
-  text-align: center;
-  font-weight: bold;
-  text-shadow: 0 2px 12px #00101880;
-}
-
-/* ======== FŐ GOMBOK ======== */
-.menu-btn, .main-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.13rem;
-  font-weight: bold;
-  color: #27e9ff;
-  background: #11242e;
-  border: none;
-  border-radius: 18px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-  margin: 8px 6px;
-  cursor: pointer;
-  padding: 8px 0;
-  width: 100%;
-  max-width: 270px;
-  min-height: 36px;
-}
-
-.menu-btn.selected, .main-btn.selected,
-.menu-btn:active, .main-btn:active {
-  background: #27e9ff;
-  color: #11242e;
-}
-
-.menu-btn:focus, .main-btn:focus {
-  outline: 2px solid #21e9fc;
-}
-
-/* Badge (új filmek jelzés) */
-.badge {
-  background: #ee3232;
-  color: #fff;
-  font-weight: bold;
-  font-size: 1rem;
-  padding: 1px 7px;
-  border-radius: 14px;
-  margin-left: 10px;
-  vertical-align: middle;
-  display: inline-block;
-}
-
-/* ======== GRID ELRENDEZÉS A FŐ GOMBOKNAK ======== */
-.menu-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 12px;
-  margin: 0 auto 18px auto;
-  max-width: 620px;
-  padding: 0 12px;
-}
-
-/* Film lista overlay */
-.film-list-overlay {
-  position: fixed;
-  z-index: 100;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: #000b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.film-list-box {
-  background: #182933;
-  border-radius: 16px;
-  padding: 20px 12px 14px 12px;
-  min-width: 220px;
-  max-width: 96vw;
-  box-shadow: 0 4px 24px #000b;
-  text-align: center;
-}
-
-.film-list-title {
-  color: #21e9fc;
-  font-size: 1.12rem;
-  font-weight: bold;
-  margin-bottom: 12px;
-}
-
-/* Film lista felsorolás */
-.film-list {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-  max-height: 340px;
-  overflow-y: auto;
-}
-.film-list-item {
-  margin: 0;
-  border-bottom: 1px solid #202e38;
-  padding: 7px 0;
-}
-.film-list-item:last-child { border-bottom: none; }
-.film-list-item a {
-  color: #27e9ff;
-  text-decoration: none;
-  font-size: 0.98rem;
-  transition: color .2s;
-}
-.film-list-item a:hover {
-  color: #21e9fc;
-}
-
-/* PIN/ADMIN/SZÍNÉSZ OVERLAY-K STÍLUSAI */
-.pin-overlay, .admin-overlay, .actors-overlay {
-  position: fixed;
-  z-index: 200;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: #000d;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pin-box, .admin-box, .actors-box {
-  background: #fff;
-  color: #222;
-  border-radius: 22px;
-  min-width: 160px;
-  max-width: 98vw;
-  padding: 14px 9px 10px 9px;
-  box-shadow: 0 4px 24px #000c;
-  text-align: center;
-}
-.pin-title, .admin-cím, .actors-title {
-  font-size: 1.13rem;
-  color: #21e9fc;
-  margin-bottom: 12px;
-  font-weight: bold;
-}
-.pin-input, .admin-input {
-  font-size: 1.09rem;
-  padding: 7px 14px;
-  border-radius: 12px;
-  border: 2px solid #27e9ff;
-  margin-bottom: 11px;
-  width: 82%;
-  outline: none;
-  text-align: center;
-}
-.pin-input:focus, .admin-input:focus { border-color: #21e9fc; }
-
-.actors-list-row {
-  background: #11242e;
-  border-radius: 14px;
-  padding: 12px 5px;
-  max-height: 200px;
-  overflow-y: auto;
-  min-width: 90px;
-}
-.actor-item {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #223e4e;
-  padding: 6px 0;
-  cursor: pointer;
-  font-size: 0.97rem;
-  color: #21e9fc;
-}
-.actor-item:last-child { border-bottom: none; }
-.actor-img {
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  background: #f0f8ff;
-  margin-right: 8px;
-  border: 1px solid #21e9fc;
-  object-fit: cover;
-}
-.actor-name {
-  color: #21e9fc;
-  font-size: 0.98rem;
-  font-weight: bold;
-}
-.actors-close-btn {
-  background: #ee3232;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 7px 18px;
-  font-size: 1.07rem;
-  margin-top: 9px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background .13s;
-}
-.actors-close-btn:hover { background: #d62c2c; }
-.exit-btn {
-  background: #ee3232;
-  color: #fff;
-  border: none;
-  border-radius: 14px;
-  padding: 10px 0;
-  font-size: 1.09rem;
-  margin: 24px auto 11px auto;
-  display: block;
-  max-width: 340px;
-  width: 90vw;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background .13s;
-}
-.exit-btn:hover { background: #d62c2c; }
-
-/* Mobil dizájn */
-@media (max-width: 600px) {
-  h1, .main-title { font-size: 1.13rem; }
-  .menu-btn, .main-btn { font-size: 1rem; padding: 10px 0; }
-  .film-list-title { font-size: 0.91rem; }
-  .exit-btn { font-size: 0.89rem; padding: 8px 0; }
-  .film-list-box, .pin-box, .admin-box, .actors-box { min-width: 80px; }
-}
-
-/* ========== Színészkártyák modern stílus ========== */
-.actors-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-.actors-box {
-  background: #fff;
-  padding: 30px 16px;
-  border-radius: 20px;
-  max-width: 740px;
-  width: 96vw;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.33);
-  text-align: center;
-}
-.actors-title {
-  font-size: 1.3rem;
-  font-weight: bold;
-  margin-bottom: 18px;
-  color: #11222a;
-  letter-spacing: 1px;
-}
-.actors-list-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px;
-  justify-content: center;
-  max-height: 58vh;
-  overflow-y: auto;
-  margin-bottom: 20px;
-}
-.actor-card {
-  width: 110px;
-  text-align: center;
-  background: #f8fcff;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px #bbb3;
-  padding: 8px 5px 14px 5px;
-  transition: transform .12s;
-  cursor: pointer;
-}
-.actor-card:hover {
-  transform: translateY(-5px) scale(1.04);
-  box-shadow: 0 8px 22px #bdf1fc77;
-  background: #e2f3fa;
-}
-.actor-card img {
-  width: 74px;
-  height: 74px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-}
-.actor-card span {
-  display: block;
-  margin-top: 8px;
-  font-weight: bold;
-  font-size: 1rem;
-  color: #23708c;
-  letter-spacing: .5px;
-}
-.actors-close-btn {
-  background: #b3071b;
-  color: #fff;
-  font-size: 1rem;
-  font-weight: bold;
-  border: none;
-  border-radius: 12px;
-  padding: 10px 24px;
-  cursor: pointer;
-  box-shadow: 0 2px 9px #c14a7c33;
-  margin: 0 auto 0 auto;
-  display: block;
-}
-.actors-close-btn:hover { background: #930617; }
-</style>
+  <meta charset="UTF-8"> <!-- Karakterkódolás: ékezetekhez fontos -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Mobilbarát nézet -->
+  <title>Filmek Anyunak</title> <!-- Böngésző címsorban megjelenő cím -->
 </head>
-<body>
+<!-- 2. RÉSZ: ALAP CSS, STÍLUSOK, MOBIL DIZÁJN -->
+<style>
+<!-- 2. RÉSZ: ALAP CSS, STÍLUSOK, MOBIL DIZÁJN -->
+<style>
+  /* ========================================================= */
+  /* == 2.1 Alap háttér, szín == */
+  /* ========================================================= */
+  body {
+    background: #11222a;
+    color: #21e9fc;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+    margin: 0;
+    min-height: 100vh;
+  }
+  /* ===== 2.1 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.2 Főcím == */
+  /* ========================================================= */
+  h1, .main-title {
+    color: #21e9fc;
+    font-size: 2.1rem;
+    margin: 32px 0 28px 0;
+    text-align: center;
+    font-weight: bold;
+    text-shadow: 0 2px 12px #00101880;
+  }
+  /* ===== 2.2 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.3 Fő gombok (kategóriák) == */
+  /* ========================================================= */
+  .menu-btn, .main-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.13rem;
+    font-weight: bold;
+    color: #27e9ff;
+    background: #11242e;
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    margin: 8px 6px;
+    cursor: pointer;
+    padding: 8px 0;
+    width: 100%;
+    max-width: 270px;
+    min-height: 36px;
+  }
+  .menu-btn.selected, .main-btn.selected,
+  .menu-btn:active, .main-btn:active {
+    background: #27e9ff;
+    color: #11242e;
+  }
+  .menu-btn:focus, .main-btn:focus {
+    outline: 2px solid #21e9fc;
+  }
+  /* ===== 2.3 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.4 Badge (új film jelzés) == */
+  /* ========================================================= */
+  .badge {
+    background: #ee3232;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1rem;
+    padding: 1px 7px;
+    border-radius: 14px;
+    margin-left: 10px;
+    vertical-align: middle;
+    display: inline-block;
+  }
+  /* ===== 2.4 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.5 Fő gombok rács-elrendezés (menu-grid) == */
+  /* ========================================================= */
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin: 0 auto 18px auto;
+    max-width: 620px;
+    padding: 0 12px;
+  }
+  /* ===== 2.5 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.6 Film lista overlay (popup) == */
+  /* ========================================================= */
+  .film-list-overlay {
+    position: fixed;
+    z-index: 100;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #000b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .film-list-box {
+    background: #182933;
+    border-radius: 16px;
+    padding: 20px 12px 14px 12px;
+    min-width: 220px;
+    max-width: 96vw;
+    box-shadow: 0 4px 24px #000b;
+    text-align: center;
+  }
+  .film-list-title {
+    color: #21e9fc;
+    font-size: 1.12rem;
+    font-weight: bold;
+    margin-bottom: 12px;
+  }
+  /* ===== 2.6 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.7 Film lista felsorolás == */
+  /* ========================================================= */
+  .film-list {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+  .film-list-item {
+    margin: 0;
+    border-bottom: 1px solid #202e38;
+    padding: 7px 0;
+  }
+  .film-list-item:last-child { border-bottom: none; }
+  .film-list-item a {
+    color: #27e9ff;
+    text-decoration: none;
+    font-size: 0.98rem;
+    transition: color .2s;
+  }
+  .film-list-item a:hover {
+    color: #21e9fc;
+  }
+  /* ===== 2.7 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.8 PIN/ADMIN/SZÍNÉSZ overlay stílusok == */
+  /* ========================================================= */
+  .pin-overlay, .admin-overlay, .actors-overlay {
+    position: fixed;
+    z-index: 200;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #000d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pin-box, .admin-box, .actors-box {
+    background: #fff;
+    color: #222;
+    border-radius: 22px;
+    min-width: 160px;
+    max-width: 98vw;
+    padding: 14px 9px 10px 9px;
+    box-shadow: 0 4px 24px #000c;
+    text-align: center;
+  }
+  .pin-title, .admin-cím, .actors-title {
+    font-size: 1.13rem;
+    color: #21e9fc;
+    margin-bottom: 12px;
+    font-weight: bold;
+  }
+  .pin-input, .admin-input {
+    font-size: 1.09rem;
+    padding: 7px 14px;
+    border-radius: 12px;
+    border: 2px solid #27e9ff;
+    margin-bottom: 11px;
+    width: 82%;
+    outline: none;
+    text-align: center;
+  }
+  .pin-input:focus, .admin-input:focus { border-color: #21e9fc; }
+  /* ===== 2.8 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.9 Színészkártyák modern stílus == */
+  /* ========================================================= */
+  .actors-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .actors-box {
+    background: #fff;
+    padding: 30px 16px;
+    border-radius: 20px;
+    max-width: 740px;
+    width: 96vw;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.33);
+    text-align: center;
+  }
+  .actors-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 18px;
+    color: #11222a;
+    letter-spacing: 1px;
+  }
+  .actors-list-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    justify-content: center;
+    max-height: 58vh;
+    overflow-y: auto;
+    margin-bottom: 20px;
+  }
+  .actor-card {
+    width: 110px;
+    text-align: center;
+    background: #f8fcff;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px #bbb3;
+    padding: 8px 5px 14px 5px;
+    transition: transform .12s;
+    cursor: pointer;
+  }
+  .actor-card:hover {
+    transform: translateY(-5px) scale(1.04);
+    box-shadow: 0 8px 22px #bdf1fc77;
+    background: #e2f3fa;
+  }
+  .actor-card img {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  .actor-card span {
+    display: block;
+    margin-top: 8px;
+    font-weight: bold;
+    font-size: 1rem;
+    color: #23708c;
+    letter-spacing: .5px;
+  }
+  .actors-close-btn {
+    background: #b3071b;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 24px;
+    cursor: pointer;
+    box-shadow: 0 2px 9px #c14a7c33;
+    margin: 0 auto 0 auto;
+    display: block;
+  }
+  .actors-close-btn:hover { background: #930617; }
+  /* ===== 2.9 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.10 Kilépés/Főoldalra gombok == */
+  /* ========================================================= */
+  .exit-btn {
+    background: #ee3232;
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 10px 0;
+    font-size: 1.09rem;
+    margin: 24px auto 11px auto;
+    display: block;
+    max-width: 340px;
+    width: 90vw;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background .13s;
+  }
+  .exit-btn:hover { background: #d62c2c; }
+  /* ===== 2.10 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.11 Mobil dizájn (media query) == */
+  /* ========================================================= */
+  @media (max-width: 600px) {
+    h1, .main-title { font-size: 1.13rem; }
+    .menu-btn, .main-btn { font-size: 1rem; padding: 10px 0; }
+    .film-list-title { font-size: 0.91rem; }
+    .exit-btn { font-size: 0.89rem; padding: 8px 0; }
+    .film-list-box, .pin-box, .admin-box, .actors-box { min-width: 80px; }
+  }
+  /* ===== 2.11 VÉGE ===== */
+</style>
+
+<!-- 2. RÉSZ: ALAP CSS, STÍLUSOK, MOBIL DIZÁJN -->
+<style>
+  /* ========================================================= */
+  /* == 2.1 Alap háttér, szín == */
+  /* ========================================================= */
+  body {
+    background: #11222a;
+    color: #21e9fc;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+    margin: 0;
+    min-height: 100vh;
+  }
+  /* ===== 2.1 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.2 Főcím == */
+  /* ========================================================= */
+  h1, .main-title {
+    color: #21e9fc;
+    font-size: 2.1rem;
+    margin: 32px 0 28px 0;
+    text-align: center;
+    font-weight: bold;
+    text-shadow: 0 2px 12px #00101880;
+  }
+  /* ===== 2.2 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.3 Fő gombok (kategóriák) == */
+  /* ========================================================= */
+  .menu-btn, .main-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.13rem;
+    font-weight: bold;
+    color: #27e9ff;
+    background: #11242e;
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    margin: 8px 6px;
+    cursor: pointer;
+    padding: 8px 0;
+    width: 100%;
+    max-width: 270px;
+    min-height: 36px;
+  }
+  .menu-btn.selected, .main-btn.selected,
+  .menu-btn:active, .main-btn:active {
+    background: #27e9ff;
+    color: #11242e;
+  }
+  .menu-btn:focus, .main-btn:focus {
+    outline: 2px solid #21e9fc;
+  }
+  /* ===== 2.3 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.4 Badge (új film jelzés) == */
+  /* ========================================================= */
+  .badge {
+    background: #ee3232;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1rem;
+    padding: 1px 7px;
+    border-radius: 14px;
+    margin-left: 10px;
+    vertical-align: middle;
+    display: inline-block;
+  }
+  /* ===== 2.4 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.5 Fő gombok rács-elrendezés (menu-grid) == */
+  /* ========================================================= */
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin: 0 auto 18px auto;
+    max-width: 620px;
+    padding: 0 12px;
+  }
+  /* ===== 2.5 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.6 Film lista overlay (popup) == */
+  /* ========================================================= */
+  .film-list-overlay {
+    position: fixed;
+    z-index: 100;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #000b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .film-list-box {
+    background: #182933;
+    border-radius: 16px;
+    padding: 20px 12px 14px 12px;
+    min-width: 220px;
+    max-width: 96vw;
+    box-shadow: 0 4px 24px #000b;
+    text-align: center;
+  }
+  .film-list-title {
+    color: #21e9fc;
+    font-size: 1.12rem;
+    font-weight: bold;
+    margin-bottom: 12px;
+  }
+  /* ===== 2.6 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.7 Film lista felsorolás == */
+  /* ========================================================= */
+  .film-list {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+  .film-list-item {
+    margin: 0;
+    border-bottom: 1px solid #202e38;
+    padding: 7px 0;
+  }
+  .film-list-item:last-child { border-bottom: none; }
+  .film-list-item a {
+    color: #27e9ff;
+    text-decoration: none;
+    font-size: 0.98rem;
+    transition: color .2s;
+  }
+  .film-list-item a:hover {
+    color: #21e9fc;
+  }
+  /* ===== 2.7 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.8 PIN/ADMIN/SZÍNÉSZ overlay stílusok == */
+  /* ========================================================= */
+  .pin-overlay, .admin-overlay, .actors-overlay {
+    position: fixed;
+    z-index: 200;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #000d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pin-box, .admin-box, .actors-box {
+    background: #fff;
+    color: #222;
+    border-radius: 22px;
+    min-width: 160px;
+    max-width: 98vw;
+    padding: 14px 9px 10px 9px;
+    box-shadow: 0 4px 24px #000c;
+    text-align: center;
+  }
+  .pin-title, .admin-cím, .actors-title {
+    font-size: 1.13rem;
+    color: #21e9fc;
+    margin-bottom: 12px;
+    font-weight: bold;
+  }
+  .pin-input, .admin-input {
+    font-size: 1.09rem;
+    padding: 7px 14px;
+    border-radius: 12px;
+    border: 2px solid #27e9ff;
+    margin-bottom: 11px;
+    width: 82%;
+    outline: none;
+    text-align: center;
+  }
+  .pin-input:focus, .admin-input:focus { border-color: #21e9fc; }
+  /* ===== 2.8 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.9 Színészkártyák modern stílus == */
+  /* ========================================================= */
+  .actors-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .actors-box {
+    background: #fff;
+    padding: 30px 16px;
+    border-radius: 20px;
+    max-width: 740px;
+    width: 96vw;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.33);
+    text-align: center;
+  }
+  .actors-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 18px;
+    color: #11222a;
+    letter-spacing: 1px;
+  }
+  .actors-list-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    justify-content: center;
+    max-height: 58vh;
+    overflow-y: auto;
+    margin-bottom: 20px;
+  }
+  .actor-card {
+    width: 110px;
+    text-align: center;
+    background: #f8fcff;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px #bbb3;
+    padding: 8px 5px 14px 5px;
+    transition: transform .12s;
+    cursor: pointer;
+  }
+  .actor-card:hover {
+    transform: translateY(-5px) scale(1.04);
+    box-shadow: 0 8px 22px #bdf1fc77;
+    background: #e2f3fa;
+  }
+  .actor-card img {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  .actor-card span {
+    display: block;
+    margin-top: 8px;
+    font-weight: bold;
+    font-size: 1rem;
+    color: #23708c;
+    letter-spacing: .5px;
+  }
+  .actors-close-btn {
+    background: #b3071b;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 24px;
+    cursor: pointer;
+    box-shadow: 0 2px 9px #c14a7c33;
+    margin: 0 auto 0 auto;
+    display: block;
+  }
+  .actors-close-btn:hover { background: #930617; }
+  /* ===== 2.9 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.10 Kilépés/Főoldalra gombok == */
+  /* ========================================================= */
+  .exit-btn {
+    background: #ee3232;
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 10px 0;
+    font-size: 1.09rem;
+    margin: 24px auto 11px auto;
+    display: block;
+    max-width: 340px;
+    width: 90vw;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background .13s;
+  }
+  .exit-btn:hover { background: #d62c2c; }
+  /* ===== 2.10 VÉGE ===== */
+
+  /* ========================================================= */
+  /* == 2.11 Mobil dizájn (media query) == */
+  /* ========================================================= */
+  @media (max-width: 600px) {
+    h1, .main-title { font-size: 1.13rem; }
+    .menu-btn, .main-btn { font-size: 1rem; padding: 10px 0; }
+    .film-list-title { font-size: 0.91rem; }
+    .exit-btn { font-size: 0.89rem; padding: 8px 0; }
+    .film-list-box, .pin-box, .admin-box, .actors-box { min-width: 80px; }
+  }
+  /* ===== 2.11 VÉGE ===== */
+</style>
 <!-- ========================================================= -->
 <!-- == 3. RÉSZ: FŐ GOMBOK, KATEGÓRIÁK, KILÉPÉS GOMB         == -->
 <!-- ========================================================= -->
@@ -350,6 +634,7 @@ h1, .main-title {
   <button class="menu-btn" onclick="openActorsList()" aria-label="Színészek szerint">Színészek szerint</button>
 </div>
 <button class="exit-btn" onclick="logout()" aria-label="Kilépés mindenből">Kilépés mindenből</button>
+<!-- ===== 3. RÉSZ VÉGE ===== -->
 
 <!-- ========================================================= -->
 <!-- == 4. RÉSZ: PIN OVERLAY                                 == -->
@@ -372,6 +657,8 @@ h1, .main-title {
     <button type="button" class="exit-btn" onclick="hidePinOverlay()" style="margin-top:18px;">Kilépés</button>
   </div>
 </div>
+<!-- ===== 4. RÉSZ VÉGE ===== -->
+
 <!-- ========================================================= -->
 <!-- == 5. RÉSZ: FILMLISTA MODAL OVERLAY                      == -->
 <!-- ========================================================= -->
@@ -383,6 +670,7 @@ h1, .main-title {
     <button class="exit-btn" onclick="closeFilmListAndGoHome()" aria-label="Vissza a főoldalra" style="margin-top:16px;">Vissza a főoldalra</button>
   </div>
 </div>
+<!-- ===== 5. RÉSZ VÉGE ===== -->
 
 <!-- ========================================================= -->
 <!-- == 6. RÉSZ: SZÍNÉSZEK OVERLAY, KÉPEK (KÁRTYA STÍLUS)    == -->
@@ -394,10 +682,11 @@ h1, .main-title {
     <button class="actors-close-btn" onclick="closeActorsList()" aria-label="Színészek listájának bezárása">Bezárás</button>
   </div>
 </div>
+<!-- ===== 6. RÉSZ VÉGE ===== -->
+
 <!-- ========================================================= -->
 <!-- == 7. RÉSZ: ADMIN FELTÖLTŐ OVERLAY + FUNKCIÓK           == -->
 <!-- ========================================================= -->
-
 <div id="adminOverlay" class="pin-overlay" style="display:none;">
   <div class="pin-box">
     <div class="pin-title" style="color:#12dbff;font-weight:bold;font-size:2rem;margin-bottom:15px;">LÉPJ KI INNEN!</div>
@@ -428,6 +717,7 @@ h1, .main-title {
     </div>
   </div>
 </div>
+<!-- ===== 7. RÉSZ VÉGE ===== -->
 
 <!-- ======= CSS (tedd a 2. rész végére, ha még nincs!) ======= -->
 <style>
@@ -522,23 +812,30 @@ function uploadFilm() {
   if (typeof setBadge === 'function') setBadge(category, films.filter(f=>f.uj).length);
 } 
 </script>
-<!-- ========================================================= -->
-<!-- == 8. RÉSZ: JAVASCRIPT – MINDEN FUNKCIÓ, SZÁMOZVA!      == -->
-<!-- ========================================================= -->
-<script>
-// ==== 8.1 PIN BELÉPÉS (egyszer kér csak PIN-t) ====
+// =========================================================
+// == 8. JAVASCRIPT FŐ FUNKCIÓK – FILMEK ANYUNAK APP      ==
+// =========================================================
+
+// ==== 8.1 PIN BELÉPÉS (Csak egyszer, oldal betöltésekor) ====
+
+// Felhasználói és admin PIN
 const USER_PIN = "1954";
 const ADMIN_PIN = "2014";
 
+// PIN overlay megjelenítése
 function showPinOverlay() {
   document.getElementById("pinOverlay").style.display = "";
   document.getElementById("pinInput").value = "";
   document.getElementById("pinError").textContent = "";
   setTimeout(() => document.getElementById("pinInput").focus(), 200);
 }
+
+// PIN overlay bezárása
 function hidePinOverlay() {
   document.getElementById("pinOverlay").style.display = "none";
 }
+
+// PIN ellenőrzés (csak egyszer, ha nincs access)
 function checkPin() {
   const pin = document.getElementById("pinInput").value.trim();
   if (pin === USER_PIN) {
@@ -548,17 +845,22 @@ function checkPin() {
     document.getElementById("pinError").textContent = "Hibás PIN!";
   }
 }
+
+// Enterre PIN ellenőrzés
 document.getElementById("pinInput").addEventListener("keyup", function(e){
   if (e.key === "Enter") checkPin();
   else document.getElementById("pinError").textContent = "";
 });
+
+// Kilépés mindenből (access törlése, oldal újratöltés)
 function logout() {
   localStorage.removeItem("filmek_anyunak_access");
   location.reload();
 }
 
-// ==== 8.2 KATEGÓRIÁK, FILMLISTA (egyszeri PIN) ====
+// ==== 8.2 KATEGÓRIÁK, FILMLISTA (NEM kér PIN-t, csak legelső belépéskor) ====
 
+// Kategória címek
 const titleMap = {
   krimi: "Krimi filmek",
   akcio: "Akció filmek",
@@ -575,25 +877,26 @@ const titleMap = {
   f: "Admin feltöltések"
 };
 
-// Oldalbetöltéskor: csak akkor kér PIN-t, ha még nincs eltárolva
+// Csak oldalbetöltéskor kér PIN-t, ha nincs access
 window.addEventListener("DOMContentLoaded", () => {
   if (!localStorage.getItem("filmek_anyunak_access")) {
     showPinOverlay();
   }
 });
 
+// Kategória megnyitás (NEM kér PIN-t soha többé!)
 function openCategory(cat) {
-  // F kategória: külön admin PIN overlayt kér
+  // Admin feltöltés ("F") – csak admin PIN!
   if (cat === "f") {
     openAdminUpload();
     return;
   }
-
-  // Minden más kategória: PIN-t soha többet nem kér, ha már be van lépve!
+  // Speciális beszélgetés kategória
   if (cat === "beszelgetes") {
     showFilmList("Beszélgetés", [ {title: "ChatGPT", url: "https://chat.openai.com/", uj: false} ]);
     return;
   }
+  // Normál film kategória megjelenítése
   let stored = localStorage.getItem("cat_"+cat) || "[]";
   let list = JSON.parse(stored);
   list.sort((a, b) => a.title.localeCompare(b.title));
@@ -602,8 +905,30 @@ function openCategory(cat) {
   localStorage.setItem("cat_" + cat, JSON.stringify(list));
 }
 
+// Film lista megjelenítése
+function showFilmList(title, list) {
+  document.getElementById("filmListOverlay").style.display = "";
+  document.getElementById("filmListTitle").textContent = title;
+  let html = "";
+  if (!list.length) {
+    html = `<div>Nincs feltöltött film ebben a kategóriában.</div>`;
+  } else {
+    html = '<ul class="film-list">';
+    list.forEach((film, idx) => {
+      html += `
+        <li class="film-list-item${film.uj ? ' uj-film' : ''}">
+          <a href="${film.url}" target="_blank">${film.title}${film.uj ? ' <span style="color:#d00;font-size:1.2em;">🔥</span>' : ''}</a>
+        </li>
+      `;
+    });
+    html += "</ul>";
+  }
+  document.getElementById("filmListBody").innerHTML = html;
+}
+
 // ==== 8.3 SZÍNÉSZEK LISTA, KÉPEK ====
-// Ezek a képek MIND HTTPS-ről jönnek!
+
+// Példa színész adatbázis (HTTPS képekkel)
 const actorsData = [
   { name: "Bruce Willis", img: "https://upload.wikimedia.org/wikipedia/commons/8/82/Bruce_Willis_2018.jpg" },
   { name: "Chuck Norris", img: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Chuck_Norris_May_2015.jpg" },
@@ -631,6 +956,8 @@ const actorsData = [
   { name: "Wesley Snipes", img: "https://upload.wikimedia.org/wikipedia/commons/c/c2/Wesley_Snipes_2014.jpg" }
 ];
 actorsData.sort((a, b) => a.name.localeCompare(b.name));
+
+// Színész overlay megnyitása
 function openActorsList() {
   document.getElementById("actorsOverlay").style.display = "flex";
   let html = "";
@@ -644,9 +971,13 @@ function openActorsList() {
   });
   document.getElementById("actorsList").innerHTML = html;
 }
+
+// Színész overlay bezárása
 function closeActorsList() {
   document.getElementById("actorsOverlay").style.display = "none";
 }
+
+// Színészre kattintás – filmjei listája
 function showActorFilms(actor) {
   const films = JSON.parse(localStorage.getItem("films_actor_" + actor)) || [];
   let list = films.length
@@ -656,59 +987,68 @@ function showActorFilms(actor) {
   closeActorsList();
 }
 
-  // ==== 8.4 ADMIN FELTÖLTŐ ====
-  function openAdminUpload() {
-    if (!localStorage.getItem("filmek_anyunak_access")) { showPinOverlay(); return; }
-    document.getElementById("adminOverlay").style.display = "";
-    document.getElementById("adminPinInput").value = "";
-    document.getElementById("adminPinError").textContent = "";
+// ==== 8.4 ADMIN FELTÖLTŐ OVERLAY, FUNKCIÓK ====
+
+// Admin overlay megnyitása (csak bejelentkezett usernek)
+function openAdminUpload() {
+  if (!localStorage.getItem("filmek_anyunak_access")) { showPinOverlay(); return; }
+  document.getElementById("adminOverlay").style.display = "";
+  document.getElementById("adminPinInput").value = "";
+  document.getElementById("adminPinError").textContent = "";
+  document.getElementById("adminUploadSection").style.display = "none";
+  document.getElementById("uploadSuccess").textContent = "";
+}
+
+// Admin PIN ellenőrzése, feltöltőmező megjelenítése
+function checkAdminPin() {
+  const pin = document.getElementById("adminPinInput").value.trim();
+  if (!pin) {
+    document.getElementById("adminPinError").textContent = "Kérlek, add meg a PIN kódot!";
     document.getElementById("adminUploadSection").style.display = "none";
-    document.getElementById("uploadSuccess").textContent = "";
+    return;
   }
-  function checkAdminPin() {
-    const pin = document.getElementById("adminPinInput").value.trim();
-    if (!pin) {
-      document.getElementById("adminPinError").textContent = "Kérlek, add meg a PIN kódot!";
-      document.getElementById("adminUploadSection").style.display = "none";
-      return;
-    }
-    if (pin === ADMIN_PIN) {
-      document.getElementById("adminPinError").textContent = "";
-      document.getElementById("adminUploadSection").style.display = "";
-    } else {
-      document.getElementById("adminPinError").textContent = "Hibás admin PIN!";
-      document.getElementById("adminUploadSection").style.display = "none";
-    }
+  if (pin === ADMIN_PIN) {
+    document.getElementById("adminPinError").textContent = "";
+    document.getElementById("adminUploadSection").style.display = "";
+  } else {
+    document.getElementById("adminPinError").textContent = "Hibás admin PIN!";
+    document.getElementById("adminUploadSection").style.display = "none";
   }
-  function uploadFilm() {
-    const cat = document.getElementById("uploadCategory").value;
-    const title = document.getElementById("uploadFilmTitle").value.trim();
-    const url = document.getElementById("uploadFilmUrl").value.trim();
-    const msgDiv = document.getElementById("uploadSuccess");
+}
 
-    if (!title || !url) {
-      msgDiv.textContent = "Adj meg címet és linket!";
-      msgDiv.style.color = "#b3071b";
-      return;
-    }
-    let stored = localStorage.getItem("cat_" + cat) || "[]";
-    let list = JSON.parse(stored);
+// Film feltöltése localStorage-be
+function uploadFilm() {
+  const cat = document.getElementById("uploadCategory").value;
+  const title = document.getElementById("uploadFilmTitle").value.trim();
+  const url = document.getElementById("uploadFilmUrl").value.trim();
+  const msgDiv = document.getElementById("uploadSuccess");
 
-    if (list.some(f => f.title === title && f.url === url)) {
-      msgDiv.textContent = "Ez a film már fel van töltve!";
-      msgDiv.style.color = "#b3071b";
-      return;
-    }
+  if (!title || !url) {
+    msgDiv.textContent = "Adj meg címet és linket!";
+    msgDiv.style.color = "#b3071b";
+    return;
+  }
+  let stored = localStorage.getItem("cat_" + cat) || "[]";
+  let list = JSON.parse(stored);
 
-    list.push({title, url, uj:true});
-    localStorage.setItem("cat_" + cat, JSON.stringify(list));
-    msgDiv.textContent = "Film mentve!";
-    msgDiv.style.color = "#0c9b00";
-    document.getElementById("uploadFilmTitle").value = "";
-    document.getElementById("uploadFilmUrl").value = "";
+  // Ugyanaz a film ne szerepeljen kétszer
+  if (list.some(f => f.title === title && f.url === url)) {
+    msgDiv.textContent = "Ez a film már fel van töltve!";
+    msgDiv.style.color = "#b3071b";
+    return;
   }
 
-// ==== 8.5 BILLENTYŰ FIGYELÉS ====
+  list.push({title, url, uj:true});
+  localStorage.setItem("cat_" + cat, JSON.stringify(list));
+  msgDiv.textContent = "Film mentve!";
+  msgDiv.style.color = "#0c9b00";
+  document.getElementById("uploadFilmTitle").value = "";
+  document.getElementById("uploadFilmUrl").value = "";
+}
+
+// ==== 8.5 ESC és vissza gombok – minden overlayhez ====
+
+// Minden overlay ESC-ra bezárható
 document.addEventListener("keydown", function(e) {
   if (e.key === "Escape") {
     document.getElementById("filmListOverlay").style.display = "none";
@@ -718,14 +1058,11 @@ document.addEventListener("keydown", function(e) {
   }
 });
 
-// ===== VISSZA A FŐOLDALRA GOMB FUNKCIÓK =====
+// "Vissza a főoldalra" gombok funkciója
 function closeFilmListAndGoHome() {
   document.getElementById("filmListOverlay").style.display = "none";
-  // Ha akarod, ide lehet redirectet is tenni a főoldalra.
+  // plusz főoldali logika, ha kell
 }
-
 function closeAdminOverlayAndGoHome() {
   document.getElementById("adminOverlay").style.display = "none";
 }
-</script>
-
