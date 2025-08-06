@@ -596,42 +596,38 @@ function openCategory(cat) {
 }
 
 // ==== 8.3 SZÍNÉSZEK LISTA, KÉPEK ====
+// Ezek a képek MIND HTTPS-ről jönnek!
 const actorsData = [
-  { name: "Jason Statham", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Jason_Statham_2018.jpg/320px-Jason_Statham_2018.jpg" },
-  { name: "Sylvester Stallone", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Sylvester_Stallone_Cannes_2019.jpg/320px-Sylvester_Stallone_Cannes_2019.jpg" },
-  { name: "Jet Li", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Jet_Li_2011.jpg/320px-Jet_Li_2011.jpg" },
-  { name: "Arnold Schwarzenegger", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Arnold_Schwarzenegger_2019.jpg/320px-Arnold_Schwarzenegger_2019.jpg" },
-  { name: "Dolph Lundgren", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Dolph_Lundgren_2012.jpg/320px-Dolph_Lundgren_2012.jpg" },
-  { name: "Randy Couture", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Randy_Couture.jpg/320px-Randy_Couture.jpg" },
-  { name: "Terry Crews", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Terry_Crews_2017.jpg/320px-Terry_Crews_2017.jpg" },
-  { name: "Bruce Willis", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Bruce_Willis_2018.jpg/320px-Bruce_Willis_2018.jpg" },
-  { name: "Jean-Claude Van Damme", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Jean-Claude_Van_Damme_Cannes_2010.jpg/320px-Jean-Claude_Van_Damme_Cannes_2010.jpg" },
-  { name: "Chuck Norris", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Chuck_Norris_May_2015.jpg/320px-Chuck_Norris_May_2015.jpg" },
-  { name: "Mickey Rourke", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Mickey_Rourke_2008.jpg/320px-Mickey_Rourke_2008.jpg" },
-  { name: "Harrison Ford", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Harrison_Ford_2017.jpg/320px-Harrison_Ford_2017.jpg" },
-  { name: "Wesley Snipes", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Wesley_Snipes_2014.jpg/320px-Wesley_Snipes_2014.jpg" },
-  { name: "Antonio Banderas", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Antonio_Banderas_Cannes_2019.jpg/320px-Antonio_Banderas_Cannes_2019.jpg" },
-  { name: "Mel Gibson", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Mel_Gibson_Cannes_2016_2.jpg/320px-Mel_Gibson_Cannes_2016_2.jpg" },
-  { name: "Jessica Alba", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Jessica_Alba_March_2019.jpg/320px-Jessica_Alba_March_2019.jpg" },
-  { name: "Jackie Chan", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Jackie_Chan_2016.jpg/320px-Jackie_Chan_2016.jpg" },
-  { name: "Richard Gere", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Richard_Gere_2017.jpg/320px-Richard_Gere_2017.jpg" },
-  { name: "Patrick Swayze", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Patrick_Swayze_Cannes_1990.jpg/320px-Patrick_Swayze_Cannes_1990.jpg" },
-  { name: "Demi Moore", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Demi_Moore_2019.jpg/320px-Demi_Moore_2019.jpg" },
-  { name: "Alain Delon", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Alain_Delon_Cannes_2019.jpg/320px-Alain_Delon_Cannes_2019.jpg" },
-  { name: "Russell Crowe", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Russell_Crowe_by_Gage_Skidmore_2.jpg/320px-Russell_Crowe_by_Gage_Skidmore_2.jpg" },
-  { name: "Pierre Richard", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Pierre_Richard_2012.jpg/320px-Pierre_Richard_2012.jpg" },
-  { name: "Lucy Liu", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Lucy_Liu_2012_Shankbone.jpg/320px-Lucy_Liu_2012_Shankbone.jpg" },
-  { name: "Bojka", img: "https://vignette.wikia.nocookie.net/villains/images/2/23/Boyka-Undisputed.jpg/revision/latest?cb=20160319134342" },
-  { name: "Wentworth Miller", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Wentworth_Miller_2016.jpg/320px-Wentworth_Miller_2016.jpg" },
-  { name: "Nicolas Cage", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Nicolas_Cage_Deauville_2013.jpg/320px-Nicolas_Cage_Deauville_2013.jpg" },
-  { name: "Nicole Kidman", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Nicole_Kidman_Cannes_2017_2.jpg/320px-Nicole_Kidman_Cannes_2017_2.jpg" }
+  { name: "Bruce Willis", img: "https://upload.wikimedia.org/wikipedia/commons/8/82/Bruce_Willis_2018.jpg" },
+  { name: "Chuck Norris", img: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Chuck_Norris_May_2015.jpg" },
+  { name: "Demi Moore", img: "https://upload.wikimedia.org/wikipedia/commons/e/e7/Demi_Moore_2019.jpg" },
+  { name: "Dolph Lundgren", img: "https://upload.wikimedia.org/wikipedia/commons/e/e3/Dolph_Lundgren_2012.jpg" },
+  { name: "Harrison Ford", img: "https://upload.wikimedia.org/wikipedia/commons/8/88/Harrison_Ford_2017.jpg" },
+  { name: "Jackie Chan", img: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Jackie_Chan_2016.jpg" },
+  { name: "Jason Statham", img: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Jason_Statham_2018.jpg" },
+  { name: "Jean-Claude Van Damme", img: "https://upload.wikimedia.org/wikipedia/commons/4/47/Jean-Claude_Van_Damme_Cannes_2010.jpg" },
+  { name: "Jessica Alba", img: "https://upload.wikimedia.org/wikipedia/commons/7/7e/Jessica_Alba_March_2019.jpg" },
+  { name: "Jet Li", img: "https://upload.wikimedia.org/wikipedia/commons/5/57/Jet_Li_2011.jpg" },
+  { name: "Lucy Liu", img: "https://upload.wikimedia.org/wikipedia/commons/6/62/Lucy_Liu_2012_Shankbone.jpg" },
+  { name: "Mel Gibson", img: "https://upload.wikimedia.org/wikipedia/commons/9/9d/Mel_Gibson_Cannes_2016_2.jpg" },
+  { name: "Mickey Rourke", img: "https://upload.wikimedia.org/wikipedia/commons/1/1e/Mickey_Rourke_2008.jpg" },
+  { name: "Nicolas Cage", img: "https://upload.wikimedia.org/wikipedia/commons/9/95/Nicolas_Cage_Deauville_2013.jpg" },
+  { name: "Nicole Kidman", img: "https://upload.wikimedia.org/wikipedia/commons/9/91/Nicole_Kidman_Cannes_2017_2.jpg" },
+  { name: "Patrick Swayze", img: "https://upload.wikimedia.org/wikipedia/commons/8/86/Patrick_Swayze_Cannes_1990.jpg" },
+  { name: "Pierre Richard", img: "https://upload.wikimedia.org/wikipedia/commons/f/fe/Pierre_Richard_2012.jpg" },
+  { name: "Randy Couture", img: "https://upload.wikimedia.org/wikipedia/commons/8/8e/Randy_Couture.jpg" },
+  { name: "Richard Gere", img: "https://upload.wikimedia.org/wikipedia/commons/6/6c/Richard_Gere_2017.jpg" },
+  { name: "Russell Crowe", img: "https://upload.wikimedia.org/wikipedia/commons/d/dc/Russell_Crowe_by_Gage_Skidmore_2.jpg" },
+  { name: "Sylvester Stallone", img: "https://upload.wikimedia.org/wikipedia/commons/3/32/Sylvester_Stallone_Cannes_2019.jpg" },
+  { name: "Terry Crews", img: "https://upload.wikimedia.org/wikipedia/commons/d/d8/Terry_Crews_2017.jpg" },
+  { name: "Wentworth Miller", img: "https://upload.wikimedia.org/wikipedia/commons/2/24/Wentworth_Miller_2016.jpg" },
+  { name: "Wesley Snipes", img: "https://upload.wikimedia.org/wikipedia/commons/c/c2/Wesley_Snipes_2014.jpg" }
 ];
 actorsData.sort((a, b) => a.name.localeCompare(b.name));
-
 function openActorsList() {
   document.getElementById("actorsOverlay").style.display = "flex";
   let html = "";
-  actorsData.forEach((a, i) => {
+  actorsData.forEach((a) => {
     html += `
       <div class="actor-item" onclick="showActorFilms('${a.name.replace(/'/g,"\\'")}')">
         <img class="actor-img" src="${a.img}" alt="${a.name}">
@@ -641,16 +637,15 @@ function openActorsList() {
   });
   document.getElementById("actorsList").innerHTML = html;
 }
-
 function closeActorsList() {
   document.getElementById("actorsOverlay").style.display = "none";
 }
-
 function showActorFilms(actor) {
-  // Minden színésznél alapból IMDb-re mutató link legyen!
-  showFilmList(actor + " filmjei", [
-    {title: `${actor} filmjei az IMDb-n`, url: "https://www.imdb.com/find/?q=" + encodeURIComponent(actor), uj:false}
-  ]);
+  const films = JSON.parse(localStorage.getItem("films_actor_" + actor)) || [];
+  let list = films.length
+    ? films
+    : [{title: `${actor} filmjei (IMDb)`, url: "https://www.imdb.com/find/?q=" + encodeURIComponent(actor), uj:false}];
+  showFilmList(actor + " filmjei", list);
   closeActorsList();
 }
 
