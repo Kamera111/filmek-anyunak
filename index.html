@@ -399,13 +399,17 @@ function logout() {
   </div>
 </div>
 <!-- ========================================================= -->
-<!-- == 7. RÉSZ: ADMIN FELTÖLTŐ OVERLAY                       == -->
+<!-- == 7. RÉSZ: ADMIN FELTÖLTŐ OVERLAY + FUNKCIÓK           == -->
 <!-- ========================================================= -->
+
 <div id="adminOverlay" class="pin-overlay" style="display:none;">
-  <div class="pin-box">
-    <div class="pin-title">Admin PIN a feltöltéshez</div>
+  <div class="pin-box" style="padding-bottom:20px;">
+    <div class="pin-title" style="margin-bottom:18px;">LÉPJ KI INNEN!</div>
     <input id="adminPinInput" class="pin-input" type="password" maxlength="8" autocomplete="off" placeholder="Admin PIN">
-    <button onclick="checkAdminPin()" style="margin:14px 0 6px 0;padding:8px 30px;border-radius:12px;background:#24eaff;color:#222;border:none;font-weight:bold;font-size:1.17rem;cursor:pointer;">Belépés</button>
+    <div style="display: flex; justify-content: center; gap: 16px; margin-top: 18px;">
+      <button onclick="checkAdminPin()" style="padding:7px 15px 7px 15px; min-width: 34px; border-radius:10px; background:#24eaff;color:#222;border:none;font-weight:bold;font-size:1.13rem;cursor:pointer;">B</button>
+      <button onclick="closeAdminAndGoHome()" style="padding:7px 26px 7px 26px; border-radius:14px; background:#ee3232; color:#fff; font-size:1.13rem; font-weight:bold; border:none; cursor:pointer;">Vissza a Főoldalra</button>
+    </div>
     <div id="adminPinError" class="pin-error"></div>
     <div id="adminUploadSection" style="margin-top:30px;display:none;">
       <select id="uploadCategory" style="padding:6px;font-size:1rem;margin-bottom:14px;">
@@ -425,10 +429,10 @@ function logout() {
       <input id="uploadFilmUrl" style="padding:7px;font-size:1rem;margin-top:10px;" placeholder="YouTube/Videa link"><br>
       <button onclick="uploadFilm()" style="margin:13px 0 0 0;padding:8px 30px;border-radius:12px;background:#24eaff;color:#222;border:none;font-weight:bold;font-size:1.17rem;cursor:pointer;">Mentés</button>
       <div id="uploadSuccess" style="margin-top:18px;color:#0c9b00;font-size:1rem;"></div>
-      <button class="exit-btn" onclick="location.reload();">Vissza a főoldalra</button>
     </div>
   </div>
 </div>
+
 <!-- ======= CSS (tedd a 2. rész végére, ha még nincs!) ======= -->
 <style>
 #adminOverlay { z-index: 300; }
