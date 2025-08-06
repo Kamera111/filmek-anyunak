@@ -16,8 +16,6 @@
             margin: 0;
             min-height: 100vh;
         }
-
-        /* ===== 1.2: Főcím ===== */
         h1, .main-title {
             color: #21e9fc;
             font-size: 2.1rem;
@@ -26,8 +24,6 @@
             font-weight: bold;
             text-shadow: 0 2px 12px #00101880;
         }
-
-        /* ===== 1.3: Fő gombok (kategóriák) ===== */
         .menu-btn, .main-btn {
             display: flex;
             align-items: center;
@@ -54,8 +50,6 @@
         .menu-btn:focus, .main-btn:focus {
             outline: 2px solid #21e9fc;
         }
-
-        /* ===== 1.4: Új film jelzés (badge) ===== */
         .badge {
             background: #ee3232;
             color: #fff;
@@ -67,8 +61,6 @@
             vertical-align: middle;
             display: inline-block;
         }
-
-        /* ===== 1.5: Kategória gombok grid elrendezése ===== */
         .menu-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -77,8 +69,6 @@
             max-width: 620px;
             padding: 0 12px;
         }
-
-        /* ===== 1.6: Film lista overlay, doboz ===== */
         .film-list-overlay {
             position: fixed;
             z-index: 100;
@@ -125,8 +115,6 @@
         .film-list-item a:hover {
             color: #21e9fc;
         }
-
-        /* ===== 1.7: PIN/ADMIN/SZÍNÉSZ overlay-ek, dobozok ===== */
         .pin-overlay, .admin-overlay, .actors-overlay {
             position: fixed;
             z-index: 200;
@@ -163,8 +151,6 @@
             text-align: center;
         }
         .pin-input:focus, .admin-input:focus { border-color: #21e9fc; }
-
-        /* ===== 1.8: Színészkártyák modern stílus ===== */
         .actors-overlay {
             position: fixed;
             inset: 0;
@@ -244,8 +230,6 @@
             display: block;
         }
         .actors-close-btn:hover { background: #930617; }
-
-        /* ===== 1.9: Kilépés/Főoldalra gombok ===== */
         .exit-btn {
             background: #ee3232;
             color: #fff;
@@ -262,8 +246,6 @@
             transition: background .13s;
         }
         .exit-btn:hover { background: #d62c2c; }
-
-        /* ===== 1.10: Mobil dizájn (media query) ===== */
         @media (max-width: 600px) {
             h1, .main-title { font-size: 1.13rem; }
             .menu-btn, .main-btn { font-size: 1rem; padding: 10px 0; }
@@ -271,8 +253,6 @@
             .exit-btn { font-size: 0.89rem; padding: 8px 0; }
             .film-list-box, .pin-box, .admin-box, .actors-box { min-width: 80px; }
         }
-
-        /* ===== 1.11: Admin CSS kiegészítés ===== */
         #adminOverlay { z-index: 300; }
         #adminUploadSection select,
         #adminUploadSection input {
@@ -296,8 +276,7 @@
     </style>
 </head>
 <body>
-
-    <h1>Filmek Anyunak</h1>
+<h1>Filmek Anyunak</h1>
 <div class="menu-grid">
     <button class="menu-btn" onclick="openCategory('krimi')" aria-label="Krimi kategória">Krimi</button>
     <button class="menu-btn" onclick="openCategory('akcio')" aria-label="Akció kategória">Akció</button>
@@ -315,8 +294,7 @@
     <button class="menu-btn" onclick="openActorsList()" aria-label="Színészek szerint">Színészek szerint</button>
 </div>
 <button class="exit-btn" onclick="logout()" aria-label="Kilépés mindenből">Kilépés mindenből</button>
-
-    <div id="pinOverlay" class="pin-overlay" style="display:none;">
+<div id="pinOverlay" class="pin-overlay" style="display:none;">
     <div class="pin-box">
         <div class="pin-title">Írd be a PIN-kódot a belépéshez</div>
         <label for="pinInput" style="position:absolute; left:-9999px;">PIN-kód bevitel</label>
@@ -334,16 +312,13 @@
         <button type="button" class="exit-btn" onclick="hidePinOverlay()" style="margin-top:18px;">Kilépés</button>
     </div>
 </div>
-
 <div id="filmListOverlay" class="film-list-overlay" style="display:none;">
     <div class="film-list-box">
         <h2 id="filmListTitle" class="film-list-title"></h2>
         <div id="filmListBody" class="film-list"></div>
-        <button class="exit-btn" onclick="closeFilmList()" aria-label="Bezárás">Bezárás</button>
         <button class="exit-btn" onclick="closeFilmListAndGoHome()" aria-label="Vissza a főoldalra" style="margin-top:16px;">Vissza a főoldalra</button>
     </div>
 </div>
-
 <div id="actorsOverlay" class="actors-overlay" style="display:none;">
     <div class="actors-box">
         <div class="actors-title">Színészek szerint</div>
@@ -351,7 +326,6 @@
         <button class="actors-close-btn" onclick="closeActorsList()" aria-label="Színészek listájának bezárása">Bezárás</button>
     </div>
 </div>
-
 <div id="adminOverlay" class="pin-overlay" style="display:none;">
     <div class="pin-box">
         <div class="pin-title">Adminisztrátor belépés</div>
@@ -384,12 +358,9 @@
         </div>
     </div>
 </div>
-
-    <script>
-    // ==== 4.1: PIN BELÉPÉS (csak egyszer kér, oldal betöltésekor) ====
+<script>
     const USER_PIN = "1954";
     const ADMIN_PIN = "2014";
-
     function showPinOverlay() {
         document.getElementById("pinOverlay").style.display = "";
         document.getElementById("pinInput").value = "";
@@ -416,8 +387,6 @@
         localStorage.removeItem("filmek_anyunak_access");
         window.location.href = "https://google.com";
     }
-
-    // ==== 4.2: KATEGÓRIÁK, FILMLISTA (NEM KÉR TÖBBÉ PIN-T) ====
     const titleMap = {
         krimi: "Krimi filmek",
         akcio: "Akció filmek",
@@ -452,8 +421,6 @@
         list.forEach(f => f.uj = false);
         localStorage.setItem("cat_" + cat, JSON.stringify(list));
     }
-
-    // ==== 4.3: SZÍNÉSZEK LISTA, KÉPEK ====
     const actorsData = [
         { name: "Bruce Willis", img: "https://upload.wikimedia.org/wikipedia/commons/8/82/Bruce_Willis_2018.jpg" },
         { name: "Chuck Norris", img: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Chuck_Norris_May_2015.jpg" },
@@ -505,8 +472,6 @@
         showFilmList(actor + " filmjei", list);
         closeActorsList();
     }
-
-    // ==== 4.4: ADMIN FELTÖLTŐ FUNKCIÓK (az "F" gombhoz) ====
     function openAdminUpload() {
         if (!localStorage.getItem("filmek_anyunak_access")) {
             showPinOverlay();
@@ -530,7 +495,6 @@
             uploadSection.style.display = "none";
         }
     }
-    // HIÁNYZÓ FÜGGVÉNY: admin overlay bezárása
     function closeAdminOverlayAndGoHome() {
         document.getElementById("adminOverlay").style.display = "none";
     }
@@ -559,8 +523,6 @@
         document.getElementById("uploadFilmTitle").value = "";
         document.getElementById("uploadFilmUrl").value = "";
     }
-
-    // ==== 4.5: FŐ FUNKCIÓK FOLYTATÁSA ÉS INITIALIZÁLÁS ====
     function showFilmList(title, films) {
         const overlay = document.getElementById("filmListOverlay");
         const titleElem = document.getElementById("filmListTitle");
