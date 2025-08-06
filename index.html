@@ -349,7 +349,12 @@ h1, .main-title {
   <button class="menu-btn" onclick="openCategory('beszelgetes')" aria-label="Beszélgetés">Beszélgetés</button>
   <button class="menu-btn" onclick="openActorsList()" aria-label="Színészek szerint">Színészek szerint</button>
 </div>
-<button class="exit-btn" onclick="logout()" aria-label="Kilépés mindenből">Kilépés mindenből</button>
+function logout() {
+  // Törli a belépési jogosultságot és újratölti az oldalt
+  localStorage.removeItem("filmek_anyunak_access");
+  location.reload();
+}
+
 <!-- ========================================================= -->
 <!-- == 4. RÉSZ: PIN OVERLAY                                 == -->
 <!-- ========================================================= -->
