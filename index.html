@@ -7,13 +7,7 @@
 </head>
 <body>
 <style>
-    /* Ide jönnek majd a CSS stílusok */
-</style>
-
-</body>
-</html>
-
- /* ========================================================= */
+/* ========================================================= */
 /* == 2. RÉSZ: ALAP CSS, STÍLUSOK, MOBIL DIZÁJN            == */
 /* ========================================================= */
 
@@ -156,7 +150,7 @@ h1, .main-title {
   box-shadow: 0 4px 24px #000c;
   text-align: center;
 }
-.pin-title, .admin-title, .actors-title { /* Javítás: 'admin-cím' -> 'admin-title' */
+.pin-title, .admin-cím, .actors-title {
   font-size: 1.13rem;
   color: #21e9fc;
   margin-bottom: 12px;
@@ -173,123 +167,125 @@ h1, .main-title {
   text-align: center;
 }
 .pin-input:focus, .admin-input:focus { border-color: #21e9fc; }
+
 /* ===== 2.8 VÉGE ===== */
-  /* ========================================================= */
-  /* == 2.9 Színészkártyák modern stílus == */
-  /* ========================================================= */
-  .actors-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  .actors-box {
-    background: #fff;
-    padding: 30px 16px;
-    border-radius: 20px;
-    max-width: 740px;
-    width: 96vw;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.33);
-    text-align: center;
-  }
-  .actors-title {
-    font-size: 1.3rem;
-    font-weight: bold;
-    margin-bottom: 18px;
-    color: #11222a;
-    letter-spacing: 1px;
-  }
-  .actors-list-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 18px;
-    justify-content: center;
-    max-height: 58vh;
-    overflow-y: auto;
-    margin-bottom: 20px;
-  }
-  .actor-card {
-    width: 110px;
-    text-align: center;
-    background: #f8fcff;
-    border-radius: 16px;
-    box-shadow: 0 2px 8px #bbb3;
-    padding: 8px 5px 14px 5px;
-    transition: transform .12s;
-    cursor: pointer;
-  }
-  .actor-card:hover {
-    transform: translateY(-5px) scale(1.04);
-    box-shadow: 0 8px 22px #bdf1fc77;
-    background: #e2f3fa;
-  }
-  .actor-card img {
-    width: 74px;
-    height: 74px;
-    border-radius: 50%;
-    object-fit: cover;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-  }
-  .actor-card span {
-    display: block;
-    margin-top: 8px;
-    font-weight: bold;
-    font-size: 1rem;
-    color: #23708c;
-    letter-spacing: .5px;
-  }
-  .actors-close-btn {
-    background: #b3071b;
-    color: #fff;
-    font-size: 1rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 12px;
-    padding: 10px 24px;
-    cursor: pointer;
-    box-shadow: 0 2px 9px #c14a7c33;
-    margin: 0 auto 0 auto;
-    display: block;
-  }
-  .actors-close-btn:hover { background: #930617; }
-  /* ===== 2.9 VÉGE ===== */
 
-  /* ========================================================= */
-  /* == 2.10 Kilépés/Főoldalra gombok == */
-  /* ========================================================= */
-  .exit-btn {
-    background: #ee3232;
-    color: #fff;
-    border: none;
-    border-radius: 14px;
-    padding: 10px 0;
-    font-size: 1.09rem;
-    margin: 24px auto 11px auto;
-    display: block;
-    max-width: 340px;
-    width: 90vw;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background .13s;
-  }
-  .exit-btn:hover { background: #d62c2c; }
-  /* ===== 2.10 VÉGE ===== */
+/* ========================================================= */
+/* == 2.9 Színészkártyák modern stílus == */
+/* ========================================================= */
+.actors-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.actors-box {
+  background: #fff;
+  padding: 30px 16px;
+  border-radius: 20px;
+  max-width: 740px;
+  width: 96vw;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.33);
+  text-align: center;
+}
+.actors-title {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 18px;
+  color: #11222a;
+  letter-spacing: 1px;
+}
+.actors-list-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: center;
+  max-height: 58vh;
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+.actor-card {
+  width: 110px;
+  text-align: center;
+  background: #f8fcff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px #bbb3;
+  padding: 8px 5px 14px 5px;
+  transition: transform .12s;
+  cursor: pointer;
+}
+.actor-card:hover {
+  transform: translateY(-5px) scale(1.04);
+  box-shadow: 0 8px 22px #bdf1fc77;
+  background: #e2f3fa;
+}
+.actor-card img {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.actor-card span {
+  display: block;
+  margin-top: 8px;
+  font-weight: bold;
+  font-size: 1rem;
+  color: #23708c;
+  letter-spacing: .5px;
+}
+.actors-close-btn {
+  background: #b3071b;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 24px;
+  cursor: pointer;
+  box-shadow: 0 2px 9px #c14a7c33;
+  margin: 0 auto 0 auto;
+  display: block;
+}
+.actors-close-btn:hover { background: #930617; }
+/* ===== 2.9 VÉGE ===== */
 
-  /* ========================================================= */
-  /* == 2.11 Mobil dizájn (media query) == */
-  /* ========================================================= */
-  @media (max-width: 600px) {
-    h1, .main-title { font-size: 1.13rem; }
-    .menu-btn, .main-btn { font-size: 1rem; padding: 10px 0; }
-    .film-list-title { font-size: 0.91rem; }
-    .exit-btn { font-size: 0.89rem; padding: 8px 0; }
-    .film-list-box, .pin-box, .admin-box, .actors-box { min-width: 80px; }
-  }
-  /* ===== 2.11 VÉGE ===== */
+/* ========================================================= */
+/* == 2.10 Kilépés/Főoldalra gombok == */
+/* ========================================================= */
+.exit-btn {
+  background: #ee3232;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 10px 0;
+  font-size: 1.09rem;
+  margin: 24px auto 11px auto;
+  display: block;
+  max-width: 340px;
+  width: 90vw;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background .13s;
+}
+.exit-btn:hover { background: #d62c2c; }
+/* ===== 2.10 VÉGE ===== */
+
+/* ========================================================= */
+/* == 2.11 Mobil dizájn (media query) == */
+/* ========================================================= */
+@media (max-width: 600px) {
+  h1, .main-title { font-size: 1.13rem; }
+  .menu-btn, .main-btn { font-size: 1rem; padding: 10px 0; }
+  .film-list-title { font-size: 0.91rem; }
+  .exit-btn { font-size: 0.89rem; padding: 8px 0; }
+  .film-list-box, .pin-box, .admin-box, .actors-box { min-width: 80px; }
+}
+/* ===== 2.11 VÉGE ===== */
 </style>
 <!-- ========================================================= -->
 <!-- == 3. RÉSZ: FŐ GOMBOK, KATEGÓRIÁK, KILÉPÉS GOMB         == -->
