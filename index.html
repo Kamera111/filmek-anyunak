@@ -851,7 +851,11 @@ function logout() {
   window.location.href = "https://google.com";
 }
 
-// ==== 8.2 KATEGÓRIÁK, FILMLISTA ====
+// =========================================================
+// == 8.2 KATEGÓRIÁK, FILMLISTA (soha többé nem kér PIN-t) ==
+// =========================================================
+
+// Kategória címek
 const titleMap = {
   krimi: "Krimi filmek",
   akcio: "Akció filmek",
@@ -868,31 +872,42 @@ const titleMap = {
   f: "Admin feltöltések"
 };
 
-// Csak akkor kér PIN-t oldalbetöltéskor, ha még nincs eltárolva
+// Az oldal betöltésekor: csak akkor kér PIN-t, ha még nincs eltárolva a belépés
 window.addEventListener("DOMContentLoaded", () => {
   if (!localStorage.getItem("filmek_anyunak_access")) {
     showPinOverlay();
   }
 });
 
-// F kategória: külön admin PIN overlayt kér, minden más PIN nélkül elérhető
+// == Kategória gomb funkciók ==
 function openCategory(cat) {
+  // "F" kategória: csak admin overlay (külön PIN!)
   if (cat === "f") {
     openAdminUpload();
     return;
   }
+
+  // A többi kategória: NEM KÉR TÖBBÉ PIN-T, csak ha a belépés még nem volt meg
+  // (Ha már be van lépve, simán megjeleníti a listát!)
   if (cat === "beszelgetes") {
-    showFilmList("Beszélgetés", [ {title: "ChatGPT", url: "https://chat.openai.com/", uj: false} ]);
+    showFilmList("Beszélgetés", [
+      { title: "ChatGPT", url: "https://chat.openai.com/", uj: false }
+    ]);
     return;
   }
-  let stored = localStorage.getItem("cat_"+cat) || "[]";
-  let list = JSON.parse(stored);
+  let stored = localStorage.getItem("cat_" + cat) || "[]";
+  let list = [];
+  try {
+    list = JSON.parse(stored);
+  } catch { list = []; }
+  // Rendezés ABC szerint
   list.sort((a, b) => a.title.localeCompare(b.title));
   showFilmList(titleMap[cat] || cat, list);
+  // Új jelző törlése, ha megnéztük
   list.forEach(f => f.uj = false);
   localStorage.setItem("cat_" + cat, JSON.stringify(list));
 }
-
+  
 // ==== 8.3 SZÍNÉSZEK LISTA, KÉPEK ====
 // Ezek a képek HTTPS-ről jönnek!
 const actorsData = [
