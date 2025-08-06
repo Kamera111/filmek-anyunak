@@ -379,8 +379,10 @@ h1, .main-title {
     <h2 id="filmListTitle" class="film-list-title"></h2>
     <div id="filmListBody" class="film-list"></div>
     <button class="film-list-close" onclick="closeFilmList()" aria-label="Bezárás">Bezárás</button>
+    <button class="exit-btn" onclick="closeFilmListAndGoHome()" aria-label="Vissza a főoldalra" style="margin-top:16px;">Vissza a főoldalra</button>
   </div>
 </div>
+
 <!-- ========================================================= -->
 <!-- == 6. RÉSZ: SZÍNÉSZEK OVERLAY, KÉPEK (KÁRTYA STÍLUS)    == -->
 <!-- ========================================================= -->
@@ -709,5 +711,9 @@ function showActorFilms(actor) {
       document.getElementById("pinOverlay").style.display="none";
       document.getElementById("adminOverlay").style.display="none";
     }
-  });
+  });function closeFilmListAndGoHome() {
+  document.getElementById("filmListOverlay").style.display = "none";
+  // Itt akár főoldalra is navigálhatnál, de ha csak egy overlay-t zársz, elég ez.
+}
 </script>
+
