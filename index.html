@@ -421,6 +421,7 @@
         list.forEach(f => f.uj = false);
         localStorage.setItem("cat_" + cat, JSON.stringify(list));
     }
+// ==== 4.3: SZÍNÉSZEK LISTA, KÉPEK (JAVÍTVA) ====
     const actorsData = [
         { name: "Bruce Willis", img: "https://upload.wikimedia.org/wikipedia/commons/8/82/Bruce_Willis_2018.jpg" },
         { name: "Chuck Norris", img: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Chuck_Norris_May_2015.jpg" },
@@ -463,6 +464,14 @@
     }
     function closeActorsList() {
         document.getElementById("actorsOverlay").style.display = "none";
+    }
+    function showActorFilms(actor) {
+        const films = JSON.parse(localStorage.getItem("films_actor_" + actor)) || [];
+        let list = films.length
+            ? films
+            : [{ title: `${actor} filmjei (IMDb)`, url: "https://www.imdb.com/find/?q=" + encodeURIComponent(actor), uj:false }];
+        showFilmList(actor + " filmjei", list);
+        closeActorsList();
     }
     function showActorFilms(actor) {
         const films = JSON.parse(localStorage.getItem("films_actor_" + actor)) || [];
