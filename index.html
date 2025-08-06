@@ -519,48 +519,38 @@ function uploadFilm() {
 <!-- == 8. RÉSZ: JAVASCRIPT – MINDEN FUNKCIÓ, SZÁMOZVA!      == -->
 <!-- ========================================================= -->
 <script>
-  // ==== 8.1 PIN BELÉPÉS ====
-  const USER_PIN = "1954";
-  const ADMIN_PIN = "2014";
-  function showPinOverlay() {
-    document.getElementById("pinOverlay").style.display = "";
-    document.getElementById("pinInput").value = "";
-    document.getElementById("pinError").textContent = "";
-    setTimeout(() => document.getElementById("pinInput").focus(), 200);
-  }
-  function hidePinOverlay() { document.getElementById("pinOverlay").style.display = "none"; }
-  function checkPin() {
-    const pin = document.getElementById("pinInput").value.trim();
-    if (pin === USER_PIN) {
-      hidePinOverlay();
-      localStorage.setItem("filmek_anyunak_access", "1");
-    } else {
-      document.getElementById("pinError").textContent = "Hibás PIN!";
-    }
-  }
-  // FONTOS: csak akkor addListener, ha már létezik az elem
-  document.addEventListener('DOMContentLoaded', function() {
-    let pinInput = document.getElementById("pinInput");
-    if (pinInput) {
-      pinInput.addEventListener("keyup", function(e){
-        if (e.key === "Enter") checkPin();
-        else document.getElementById("pinError").textContent = "";
-      });
-    }
-    let adminPinInput = document.getElementById("adminPinInput");
-    if (adminPinInput) {
-      adminPinInput.addEventListener("keyup", function(e){
-        if (e.key === "Enter") checkAdminPin();
-        else document.getElementById("adminPinError").textContent = "";
-      });
-    }
-  });
-  function logout() {
-    localStorage.removeItem("filmek_anyunak_access");
-    location.reload();
-  }
+// ==== 8.1 PIN BELÉPÉS (egyszer kér csak PIN-t) ====
+const USER_PIN = "1954";
+const ADMIN_PIN = "2014";
 
-// ==== 8.2 KATEGÓRIÁK, FILMLISTA (PIN csak első belépéskor) ====
+function showPinOverlay() {
+  document.getElementById("pinOverlay").style.display = "";
+  document.getElementById("pinInput").value = "";
+  document.getElementById("pinError").textContent = "";
+  setTimeout(() => document.getElementById("pinInput").focus(), 200);
+}
+function hidePinOverlay() {
+  document.getElementById("pinOverlay").style.display = "none";
+}
+function checkPin() {
+  const pin = document.getElementById("pinInput").value.trim();
+  if (pin === USER_PIN) {
+    hidePinOverlay();
+    localStorage.setItem("filmek_anyunak_access", "1");
+  } else {
+    document.getElementById("pinError").textContent = "Hibás PIN!";
+  }
+}
+document.getElementById("pinInput").addEventListener("keyup", function(e){
+  if (e.key === "Enter") checkPin();
+  else document.getElementById("pinError").textContent = "";
+});
+function logout() {
+  localStorage.removeItem("filmek_anyunak_access");
+  location.reload();
+}
+
+// ==== 8.2 KATEGÓRIÁK, FILMLISTA (egyszeri PIN) ====
 
 const titleMap = {
   krimi: "Krimi filmek",
@@ -578,21 +568,21 @@ const titleMap = {
   f: "Admin feltöltések"
 };
 
-function openCategory(cat) {
-  // ---- Először mindig PIN ellenőrzés, ha még nincs bejelentkezve ----
+// Oldalbetöltéskor: csak akkor kér PIN-t, ha még nincs eltárolva
+window.addEventListener("DOMContentLoaded", () => {
   if (!localStorage.getItem("filmek_anyunak_access")) {
     showPinOverlay();
-    // A PIN overlay helyes kitöltése után újra meghívhatod a függvényt vagy frissítheted az oldalt
-    // Itt most return, hogy ne folytassa tovább
-    return;
   }
+});
 
-  // ---- F kategória: csak admin feltöltő overlay ----
+function openCategory(cat) {
+  // F kategória: külön admin PIN overlayt kér
   if (cat === "f") {
     openAdminUpload();
     return;
   }
 
+  // Minden más kategória: PIN-t soha többet nem kér, ha már be van lépve!
   if (cat === "beszelgetes") {
     showFilmList("Beszélgetés", [ {title: "ChatGPT", url: "https://chat.openai.com/", uj: false} ]);
     return;
