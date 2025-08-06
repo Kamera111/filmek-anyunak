@@ -399,16 +399,16 @@ h1, .main-title {
 <!-- ========================================================= -->
 
 <div id="adminOverlay" class="pin-overlay" style="display:none;">
-  <div class="pin-box" style="padding-bottom:20px;">
-    <div class="pin-title" style="margin-bottom:18px;">LÉPJ KI INNEN!</div>
-    <input id="adminPinInput" class="pin-input" type="password" maxlength="8" autocomplete="off" placeholder="Admin PIN">
-    <div style="display: flex; justify-content: center; gap: 16px; margin-top: 18px;">
-      <button onclick="checkAdminPin()" style="padding:7px 15px 7px 15px; min-width: 34px; border-radius:10px; background:#24eaff;color:#222;border:none;font-weight:bold;font-size:1.13rem;cursor:pointer;">B</button>
-      <button onclick="closeAdminAndGoHome()" style="padding:7px 26px 7px 26px; border-radius:14px; background:#ee3232; color:#fff; font-size:1.13rem; font-weight:bold; border:none; cursor:pointer;">Vissza a Főoldalra</button>
+  <div class="pin-box">
+    <div class="pin-title" style="color:#12dbff;font-weight:bold;font-size:2rem;margin-bottom:15px;">LÉPJ KI INNEN!</div>
+    <input id="adminPinInput" class="pin-input" type="password" maxlength="8" autocomplete="off" placeholder="••••" style="margin-bottom:18px;">
+    <div style="display:flex;gap:18px;margin-bottom:16px;">
+      <button onclick="checkAdminPin()" style="background:#13e0ff;color:#222;font-size:2rem;padding:5px 21px;font-weight:bold;border-radius:14px;border:none;cursor:pointer;">B</button>
+      <button onclick="closeAdminOverlayAndGoHome()" style="background:#ee3232;color:#fff;font-size:1.38rem;padding:8px 32px;font-weight:bold;border-radius:16px;border:none;cursor:pointer;">Vissza a Főoldalra</button>
     </div>
-    <div id="adminPinError" class="pin-error"></div>
-    <div id="adminUploadSection" style="margin-top:30px;display:none;">
-      <select id="uploadCategory" style="padding:6px;font-size:1rem;margin-bottom:14px;">
+    <div id="adminPinError" class="pin-error" style="margin-bottom:12px;"></div>
+    <div id="adminUploadSection" style="margin-top:8px;display:none;">
+      <select id="uploadCategory" style="padding:6px;font-size:1rem;margin-bottom:12px;width:96%;">
         <option value="krimi">Krimi</option>
         <option value="akcio">Akció</option>
         <option value="thriller">Thriller</option>
@@ -421,10 +421,10 @@ h1, .main-title {
         <option value="akciotv">Akció TV</option>
         <option value="vigjatektv">Vígjáték TV</option>
       </select>
-      <input id="uploadFilmTitle" style="padding:7px;font-size:1rem;" placeholder="Film címe"><br>
-      <input id="uploadFilmUrl" style="padding:7px;font-size:1rem;margin-top:10px;" placeholder="YouTube/Videa link"><br>
-      <button onclick="uploadFilm()" style="margin:13px 0 0 0;padding:8px 30px;border-radius:12px;background:#24eaff;color:#222;border:none;font-weight:bold;font-size:1.17rem;cursor:pointer;">Mentés</button>
-      <div id="uploadSuccess" style="margin-top:18px;color:#0c9b00;font-size:1rem;"></div>
+      <input id="uploadFilmTitle" style="padding:7px;font-size:1rem;width:96%;margin-bottom:8px;" placeholder="Film címe"><br>
+      <input id="uploadFilmUrl" style="padding:7px;font-size:1rem;width:96%;" placeholder="YouTube/Videa link"><br>
+      <button onclick="uploadFilm()" style="margin:14px 0 0 0;padding:10px 36px;border-radius:14px;background:#13e0ff;color:#222;border:none;font-weight:bold;font-size:1.25rem;cursor:pointer;width:96%;">Mentés</button>
+      <div id="uploadSuccess" style="margin-top:15px;color:#b3071b;font-size:1.05rem;"></div>
     </div>
   </div>
 </div>
@@ -520,7 +520,7 @@ function uploadFilm() {
 
   // Gombon jelzés, hogy van új (badge frissítés)
   if (typeof setBadge === 'function') setBadge(category, films.filter(f=>f.uj).length);
-}
+} 
 </script>
 <!-- ========================================================= -->
 <!-- == 8. RÉSZ: JAVASCRIPT – MINDEN FUNKCIÓ, SZÁMOZVA!      == -->
@@ -708,17 +708,24 @@ function showActorFilms(actor) {
     document.getElementById("uploadFilmUrl").value = "";
   }
 
-  // ==== 8.5 BILLENTYŰ FIGYELÉS ====
-  document.addEventListener("keydown", function(e){
-    if(e.key==="Escape"){
-      document.getElementById("filmListOverlay").style.display="none";
-      document.getElementById("actorsOverlay").style.display="none";
-      document.getElementById("pinOverlay").style.display="none";
-      document.getElementById("adminOverlay").style.display="none";
-    }
-  });function closeFilmListAndGoHome() {
+// ==== 8.5 BILLENTYŰ FIGYELÉS ====
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape") {
+    document.getElementById("filmListOverlay").style.display = "none";
+    document.getElementById("actorsOverlay").style.display = "none";
+    document.getElementById("pinOverlay").style.display = "none";
+    document.getElementById("adminOverlay").style.display = "none";
+  }
+});
+
+// ===== VISSZA A FŐOLDALRA GOMB FUNKCIÓK =====
+function closeFilmListAndGoHome() {
   document.getElementById("filmListOverlay").style.display = "none";
-  // Itt akár főoldalra is navigálhatnál, de ha csak egy overlay-t zársz, elég ez.
+  // Ha akarod, ide lehet redirectet is tenni a főoldalra.
+}
+
+function closeAdminOverlayAndGoHome() {
+  document.getElementById("adminOverlay").style.display = "none";
 }
 </script>
 
