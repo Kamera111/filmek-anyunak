@@ -812,13 +812,11 @@ function uploadFilm() {
   if (typeof setBadge === 'function') setBadge(category, films.filter(f=>f.uj).length);
 } 
 </script>
-// =========================================================
-// == 8. JAVASCRIPT FŐ FUNKCIÓK – FILMEK ANYUNAK APP      ==
-// =========================================================
-
-// ==== 8.1 PIN BELÉPÉS (Csak egyszer, oldal betöltésekor) ====
-
-// Felhasználói és admin PIN
+<!-- ===========================
+== 8. JAVASCRIPT FŐ FUNKCIÓK ==
+=============================== -->
+<script>
+// ==== 8.1 PIN BELÉPÉS (csak egyszer kér, oldal betöltésekor) ====
 const USER_PIN = "1954";
 const ADMIN_PIN = "2014";
 
@@ -829,12 +827,10 @@ function showPinOverlay() {
   document.getElementById("pinError").textContent = "";
   setTimeout(() => document.getElementById("pinInput").focus(), 200);
 }
-
 // PIN overlay bezárása
 function hidePinOverlay() {
   document.getElementById("pinOverlay").style.display = "none";
 }
-
 // PIN ellenőrzés (csak egyszer, ha nincs access)
 function checkPin() {
   const pin = document.getElementById("pinInput").value.trim();
@@ -845,22 +841,17 @@ function checkPin() {
     document.getElementById("pinError").textContent = "Hibás PIN!";
   }
 }
-
-// Enterre PIN ellenőrzés
 document.getElementById("pinInput").addEventListener("keyup", function(e){
   if (e.key === "Enter") checkPin();
   else document.getElementById("pinError").textContent = "";
 });
-
-// Kilépés mindenből (access törlése, oldal újratöltés)
+// Kilépés - access törlése, oldal újratöltése
 function logout() {
   localStorage.removeItem("filmek_anyunak_access");
   location.reload();
 }
 
-// ==== 8.2 KATEGÓRIÁK, FILMLISTA (NEM kér PIN-t, csak legelső belépéskor) ====
-
-// Kategória címek
+// ==== 8.2 KATEGÓRIÁK, FILMLISTA ====
 const titleMap = {
   krimi: "Krimi filmek",
   akcio: "Akció filmek",
@@ -877,26 +868,23 @@ const titleMap = {
   f: "Admin feltöltések"
 };
 
-// Csak oldalbetöltéskor kér PIN-t, ha nincs access
+// Csak akkor kér PIN-t oldalbetöltéskor, ha még nincs eltárolva
 window.addEventListener("DOMContentLoaded", () => {
   if (!localStorage.getItem("filmek_anyunak_access")) {
     showPinOverlay();
   }
 });
 
-// Kategória megnyitás (NEM kér PIN-t soha többé!)
+// F kategória: külön admin PIN overlayt kér, minden más PIN nélkül elérhető
 function openCategory(cat) {
-  // Admin feltöltés ("F") – csak admin PIN!
   if (cat === "f") {
     openAdminUpload();
     return;
   }
-  // Speciális beszélgetés kategória
   if (cat === "beszelgetes") {
     showFilmList("Beszélgetés", [ {title: "ChatGPT", url: "https://chat.openai.com/", uj: false} ]);
     return;
   }
-  // Normál film kategória megjelenítése
   let stored = localStorage.getItem("cat_"+cat) || "[]";
   let list = JSON.parse(stored);
   list.sort((a, b) => a.title.localeCompare(b.title));
@@ -905,30 +893,8 @@ function openCategory(cat) {
   localStorage.setItem("cat_" + cat, JSON.stringify(list));
 }
 
-// Film lista megjelenítése
-function showFilmList(title, list) {
-  document.getElementById("filmListOverlay").style.display = "";
-  document.getElementById("filmListTitle").textContent = title;
-  let html = "";
-  if (!list.length) {
-    html = `<div>Nincs feltöltött film ebben a kategóriában.</div>`;
-  } else {
-    html = '<ul class="film-list">';
-    list.forEach((film, idx) => {
-      html += `
-        <li class="film-list-item${film.uj ? ' uj-film' : ''}">
-          <a href="${film.url}" target="_blank">${film.title}${film.uj ? ' <span style="color:#d00;font-size:1.2em;">🔥</span>' : ''}</a>
-        </li>
-      `;
-    });
-    html += "</ul>";
-  }
-  document.getElementById("filmListBody").innerHTML = html;
-}
-
 // ==== 8.3 SZÍNÉSZEK LISTA, KÉPEK ====
-
-// Példa színész adatbázis (HTTPS képekkel)
+// Ezek a képek HTTPS-ről jönnek!
 const actorsData = [
   { name: "Bruce Willis", img: "https://upload.wikimedia.org/wikipedia/commons/8/82/Bruce_Willis_2018.jpg" },
   { name: "Chuck Norris", img: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Chuck_Norris_May_2015.jpg" },
@@ -956,8 +922,6 @@ const actorsData = [
   { name: "Wesley Snipes", img: "https://upload.wikimedia.org/wikipedia/commons/c/c2/Wesley_Snipes_2014.jpg" }
 ];
 actorsData.sort((a, b) => a.name.localeCompare(b.name));
-
-// Színész overlay megnyitása
 function openActorsList() {
   document.getElementById("actorsOverlay").style.display = "flex";
   let html = "";
@@ -971,13 +935,9 @@ function openActorsList() {
   });
   document.getElementById("actorsList").innerHTML = html;
 }
-
-// Színész overlay bezárása
 function closeActorsList() {
   document.getElementById("actorsOverlay").style.display = "none";
 }
-
-// Színészre kattintás – filmjei listája
 function showActorFilms(actor) {
   const films = JSON.parse(localStorage.getItem("films_actor_" + actor)) || [];
   let list = films.length
@@ -987,9 +947,7 @@ function showActorFilms(actor) {
   closeActorsList();
 }
 
-// ==== 8.4 ADMIN FELTÖLTŐ OVERLAY, FUNKCIÓK ====
-
-// Admin overlay megnyitása (csak bejelentkezett usernek)
+// ==== 8.4 ADMIN FELTÖLTŐ ====
 function openAdminUpload() {
   if (!localStorage.getItem("filmek_anyunak_access")) { showPinOverlay(); return; }
   document.getElementById("adminOverlay").style.display = "";
@@ -998,8 +956,6 @@ function openAdminUpload() {
   document.getElementById("adminUploadSection").style.display = "none";
   document.getElementById("uploadSuccess").textContent = "";
 }
-
-// Admin PIN ellenőrzése, feltöltőmező megjelenítése
 function checkAdminPin() {
   const pin = document.getElementById("adminPinInput").value.trim();
   if (!pin) {
@@ -1015,8 +971,6 @@ function checkAdminPin() {
     document.getElementById("adminUploadSection").style.display = "none";
   }
 }
-
-// Film feltöltése localStorage-be
 function uploadFilm() {
   const cat = document.getElementById("uploadCategory").value;
   const title = document.getElementById("uploadFilmTitle").value.trim();
@@ -1031,7 +985,6 @@ function uploadFilm() {
   let stored = localStorage.getItem("cat_" + cat) || "[]";
   let list = JSON.parse(stored);
 
-  // Ugyanaz a film ne szerepeljen kétszer
   if (list.some(f => f.title === title && f.url === url)) {
     msgDiv.textContent = "Ez a film már fel van töltve!";
     msgDiv.style.color = "#b3071b";
@@ -1046,9 +999,7 @@ function uploadFilm() {
   document.getElementById("uploadFilmUrl").value = "";
 }
 
-// ==== 8.5 ESC és vissza gombok – minden overlayhez ====
-
-// Minden overlay ESC-ra bezárható
+// ==== 8.5 BILLENTYŰ FIGYELÉS ====
 document.addEventListener("keydown", function(e) {
   if (e.key === "Escape") {
     document.getElementById("filmListOverlay").style.display = "none";
@@ -1058,11 +1009,11 @@ document.addEventListener("keydown", function(e) {
   }
 });
 
-// "Vissza a főoldalra" gombok funkciója
+// ===== VISSZA A FŐOLDALRA GOMB FUNKCIÓK =====
 function closeFilmListAndGoHome() {
   document.getElementById("filmListOverlay").style.display = "none";
-  // plusz főoldali logika, ha kell
 }
 function closeAdminOverlayAndGoHome() {
   document.getElementById("adminOverlay").style.display = "none";
 }
+</script>
