@@ -1,597 +1,207 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="hu">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Filmek Anyunak</title>
-    <style>
-        /* ========================================================= */
-        /* == 1.1: ALAP CSS, STÍLUSOK, MOBIL DIZÁJN                 == */
-        /* ========================================================= */
-        body {
-            background: #11222a;
-            color: #21e9fc;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 16px;
-            margin: 0;
-            min-height: 100vh;
-        }
-        h1, .main-title {
-            color: #21e9fc;
-            font-size: 2.1rem;
-            margin: 32px 0 28px 0;
-            text-align: center;
-            font-weight: bold;
-            text-shadow: 0 2px 12px #00101880;
-        }
-        .menu-btn, .main-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.13rem;
-            font-weight: bold;
-            color: #27e9ff;
-            background: #11242e;
-            border: none;
-            border-radius: 18px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-            margin: 8px 6px;
-            cursor: pointer;
-            padding: 8px 0;
-            width: 100%;
-            max-width: 270px;
-            min-height: 36px;
-        }
-        .menu-btn.selected, .main-btn.selected,
-        .menu-btn:active, .main-btn:active {
-            background: #27e9ff;
-            color: #11242e;
-        }
-        .menu-btn:focus, .main-btn:focus {
-            outline: 2px solid #21e9fc;
-        }
-        .badge {
-            background: #ee3232;
-            color: #fff;
-            font-weight: bold;
-            font-size: 1rem;
-            padding: 1px 7px;
-            border-radius: 14px;
-            margin-left: 10px;
-            vertical-align: middle;
-            display: inline-block;
-        }
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 12px;
-            margin: 0 auto 18px auto;
-            max-width: 620px;
-            padding: 0 12px;
-        }
-        .film-list-overlay {
-            position: fixed;
-            z-index: 100;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: #000b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .film-list-box {
-            background: #182933;
-            border-radius: 16px;
-            padding: 20px 12px 14px 12px;
-            min-width: 220px;
-            max-width: 96vw;
-            box-shadow: 0 4px 24px #000b;
-            text-align: center;
-        }
-        .film-list-title {
-            color: #21e9fc;
-            font-size: 1.12rem;
-            font-weight: bold;
-            margin-bottom: 12px;
-        }
-        .film-list {
-            padding: 0;
-            margin: 0;
-            list-style: none;
-            max-height: 340px;
-            overflow-y: auto;
-        }
-        .film-list-item {
-            margin: 0;
-            border-bottom: 1px solid #202e38;
-            padding: 7px 0;
-        }
-        .film-list-item:last-child { border-bottom: none; }
-        .film-list-item a {
-            color: #27e9ff;
-            text-decoration: none;
-            font-size: 0.98rem;
-            transition: color .2s;
-        }
-        .film-list-item a:hover {
-            color: #21e9fc;
-        }
-        .pin-overlay, .admin-overlay, .actors-overlay {
-            position: fixed;
-            z-index: 200;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: #000d;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .pin-box, .admin-box, .actors-box {
-            background: #fff;
-            color: #222;
-            border-radius: 22px;
-            min-width: 160px;
-            max-width: 98vw;
-            padding: 14px 9px 10px 9px;
-            box-shadow: 0 4px 24px #000c;
-            text-align: center;
-        }
-        .pin-title, .admin-title, .actors-title {
-            font-size: 1.13rem;
-            color: #21e9fc;
-            margin-bottom: 12px;
-            font-weight: bold;
-        }
-        .pin-input, .admin-input {
-            font-size: 1.09rem;
-            padding: 7px 14px;
-            border-radius: 12px;
-            border: 2px solid #27e9ff;
-            margin-bottom: 11px;
-            width: 82%;
-            outline: none;
-            text-align: center;
-        }
-        .pin-input:focus, .admin-input:focus { border-color: #21e9fc; }
-        .actors-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .actors-box {
-            background: #fff;
-            padding: 30px 16px;
-            border-radius: 20px;
-            max-width: 740px;
-            width: 96vw;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.33);
-            text-align: center;
-        }
-        .actors-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin-bottom: 18px;
-            color: #11222a;
-            letter-spacing: 1px;
-        }
-        .actors-list-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 18px;
-            justify-content: center;
-            max-height: 58vh;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-        .actor-card {
-            width: 110px;
-            text-align: center;
-            background: #f8fcff;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px #bbb3;
-            padding: 8px 5px 14px 5px;
-            transition: transform .12s;
-            cursor: pointer;
-        }
-        .actor-card:hover {
-            transform: translateY(-5px) scale(1.04);
-            box-shadow: 0 8px 22px #bdf1fc77;
-            background: #e2f3fa;
-        }
-        .actor-card img {
-            width: 74px;
-            height: 74px;
-            border-radius: 50%;
-            object-fit: cover;
-            background: #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-        }
-        .actor-card span {
-            display: block;
-            margin-top: 8px;
-            font-weight: bold;
-            font-size: 1rem;
-            color: #23708c;
-            letter-spacing: .5px;
-        }
-        .actors-close-btn {
-            background: #b3071b;
-            color: #fff;
-            font-size: 1rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 12px;
-            padding: 10px 24px;
-            cursor: pointer;
-            box-shadow: 0 2px 9px #c14a7c33;
-            margin: 0 auto 0 auto;
-            display: block;
-        }
-        .actors-close-btn:hover { background: #930617; }
-        .exit-btn {
-            background: #ee3232;
-            color: #fff;
-            border: none;
-            border-radius: 14px;
-            padding: 10px 0;
-            font-size: 1.09rem;
-            margin: 24px auto 11px auto;
-            display: block;
-            max-width: 340px;
-            width: 90vw;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background .13s;
-        }
-        .exit-btn:hover { background: #d62c2c; }
-        @media (max-width: 600px) {
-            h1, .main-title { font-size: 1.13rem; }
-            .menu-btn, .main-btn { font-size: 1rem; padding: 10px 0; }
-            .film-list-title { font-size: 0.91rem; }
-            .exit-btn { font-size: 0.89rem; padding: 8px 0; }
-            .film-list-box, .pin-box, .admin-box, .actors-box { min-width: 80px; }
-        }
-        #adminOverlay { z-index: 300; }
-        #adminUploadSection select,
-        #adminUploadSection input {
-            border: 1.7px solid #21e9fc;
-            border-radius: 10px;
-            margin-bottom: 7px;
-            width: 92%;
-            outline: none;
-        }
-        #adminUploadSection input:focus,
-        #adminUploadSection select:focus {
-            border-color: #24eaff;
-            background: #f2fcff;
-        }
-        #adminUploadSection button {
-            transition: background 0.18s;
-        }
-        #adminUploadSection button:hover {
-            background: #1dc0cc;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Filmek – Firebase</title>
+  <style>
+    :root { color-scheme: dark; }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#0b1220;color:#e5e7eb}
+    .wrap{max-width:760px;margin:24px auto;padding:0 16px}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+    h1{font-size:1.4rem;margin:0}
+    .card{background:#111827;border:1px solid #1f2937;border-radius:14px;padding:14px 16px;box-shadow:0 2px 16px rgba(0,0,0,.25);margin-bottom:14px}
+    label{display:block;font-size:.9rem;margin:6px 0 4px}
+    input,select{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0b1220;color:#e5e7eb}
+    button{padding:10px 14px;border:0;border-radius:10px;background:#2563eb;color:#fff;font-weight:600}
+    button.secondary{background:#374151}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .list{display:grid;gap:10px;margin-top:8px}
+    .item{background:#0b1220;border:1px solid #374151;border-radius:12px;padding:12px}
+    .title{font-weight:700}
+    .muted{color:#94a3b8;font-size:.85rem}
+    .badge{display:inline-block;background:#111827;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:2px 8px;font-size:.75rem;margin-left:6px}
+    a.btnlike{display:inline-block}
+  </style>
 </head>
 <body>
-<h1>Filmek Anyunak</h1>
-<div class="menu-grid">
-    <button class="menu-btn" onclick="openCategory('krimi')" aria-label="Krimi kategória">Krimi</button>
-    <button class="menu-btn" onclick="openCategory('akcio')" aria-label="Akció kategória">Akció</button>
-    <button class="menu-btn" onclick="openCategory('thriller')" aria-label="Thriller kategória">Thriller</button>
-    <button class="menu-btn" onclick="openCategory('kaland')" aria-label="Kaland kategória">Kaland</button>
-    <button class="menu-btn" onclick="openCategory('vigjatek')" aria-label="Vígjáték kategória">Vígjáték</button>
-    <button class="menu-btn" onclick="openCategory('sorozatok')" aria-label="Sorozatok kategória">Sorozatok</button>
-    <button class="menu-btn" onclick="openCategory('f')" aria-label="Admin (F) kategória">F</button>
-    <button class="menu-btn" onclick="openCategory('ujfilmek')" aria-label="Új filmek kategória">Új filmek</button>
-    <button class="menu-btn" onclick="openCategory('thrillertv')" aria-label="Thriller TV">Thriller TV</button>
-    <button class="menu-btn" onclick="openCategory('topfilmek')" aria-label="Top Filmek">Top Filmek</button>
-    <button class="menu-btn" onclick="openCategory('akciotv')" aria-label="Akció TV">Akció TV</button>
-    <button class="menu-btn" onclick="openCategory('vigjatektv')" aria-label="Vígjáték TV">Vígjáték TV</button>
-    <button class="menu-btn" onclick="openCategory('beszelgetes')" aria-label="Beszélgetés">Beszélgetés</button>
-    <button class="menu-btn" onclick="openActorsList()" aria-label="Színészek szerint">Színészek szerint</button>
-</div>
-<button class="exit-btn" onclick="logout()" aria-label="Kilépés mindenből">Kilépés mindenből</button>
-<div id="pinOverlay" class="pin-overlay" style="display:none;">
-    <div class="pin-box">
-        <div class="pin-title">Írd be a PIN-kódot a belépéshez</div>
-        <label for="pinInput" style="position:absolute; left:-9999px;">PIN-kód bevitel</label>
-        <input
-            id="pinInput"
-            class="pin-input"
-            type="password"
-            maxlength="8"
-            autocomplete="off"
-            autofocus
-            aria-label="PIN-kód bevitel"
-            onkeydown="if(event.key==='Enter'){checkPin();}"
-        >
-        <div id="pinError" class="pin-error" role="alert"></div>
-        <button type="button" class="exit-btn" onclick="hidePinOverlay()" style="margin-top:18px;">Kilépés</button>
-    </div>
-</div>
-<div id="filmListOverlay" class="film-list-overlay" style="display:none;">
-    <div class="film-list-box">
-        <h2 id="filmListTitle" class="film-list-title"></h2>
-        <div id="filmListBody" class="film-list"></div>
-        <button class="exit-btn" onclick="closeFilmListAndGoHome()" aria-label="Vissza a főoldalra" style="margin-top:16px;">Vissza a főoldalra</button>
-    </div>
-</div>
-<div id="actorsOverlay" class="actors-overlay" style="display:none;">
-    <div class="actors-box">
-        <div class="actors-title">Színészek szerint</div>
-        <div class="actors-list-row" id="actorsList"></div>
-        <button class="actors-close-btn" onclick="closeActorsList()" aria-label="Színészek listájának bezárása">Bezárás</button>
-    </div>
-</div>
-<div id="adminOverlay" class="pin-overlay" style="display:none;">
-    <div class="pin-box">
-        <div class="pin-title">Adminisztrátor belépés</div>
-        <input id="adminPinInput" class="pin-input" type="password" maxlength="8" autocomplete="off" placeholder="Admin PIN">
-        <div style="display:flex; justify-content:center; align-items:center; gap:18px; margin-top:12px; margin-bottom:16px;">
-            <button class="menu-btn" onclick="checkAdminPin()" style="width: 100px;">Belépés</button>
-            <button class="exit-btn" onclick="closeAdminOverlayAndGoHome()">Vissza a Főoldalra</button>
+  <div class="wrap">
+    <header>
+      <h1>🎬 Filmek</h1>
+      <div>
+        <button id="btnRefresh" class="secondary">Frissítés</button>
+        <button id="btnAdd">+ Új film</button>
+      </div>
+    </header>
+
+    <!-- Új film űrlap -->
+    <div id="addBox" class="card" hidden>
+      <h3 style="margin:0 0 8px">Új film hozzáadása</h3>
+      <div class="row">
+        <div>
+          <label>Film címe</label>
+          <input id="title" placeholder="pl. A szökevény (1993)" />
         </div>
-        <div id="adminPinError" class="pin-error" role="alert" style="margin-bottom:12px;"></div>
-        <div id="adminUploadSection" style="margin-top:8px;display:none;">
-            <select id="uploadCategory" style="padding:6px;font-size:1rem;margin-bottom:12px;width:96%;">
-                <option value="krimi">Krimi</option>
-                <option value="akcio">Akció</option>
-                <option value="thriller">Thriller</option>
-                <option value="kaland">Kaland</option>
-                <option value="vigjatek">Vígjáték</option>
-                <option value="sorozatok">Sorozatok</option>
-                <option value="ujfilmek">Új filmek</option>
-                <option value="thrillertv">Thriller TV</option>
-                <option value="topfilmek">Top Filmek</option>
-                <option value="akciotv">Akció TV</option>
-                <option value="vigjatektv">Vígjáték TV</option>
-            </select>
-            <input id="uploadFilmTitle" style="padding:7px;font-size:1rem;width:96%;margin-bottom:8px;" placeholder="Film címe">
-            <br>
-            <input id="uploadFilmUrl" style="padding:7px;font-size:1rem;width:96%;" placeholder="YouTube/Videa link">
-            <br>
-            <button onclick="uploadFilm()" style="margin:14px 0 0 0;padding:10px 36px;border-radius:14px;background:#13e0ff;color:#222;border:none;font-weight:bold;font-size:1.25rem;cursor:pointer;width:96%;">Mentés</button>
-            <div id="uploadSuccess" style="margin-top:15px;color:#27e9ff;font-size:1.05rem;"></div>
+        <div>
+          <label>Kategória</label>
+          <select id="category">
+            <option value="akcio">Akció</option>
+            <option value="krimi">Krimi</option>
+            <option value="thriller">Thriller</option>
+            <option value="vigjatek">Vígjáték</option>
+            <option value="drama">Dráma</option>
+            <option value="egyeb">Egyéb</option>
+          </select>
         </div>
+      </div>
+      <label>Lejátszási link (YouTube, Videa, stb.)</label>
+      <input id="url" placeholder="https://..." />
+      <div class="row" style="margin-top:10px">
+        <input id="pin" placeholder="PIN (1954)" />
+        <button id="save">Mentés</button>
+      </div>
+      <div class="muted" style="margin-top:6px">Csak ideiglenes PIN-védelem. Később Firebase Auth-ra cseréljük.</div>
     </div>
-</div>
-<script>
-    const USER_PIN = "1954";
-    const ADMIN_PIN = "2014";
-    function showPinOverlay() {
-        document.getElementById("pinOverlay").style.display = "";
-        document.getElementById("pinInput").value = "";
-        document.getElementById("pinError").textContent = "";
-        setTimeout(() => document.getElementById("pinInput").focus(), 200);
-    }
-    function hidePinOverlay() {
-        document.getElementById("pinOverlay").style.display = "none";
-    }
-    function checkPin() {
-        const pin = document.getElementById("pinInput").value.trim();
-        if (pin === USER_PIN) {
-            hidePinOverlay();
-            localStorage.setItem("filmek_anyunak_access", "1");
-        } else {
-            document.getElementById("pinError").textContent = "Hibás PIN!";
-        }
-    }
-    document.getElementById("pinInput").addEventListener("keyup", function(e){
-        if (e.key === "Enter") checkPin();
-        else document.getElementById("pinError").textContent = "";
-    });
-    function logout() {
-        localStorage.removeItem("filmek_anyunak_access");
-        window.location.href = "https://google.com";
-    }
-    const titleMap = {
-        krimi: "Krimi filmek",
-        akcio: "Akció filmek",
-        thriller: "Thriller filmek",
-        kaland: "Kaland filmek",
-        vigjatek: "Vígjátékok",
-        sorozatok: "Sorozatok",
-        ujfilmek: "Új filmek",
-        thrillertv: "Thriller TV",
-        topfilmek: "Top Filmek",
-        akciotv: "Akció TV",
-        vigjatektv: "Vígjáték TV",
-        beszelgetes: "Beszélgetés",
-        f: "Admin feltöltések"
+
+    <!-- Lista + szűrők -->
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>Kategória szűrő</label>
+          <select id="filterCat">
+            <option value="">(Mind)</option>
+            <option value="akcio">Akció</option>
+            <option value="krimi">Krimi</option>
+            <option value="thriller">Thriller</option>
+            <option value="vigjatek">Vígjáték</option>
+            <option value="drama">Dráma</option>
+            <option value="egyeb">Egyéb</option>
+          </select>
+        </div>
+        <div>
+          <label>Keresés címben</label>
+          <input id="search" placeholder="pl. Terminátor" />
+        </div>
+      </div>
+      <div id="list" class="list"></div>
+    </div>
+  </div>
+
+  <!-- Firebase + App (ES Modules) -->
+  <script type="module">
+    // Firebase modulok (12.1.0)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, serverTimestamp,
+      query, orderBy, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+    // --- SAJÁT FIREBASE CONFIG (tőled)
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_u1zqJR8zgXiNEMxgecfuPKWq7aR5qOQ",
+      authDomain: "filmek-540be.firebaseapp.com",
+      projectId: "filmek-540be",
+      storageBucket: "filmek-540be.firebasestorage.app",
+      messagingSenderId: "711814484581",
+      appId: "1:711814484581:web:fd604515dd9f8cb3122c8c",
+      measurementId: "G-Y60ED0Q7R8"
     };
-    function openCategory(cat) {
-        if (cat === "f") {
-            openAdminUpload();
-            return;
-        }
-        if (cat === "beszelgetes") {
-            showFilmList("Beszélgetés", [
-                { title: "ChatGPT", url: "https://chat.openai.com/", uj: false }
-            ]);
-            return;
-        }
-        let stored = localStorage.getItem("cat_" + cat) || "[]";
-        let list = [];
-        try { list = JSON.parse(stored); } catch { list = []; }
-        list.sort((a, b) => a.title.localeCompare(b.title));
-        showFilmList(titleMap[cat] || cat, list);
-        list.forEach(f => f.uj = false);
-        localStorage.setItem("cat_" + cat, JSON.stringify(list));
-    }
-// ==== 4.3: SZÍNÉSZEK LISTA, KÉPEK (JAVÍTVA) ====
-    const actorsData = [
-        { name: "Bruce Willis", img: "https://upload.wikimedia.org/wikipedia/commons/8/82/Bruce_Willis_2018.jpg" },
-        { name: "Chuck Norris", img: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Chuck_Norris_May_2015.jpg" },
-        { name: "Demi Moore", img: "https://upload.wikimedia.org/wikipedia/commons/e/e7/Demi_Moore_2019.jpg" },
-        { name: "Dolph Lundgren", img: "https://upload.wikimedia.org/wikipedia/commons/e/e3/Dolph_Lundgren_2012.jpg" },
-        { name: "Harrison Ford", img: "https://upload.wikimedia.org/wikipedia/commons/8/88/Harrison_Ford_2017.jpg" },
-        { name: "Jackie Chan", img: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Jackie_Chan_2016.jpg" },
-        { name: "Jason Statham", img: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Jason_Statham_2018.jpg" },
-        { name: "Jean-Claude Van Damme", img: "https://upload.wikimedia.org/wikipedia/commons/4/47/Jean-Claude_Van_Damme_Cannes_2010.jpg" },
-        { name: "Jessica Alba", img: "https://upload.wikimedia.org/wikipedia/commons/7/7e/Jessica_Alba_March_2019.jpg" },
-        { name: "Jet Li", img: "https://upload.wikimedia.org/wikipedia/commons/5/57/Jet_Li_2011.jpg" },
-        { name: "Lucy Liu", img: "https://upload.wikimedia.org/wikipedia/commons/6/62/Lucy_Liu_2012_Shankbone.jpg" },
-        { name: "Mel Gibson", img: "https://upload.wikimedia.org/wikipedia/commons/9/9d/Mel_Gibson_Cannes_2016_2.jpg" },
-        { name: "Mickey Rourke", img: "https://upload.wikimedia.org/wikipedia/commons/1/1e/Mickey_Rourke_2008.jpg" },
-        { name: "Nicolas Cage", img: "https://upload.wikimedia.org/wikipedia/commons/9/95/Nicolas_Cage_Deauville_2013.jpg" },
-        { name: "Nicole Kidman", img: "https://upload.wikimedia.org/wikipedia/commons/9/91/Nicole_Kidman_Cannes_2017_2.jpg" },
-        { name: "Patrick Swayze", img: "https://upload.wikimedia.org/wikipedia/commons/8/86/Patrick_Swayze_Cannes_1990.jpg" },
-        { name: "Pierre Richard", img: "https://upload.wikimedia.org/wikipedia/commons/f/fe/Pierre_Richard_2012.jpg" },
-        { name: "Randy Couture", img: "https://upload.wikimedia.org/wikipedia/commons/8/8e/Randy_Couture.jpg" },
-        { name: "Richard Gere", img: "https://upload.wikimedia.org/wikipedia/commons/6/6c/Richard_Gere_2017.jpg" },
-        { name: "Russell Crowe", img: "https://upload.wikimedia.org/wikipedia/commons/d/dc/Russell_Crowe_by_Gage_Skidmore_2.jpg" },
-        { name: "Sylvester Stallone", img: "https://upload.wikimedia.org/wikipedia/commons/3/32/Sylvester_Stallone_Cannes_2019.jpg" },
-        { name: "Terry Crews", img: "https://upload.wikimedia.org/wikipedia/commons/d/d8/Terry_Crews_2017.jpg" },
-        { name: "Wentworth Miller", img: "https://upload.wikimedia.org/wikipedia/commons/2/24/Wentworth_Miller_2016.jpg" },
-        { name: "Wesley Snipes", img: "https://upload.wikimedia.org/wikipedia/commons/c/c2/Wesley_Snipes_2014.jpg" }
-    ];
-    actorsData.sort((a, b) => a.name.localeCompare(b.name));
-    function openActorsList() {
-        document.getElementById("actorsOverlay").style.display = "flex";
-        let html = "";
-        actorsData.forEach((a) => {
-            html += `
-                <div class="actor-card" onclick="showActorFilms('${a.name.replace(/'/g,"\\'")}')">
-                    <img src="${a.img}" alt="${a.name}">
-                    <span>${a.name}</span>
-                </div>
-            `;
+
+    // App + Firestore
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    // --- UI elemek
+    const addBox = document.getElementById('addBox');
+    const btnAdd = document.getElementById('btnAdd');
+    const btnRefresh = document.getElementById('btnRefresh');
+    const saveBtn = document.getElementById('save');
+    const titleEl = document.getElementById('title');
+    const urlEl = document.getElementById('url');
+    const catEl = document.getElementById('category');
+    const pinEl = document.getElementById('pin');
+    const filterCat = document.getElementById('filterCat');
+    const searchEl = document.getElementById('search');
+    const listEl = document.getElementById('list');
+
+    // --- Egyszerű „admin” PIN
+    const ADMIN_PIN = "1954";
+
+    btnAdd.onclick = () => { addBox.hidden = !addBox.hidden; };
+
+    saveBtn.onclick = async () => {
+      if (pinEl.value.trim() !== ADMIN_PIN) {
+        alert("Helytelen PIN.");
+        return;
+      }
+      const title = titleEl.value.trim();
+      const url   = urlEl.value.trim();
+      const cat   = catEl.value;
+
+      if (!title || !url) {
+        alert("Cím és link kötelező.");
+        return;
+      }
+      try {
+        await addDoc(collection(db, "movies"), {
+          title, url, category: cat,
+          addedAt: serverTimestamp()
         });
-        document.getElementById("actorsList").innerHTML = html;
-    }
-    function closeActorsList() {
-        document.getElementById("actorsOverlay").style.display = "none";
-    }
-    function showActorFilms(actor) {
-        const films = JSON.parse(localStorage.getItem("films_actor_" + actor)) || [];
-        let list = films.length
-            ? films
-            : [{ title: `${actor} filmjei (IMDb)`, url: "https://www.imdb.com/find/?q=" + encodeURIComponent(actor), uj:false }];
-        showFilmList(actor + " filmjei", list);
-        closeActorsList();
-    }
-    function showActorFilms(actor) {
-        const films = JSON.parse(localStorage.getItem("films_actor_" + actor)) || [];
-        let list = films.length
-            ? films
-            : [{ title: `${actor} filmjei (IMDb)`, url: "https://www.imdb.com/find/?q=" + encodeURIComponent(actor), uj:false }];
-        showFilmList(actor + " filmjei", list);
-        closeActorsList();
-    }
-    function openAdminUpload() {
-        if (!localStorage.getItem("filmek_anyunak_access")) {
-            showPinOverlay();
-            return;
-        }
-        document.getElementById("adminOverlay").style.display = "";
-        document.getElementById("adminPinInput").value = "";
-        document.getElementById("adminPinError").textContent = "";
-        document.getElementById("adminUploadSection").style.display = "none";
-        document.getElementById("uploadSuccess").textContent = "";
-    }
-    function checkAdminPin() {
-        const pin = document.getElementById("adminPinInput").value.trim();
-        const errorDiv = document.getElementById("adminPinError");
-        const uploadSection = document.getElementById("adminUploadSection");
-        if (pin === ADMIN_PIN) {
-            errorDiv.textContent = "";
-            uploadSection.style.display = "";
-        } else {
-            errorDiv.textContent = "Hibás admin PIN!";
-            uploadSection.style.display = "none";
-        }
-    }
-    function closeAdminOverlayAndGoHome() {
-        document.getElementById("adminOverlay").style.display = "none";
-    }
-    function uploadFilm() {
-        const cat = document.getElementById("uploadCategory").value;
-        const title = document.getElementById("uploadFilmTitle").value.trim();
-        const url = document.getElementById("uploadFilmUrl").value.trim();
-        const msgDiv = document.getElementById("uploadSuccess");
-        if (!title || !url) {
-            msgDiv.textContent = "Adj meg címet és linket!";
-            msgDiv.style.color = "#b3071b";
-            return;
-        }
-        let stored = localStorage.getItem("cat_" + cat) || "[]";
-        let list = [];
-        try { list = JSON.parse(stored); } catch { list = []; }
-        if (list.some(f => f.title === title && f.url === url)) {
-            msgDiv.textContent = "Ez a film már fel van töltve!";
-            msgDiv.style.color = "#b3071b";
-            return;
-        }
-        list.unshift({ title, url, uj: true });
-        localStorage.setItem("cat_" + cat, JSON.stringify(list));
-        msgDiv.textContent = "Film mentve!";
-        msgDiv.style.color = "#0c9b00";
-        document.getElementById("uploadFilmTitle").value = "";
-        document.getElementById("uploadFilmUrl").value = "";
-    }
-    function showFilmList(title, films) {
-        const overlay = document.getElementById("filmListOverlay");
-        const titleElem = document.getElementById("filmListTitle");
-        const listBody = document.getElementById("filmListBody");
-        titleElem.textContent = title;
-        listBody.innerHTML = "";
-        if (films.length === 0) {
-            listBody.innerHTML = `<li class="film-list-item" style="color:#ee3232;font-style:italic;">Nincsenek filmek ebben a kategóriában.</li>`;
-        } else {
-            films.forEach(f => {
-                const listItem = document.createElement("li");
-                listItem.className = "film-list-item";
-                const link = document.createElement("a");
-                link.href = f.url;
-                link.target = "_blank";
-                link.textContent = f.title;
-                if (f.uj) {
-                    link.innerHTML += ' <span style="font-weight:bold;color:#f39c12;">&#x1F525;</span>';
-                }
-                listItem.appendChild(link);
-                listBody.appendChild(listItem);
-            });
-        }
-        overlay.style.display = "flex";
-    }
-    function closeFilmList() {
-        document.getElementById("filmListOverlay").style.display = "none";
-    }
-    function closeFilmListAndGoHome() {
-        closeFilmList();
-    }
-    function updateBadges() {
-        const menuButtons = document.querySelectorAll(".menu-btn");
-        menuButtons.forEach(btn => {
-            const category = btn.getAttribute("onclick").split("'")[1];
-            if (category && category !== 'f' && category !== 'beszelgetes' && category !== 'actors') {
-                const films = JSON.parse(localStorage.getItem(`cat_${category}`)) || [];
-                const newFilms = films.filter(f => f.uj).length;
-                let badge = btn.querySelector('.badge');
-                if (newFilms > 0) {
-                    if (!badge) {
-                        badge = document.createElement('span');
-                        badge.className = 'badge';
-                        btn.appendChild(badge);
-                    }
-                    badge.textContent = newFilms;
-                } else {
-                    if (badge) {
-                        badge.remove();
-                    }
-                }
-            }
-        });
-    }
-    document.addEventListener("DOMContentLoaded", () => {
-        if (localStorage.getItem("filmek_anyunak_access") !== "1") {
-            showPinOverlay();
-        }
-        updateBadges();
+        titleEl.value = ""; urlEl.value = "";
+        alert("Mentve ✅");
+      } catch (e) {
+        alert("Hiba mentés közben: " + (e?.message || e));
+      }
+    };
+
+    // --- Lista élő figyelése
+    const q = query(collection(db, "movies"), orderBy("addedAt", "desc"));
+    let lastItems = [];
+    onSnapshot(q, (snap) => {
+      lastItems = [];
+      snap.forEach(doc => lastItems.push({ id: doc.id, ...doc.data() }));
+      render();
     });
-</script>
+
+    function render() {
+      const term = searchEl.value.trim().toLowerCase();
+      const fc = filterCat.value;
+      const filtered = lastItems.filter(x =>
+        (!fc || x.category === fc) &&
+        (!term || (x.title || "").toLowerCase().includes(term))
+      );
+
+      listEl.innerHTML = "";
+      if (!filtered.length) {
+        listEl.innerHTML = `<div class="muted">Nincs találat.</div>`;
+        return;
+      }
+      for (const m of filtered) {
+        const div = document.createElement("div");
+        div.className = "item";
+        const when = m.addedAt?.toDate ? m.addedAt.toDate().toLocaleString() : "—";
+        div.innerHTML = `
+          <div class="title">
+            ${escapeHtml(m.title || "—")}
+            <span class="badge">${escapeHtml(m.category || "egyéb")}</span>
+          </div>
+          <div class="muted" style="margin:6px 0 10px">${when}</div>
+          <div>
+            <a class="btnlike" href="${escapeAttr(m.url||'#')}" target="_blank" rel="noopener">
+              <button>Lejátszás / Megnyitás</button>
+            </a>
+          </div>
+        `;
+        listEl.appendChild(div);
+      }
+    }
+
+    function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]))}
+    function escapeAttr(s){return (s||"").replace(/"/g,'&quot;')}
+
+    // Szűrők figyelése
+    [filterCat, searchEl].forEach(el => el.addEventListener('input', render));
+    btnRefresh.onclick = () => window.location.reload();
+  </script>
 </body>
 </html>
