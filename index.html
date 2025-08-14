@@ -476,5 +476,204 @@ function splitActors(s){
   };
 </script>
 <!-- ===== [SZAKASZ 17] FIREBASE – INIT + AUTH + FIRESTORE – END ===== -->
+<!-- ===== [SZAKASZ 17] FIREBASE – INIT + AUTH + FIRESTORE – START ===== -->
+<script type="module">
+  // Firebase modulok (CDN)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+  // ==== 1) Firebase config (TÖLTSD KI!) ====
+  // Töltsd ide be a saját configodat a Firebase konzolból (Web app létrehozás után adja):
+  // Tipp: ha most nincs kéznél, hagyd így – a lap olvasó módban működik, a feltöltés tiltva lesz.
+  const firebaseConfig = {
+    apiKey: "",           // pl. "AIzaSy...."
+    authDomain: "",       // pl. "filmek-anyunak.firebaseapp.com"
+    projectId: "",        // pl. "filmek-anyunak"
+    storageBucket: "",    // pl. "filmek-anyunak.appspot.com"
+    messagingSenderId: "",// pl. "1234567890"
+    appId: ""             // pl. "1:1234567890:web:abcdef..."
+  };
+
+  const hasConfig = Object.values(firebaseConfig).some(v => (v||"").trim()!=="");
+  if (!hasConfig) {
+    console.warn("[Filmek Anyunak] Firebase config hiányzik – olvasó mód. Töltsd ki a SZAKASZ 17-ben!");
+  }
+
+  // ==== 2) Alap inicializálás (ha van config) ====
+  const app  = hasConfig ? initializeApp(firebaseConfig) : null;
+  const auth = hasConfig ? getAuth(app) : null;
+  const db   = hasConfig ? getFirestore(app) : null;
+
+  // ==== 3) DOM elemek ====
+  const pinOverlay = document.getElementById('pinOverlay');
+  const mainBox    = document.getElementById('mainBox');
+  const pinInput   = document.getElementById('pinInput');
+  const pinError   = document.getElementById('pinError');
+  const uploadBtn  = document.querySelector('.uploadbtn');
+
+  const listBox = document.getElementById('movielistBox');
+  const listEl  = document.getElementById('movielinks');
+  const titleEl = document.getElementById('movielistTitle');
+  const hintEl  = document.getElementById('movielistHint');
+
+  const NEW_DAYS = 7;
+  let allMovies = [];
+
+  // ==== 4) Auth állapot – ha nincs config, mindenki néző ====
+  if (hasConfig) {
+    onAuthStateChanged(auth, (user) => {
+      // Olvasás mindenkinek – ne takarjon overlay
+      pinOverlay.style.display = "none";
+      mainBox.style.display = "";
+      // Feltöltés gomb csak adminnak aktív
+      if (uploadBtn) uploadBtn.disabled = !user;
+    });
+  } else {
+    // Config nélkül is megjelenítjük az oldalt (olvasó mód)
+    pinOverlay.style.display = "none";
+    mainBox.style.display = "";
+    if (uploadBtn) uploadBtn.disabled = true;
+  }
+
+  // ==== 5) Admin belépés (PIN = jelszó, e-mailt fixáljuk vagy kérhetjük külön inputból) ====
+  const ADMIN_EMAIL = "admin@csabi.app"; // ha más emailt használsz, írd át
+  const loginBtn = document.getElementById('btnPinLogin'); // ha van külön gombod; ha nincs, Enter is elég
+
+  async function doLogin() {
+    if (!hasConfig) { pinError.textContent = "Hiányzó Firebase beállítás!"; return; }
+    pinError.textContent = "";
+    const pass = (pinInput?.value || "").trim();
+    if (!pass) { pinError.textContent = "Írd be a PIN-t!"; return; }
+    try {
+      await signInWithEmailAndPassword(auth, ADMIN_EMAIL, pass);
+      pinInput.value = "";
+    } catch (e) {
+      console.error(e);
+      pinError.textContent = "Hibás e‑mail vagy PIN!";
+    }
+  }
+  loginBtn?.addEventListener('click', doLogin);
+  pinOverlay?.addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+
+  // Kilépés mindenből
+  window.logout = async () => {
+    if (hasConfig && auth) {
+      try { await signOut(auth); } catch(e){ console.error(e); }
+    }
+    mainBox.style.display = "none";
+    pinOverlay.style.display = "";
+    pinInput.value = "";
+    pinInput.focus();
+  };
+
+  // ==== 6) Firestore stream – valós idejű lista ====
+  let unsubscribe = null;
+  if (hasConfig && db) {
+    const moviesRef = collection(db, "movies");
+    const q = query(moviesRef, orderBy("createdAt","desc"));
+    unsubscribe = onSnapshot(q, (snap) => {
+      allMovies = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // nem rajzolunk automatikusan – a felhasználó gombnyomására frissítünk
+    });
+  } else {
+    // Config nélkül nincs felhő – üres lista
+    allMovies = [];
+  }
+
+  // ==== 7) Listák megjelenítése (globális) ====
+  function renderList(category) {
+    listEl.innerHTML = "";
+    hintEl.style.display = "none";
+    let data = allMovies;
+
+    if (category === "Új filmek") {
+      const cutoff = Date.now() - NEW_DAYS*24*60*60*1000;
+      data = data.filter(m => {
+        const ts = m.createdAt?.toMillis?.() ?? m.createdAt ?? 0;
+        return ts >= cutoff;
+      });
+      hintEl.style.display = "block";
+      hintEl.textContent = `Az elmúlt ${NEW_DAYS} napban hozzáadott filmek.`;
+    } else {
+      data = data.filter(m => (m.category || "").trim() === category);
+    }
+
+    if (!data.length) {
+      titleEl.textContent = "Nincs találat!";
+    } else {
+      titleEl.textContent = `${category} filmek:`;
+      data.forEach(movie => {
+        const a = document.createElement('a');
+        a.href = movie.url;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.className = "movielink";
+        a.textContent = movie.title;
+        listEl.appendChild(a);
+      });
+    }
+    listBox.style.display = "";
+    setTimeout(() => listBox.scrollIntoView({ behavior: 'smooth' }), 80);
+  }
+
+  window.showMovies = (category) => {
+    hideUploadForm();
+    renderList(category);
+  };
+  window.hideMovies = () => { listBox.style.display = "none"; };
+
+  // ==== 8) Feltöltés (csak admin; config nélkül tiltva) ====
+  window.showUploadForm = () => {
+    if (!hasConfig) { alert("Firebase beállítás hiányzik."); return; }
+    if (!auth?.currentUser) { alert("Csak admin tölthet fel. Jelentkezz be!"); return; }
+    document.getElementById('uploadBox').style.display = "";
+    hideMovies();
+  };
+
+  window.hideUploadForm = () => {
+    document.getElementById('uploadBox').style.display = "none";
+    document.getElementById('uploadError').textContent = "";
+  };
+
+  window.addMovie = async (e) => {
+    e.preventDefault();
+    if (!hasConfig) { document.getElementById('uploadError').textContent = "Hiányzó Firebase beállítás!"; return; }
+    if (!auth?.currentUser) { document.getElementById('uploadError').textContent = "Csak admin tölthet fel!"; return; }
+
+    const title = document.getElementById('newTitle').value.trim();
+    const url   = document.getElementById('newUrl').value.trim();
+    const cat   = document.getElementById('newCategory').value.trim();
+
+    if (!title || !url || !cat) {
+      document.getElementById('uploadError').textContent = "Minden mező kötelező!";
+      return;
+    }
+    if (!/^https?:\/\//i.test(url)) {
+      document.getElementById('uploadError').textContent = "A linknek http(s)://-el kell kezdődnie!";
+      return;
+    }
+
+    try {
+      const moviesRef = collection(db, "movies");
+      await addDoc(moviesRef, { title, url, category: cat, createdAt: serverTimestamp() });
+      document.getElementById('newTitle').value = "";
+      document.getElementById('newUrl').value = "";
+      document.getElementById('newCategory').value = "";
+      hideUploadForm();
+      alert("Film sikeresen hozzáadva!");
+      showMovies(cat);
+    } catch (e) {
+      console.error(e);
+      document.getElementById('uploadError').textContent = "Hiba történt mentés közben!";
+    }
+  };
+
+  // ==== 9) Betöltés – olvasás engedélyezve ====
+  window.onload = () => {
+    pinOverlay.style.display = "none";
+    mainBox.style.display = "";
+  };
+</script>
+<!-- ===== [SZAKASZ 17] FIREBASE – INIT + AUTH + FIRESTORE – END ===== -->
   
