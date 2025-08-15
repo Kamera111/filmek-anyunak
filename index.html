@@ -1,679 +1,237 @@
-<!-- ===== [SZAKASZ 2] FEJLÉC – START ===== -->
-<header>
-  <h1>🎬 Filmek</h1>
-  <div>
-    <button id="btnRefresh" class="secondary">Frissítés</button>
-    <button id="btnAdd">+ Új film</button>
-  </div>
-</header>
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Filmek Anyunak</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme: dark; }
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:#0b1220;color:#e7eef8}
+    .center{display:flex;align-items:center;justify-content:center}
+    .card{background:#111a2e;border:1px solid #1f2b46;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+    .btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
+    .btn-primary{background:#0ea5e9;color:#001018}
+    .btn-danger{background:#ef4444;color:white}
+    .btn-ghost{background:#1a2540;color:#cfe7ff}
+    .pill{border-radius:999px;padding:8px 14px}
+    .hidden{display:none !important}
+    /* PIN overlay */
+    #pinOverlay{position:fixed;inset:0;background:rgba(4,8,20,.92);backdrop-filter:blur(2px);z-index:50}
+    #pinBox{width:min(92vw,460px);padding:28px}
+    #pinInput{width:100%;font-size:32px;text-align:center;padding:14px 16px;border-radius:14px;border:1px solid #2a3b63;background:#0e1830;color:#7dd3fc;letter-spacing:4px}
+    #pinErr{min-height:22px;color:#fca5a5;font-weight:700;text-align:center;margin-top:8px}
+    /* Admin round button on PIN képernyő */
+    #adminRound{width:52px;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;
+      font-weight:900;font-size:22px;background:#7c3aed;color:white;border:2px solid #c4b5fd}
+    #adminRound:hover{filter:brightness(1.1)}
+    /* Modal */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:60}
+    .modal .content{width:min(92vw,440px);padding:22px}
+    .input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #2a3b63;background:#0e1830;color:#e7eef8}
+    .mt{margin-top:12px} .mb{margin-bottom:12px}
+    /* Main */
+    #main{display:none;min-height:100vh;padding:28px}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .tile{height:64px}
+    @media (max-width:640px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  </style>
+</head>
+<body>
 
-<!-- Kategória gombok -->
-<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
-  <button class="secondary cat-btn" data-cat="">Mind</button>
-  <button class="secondary cat-btn" data-cat="akcio">Akció</button>
-  <button class="secondary cat-btn" data-cat="thriller">Thriller</button>
-  <button class="secondary cat-btn" data-cat="krimi">Krimi</button>
-  <button class="secondary cat-btn" data-cat="vigjatek">Vígjáték</button>
-  <button class="secondary cat-btn" data-cat="__SZINESZEK__">Színészek</button>
-</div>
-<!-- ===== [SZAKASZ 2] FEJLÉC – END ===== -->
-<!-- ===== [SZAKASZ 2] FEJLÉC – START ===== -->
-<header>
-  <h1>🎬 Filmek</h1>
-  <div>
-    <button id="btnRefresh" class="secondary">Frissítés</button>
-    <button id="btnAdd">+ Új film</button>
-  </div>
-</header>
+  <!-- PIN overlay -->
+  <div id="pinOverlay" class="center">
+    <div id="pinBox" class="card">
+      <h1 style="margin:0 0 6px 0;text-align:center;font-weight:800;color:#7dd3fc">Filmek Anyunak</h1>
+      <p style="margin:0 0 16px 0;text-align:center;opacity:.8">Vendég PIN szükséges</p>
 
-<!-- Kategória gombok -->
-<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
-  <button class="secondary cat-btn" data-cat="">Mind</button>
-  <button class="secondary cat-btn" data-cat="akcio">Akció</button>
-  <button class="secondary cat-btn" data-cat="thriller">Thriller</button>
-  <button class="secondary cat-btn" data-cat="krimi">Krimi</button>
-  <button class="secondary cat-btn" data-cat="vigjatek">Vígjáték</button>
-  <button class="secondary cat-btn" data-cat="__SZINESZEK__">Színészek</button>
-</div>
-<!-- ===== [SZAKASZ 2] FEJLÉC – END ===== -->
-<!-- ===== [SZAKASZ 3] ÚJ FILM ŰRLAP – START ===== -->
-<div id="addBox" class="card" hidden>
-  <h3 style="margin:0 0 8px">Új film hozzáadása</h3>
-  <div class="row">
-    <div>
-      <label>Lejátszási link (elég ezt megadni)</label>
-      <input id="url" placeholder="https://www.youtube.com/watch?v=..." />
-    </div>
-    <div>
-      <label>Kategória</label>
-      <select id="category">
-        <option value="akcio">Akció</option>
-        <option value="krimi">Krimi</option>
-        <option value="thriller">Thriller</option>
-        <option value="vigjatek">Vígjáték</option>
-        <option value="drama">Dráma</option>
-        <option value="egyeb" selected>Egyéb</option>
-      </select>
-    </div>
-  </div>
+      <input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off" />
+      <div id="pinErr"></div>
 
-  <div class="row">
-    <div>
-      <label>Film címe (automatikus)</label>
-      <input id="title" placeholder="Automatikus kitöltés…" />
-    </div>
-    <div>
-      <label>PIN (ideiglenes) – 1954</label>
-      <input id="pin" placeholder="1954" />
-    </div>
-  </div>
-
-  <label>Színészek (opcionális, vesszővel elválasztva)</label>
-  <input id="actors" placeholder="pl. Tom Hanks, Meg Ryan" />
-
-  <div class="preview">
-    <img id="posterPrev" alt="Előnézet" src="" />
-    <div class="muted" id="autoInfo">Illessz be egy linket – automatikus cím és borító.</div>
-  </div>
-
-  <div class="actions">
-    <button id="save">Mentés</button>
-    <button class="secondary" id="cancel">Mégse</button>
-  </div>
-  <div class="muted" style="margin-top:6px">Automatikus: YouTube biztos, más oldalakon oEmbed alapján próbálkozunk.</div>
-</div>
-<!-- ===== [SZAKASZ 3] ÚJ FILM ŰRLAP – END ===== -->
-<!-- ===== [SZAKASZ 4A] SZÍNÉSZ LISTA PANEL – START ===== -->
-<div id="actorsPanel" class="card" hidden>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-    <h3 style="margin:0">Színészek</h3>
-    <button id="actorsClose" class="secondary">Vissza</button>
-  </div>
-  <div class="muted" style="margin-bottom:8px">Válassz egy színészt a filmjeihez:</div>
-  <div id="actorsList" style="display:flex;flex-wrap:wrap;gap:8px"></div>
-</div>
-<!-- ===== [SZAKASZ 4A] SZÍNÉSZ LISTA PANEL – END ===== -->
-/* ===== [SZAKASZ 8] DOM ELEMEK HIVATKOZÁSA – START ===== */
-const addBox = document.getElementById('addBox');
-const btnAdd = document.getElementById('btnAdd');
-const btnRefresh = document.getElementById('btnRefresh');
-const saveBtn = document.getElementById('save');
-const cancelBtn = document.getElementById('cancel');
-const titleEl = document.getElementById('title');
-const urlEl = document.getElementById('url');
-const catEl = document.getElementById('category');
-const pinEl = document.getElementById('pin');
-const actorsEl = document.getElementById('actors');
-const filterCat = document.getElementById('filterCat');
-const searchEl = document.getElementById('search');
-const listEl = document.getElementById('list');
-const posterPrev = document.getElementById('posterPrev');
-const autoInfo = document.getElementById('autoInfo');
-const actorsPanel = document.getElementById('actorsPanel');
-const actorsList = document.getElementById('actorsList');
-const actorsClose = document.getElementById('actorsClose');
-
-/* ===== [SZAKASZ 8] DOM ELEMEK HIVATKOZÁSA – END ===== */
-
-/* ===== [SZAKASZ 9] ALAP LOGIKA: GOMBOK + ESEMÉNYEK – START ===== */
-const ADMIN_PIN = "1954";
-btnAdd.onclick = () => { addBox.hidden = !addBox.hidden; };
-cancelBtn.onclick = () => { addBox.hidden = true; };
-btnRefresh.onclick = () => window.location.reload();
-
-// Kategória gombok (köztük a Színészek)
-document.querySelectorAll('.cat-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const cat = btn.dataset.cat;
-    if (cat === '__SZINESZEK__') {
-      selectedActor = ""; // töröljük az esetleges aktív színészszűrőt
-      actorsPanel.hidden = false;
-      renderActors();     // színészgombok felépítése
-      return;
-    }
-    filterCat.value = cat;
-    selectedActor = "";
-    render();
-  });
-});
-
-// Színészpanel bezárása
-actorsClose.addEventListener('click', () => {
-  actorsPanel.hidden = true;
-});
-/* ===== [SZAKASZ 9] ALAP LOGIKA: GOMBOK + ESEMÉNYEK – END ===== */
-/* ===== [SZAKASZ 11] MENTÉS FIRESTORE-BA – START ===== */
-saveBtn.onclick = async () => {
-  if (pinEl.value.trim() !== ADMIN_PIN) {
-    alert("Helytelen PIN.");
-    return;
-  }
-  const url = urlEl.value.trim();
-  if (!url) { alert("Link kötelező."); return; }
-
-  // meta kiegészítés
-  let title = titleEl.value.trim();
-  let poster = posterPrev.src || "";
-  if (!title || !poster) {
-    const meta = await extractMeta(url);
-    title = title || meta.title || url;
-    poster = poster || meta.poster || "";
-  }
-
-  const actors = splitActors(actorsEl.value); // <-- ÚJ
-
-  try {
-    await addDoc(collection(db, "movies"), {
-      title, url, poster,
-      actors,                          // <-- ÚJ mező (tömb)
-      category: catEl.value,
-      addedAt: serverTimestamp()
-    });
-    [titleEl, urlEl, pinEl, actorsEl].forEach(el => el.value = "");
-    posterPrev.src = "";
-    alert("Mentve ✅");
-  } catch (e) {
-    alert("Hiba mentés közben: " + (e?.message || e));
-  }
-};
-/* ===== [SZAKASZ 11] MENTÉS FIRESTORE-BA – END ===== */
-
-        /* ===== [SZAKASZ 12] LISTA ÉLŐ FIGYELÉS + RENDEZÉS – START ===== */
-const q = query(collection(db, "movies"), orderBy("addedAt", "desc"));
-let lastItems = [];
-onSnapshot(q, (snap) => {
-  lastItems = [];
-  snap.forEach(doc => lastItems.push({ id: doc.id, ...doc.data() }));
-  render();
-  renderActors(); // <-- ÚJ: színészlista újraépítése
-});
-/* ===== [SZAKASZ 12] LISTA ÉLŐ FIGYELÉS + RENDEZÉS – END ===== */
-
-    /* ===== [SZAKASZ 12] LISTA ÉLŐ FIGYELÉS + RENDEZÉS – START ===== */
-const q = query(collection(db, "movies"), orderBy("addedAt", "desc"));
-let lastItems = [];
-onSnapshot(q, (snap) => {
-  lastItems = [];
-  snap.forEach(doc => lastItems.push({ id: doc.id, ...doc.data() }));
-  render();
-  renderActors(); // <-- ÚJ: színészlista újraépítése
-});
-/* ===== [SZAKASZ 12] LISTA ÉLŐ FIGYELÉS + RENDEZÉS – END ===== */
-    /* ===== [SZAKASZ 13] LISTA KIRAJZOLÁS + SZŰRÉS/KERESÉS – START ===== */
-let selectedActor = ""; // <-- ÚJ
-
-[filterCat, searchEl].forEach(el => el.addEventListener('input', () => {
-  selectedActor = "";          // ha manuálisan változik kateg./keresés, töröljük a színész-szűrőt
-  render();
-}));
-
-function render() {
-  const term = searchEl.value.trim().toLowerCase();
-  const fc = filterCat.value;
-
-  const filtered = lastItems.filter(x =>
-    (!fc || x.category === fc) &&
-    (!term || (x.title || "").toLowerCase().includes(term)) &&
-    (!selectedActor || (Array.isArray(x.actors) && x.actors.map(a=>a.toLowerCase()).includes(selectedActor.toLowerCase())))
-  );
-
-  listEl.innerHTML = "";
-  if (!filtered.length) {
-    listEl.innerHTML = `<div class="muted">Nincs találat.</div>`;
-    return;
-  }
-  for (const m of filtered) {
-    const when = m.addedAt?.toDate ? m.addedAt.toDate().toLocaleString() : "—";
-    const poster = m.poster ? `<img class="thumb" src="${escapeAttr(m.poster)}" alt="">` : `<div class="thumb"></div>`;
-    const actorsLine = (m.actors && m.actors.length) ? `<div class="muted" style="margin-top:6px">Szereplők: ${escapeHtml(m.actors.join(", "))}</div>` : "";
-
-    const card = document.createElement("div");
-    card.className = "item";
-    card.innerHTML = `
-      ${poster}
-      <div class="inner">
-        <div class="title">
-          <a href="${escapeAttr(m.url||'#')}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
-            ${escapeHtml(m.title || "—")}
-          </a>
-          <span class="badge">${escapeHtml(m.category || "egyéb")}</span>
-        </div>
-        <div class="muted" style="margin:6px 0 10px">${when}</div>
-        ${actorsLine}
-        <div class="actions">
-          <a href="${escapeAttr(m.url||'#')}" target="_blank" rel="noopener"><button>Lejátszás / Megnyitás</button></a>
-        </div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:14px">
+        <button id="pinBtn" class="btn btn-primary pill">Belépés</button>
+        <!-- Admin „A” gomb itt a PIN képernyőn -->
+        <button id="adminRound" title="Admin belépés">A</button>
       </div>
-    `;
-    listEl.appendChild(card);
-  }
-}
-/* ===== [SZAKASZ 13] LISTA KIRAJZOLÁS + SZŰRÉS/KERESÉS – END ===== */
+      <p style="margin-top:10px;text-align:center;opacity:.45;font-size:12px">Vendég PIN: <b>1954</b></p>
+    </div>
+  </div>
 
-  /* ===== [SZAKASZ 16] SZÍNÉSZLISTA FELÉPÍTÉSE – START ===== */
-function renderActors() {
-  if (!actorsPanel || !actorsList) return;
+  <!-- Admin belépés modal (email/jelszó) -->
+  <div id="adminModal" class="modal">
+    <div class="content card">
+      <h2 style="margin:0 0 12px 0">Admin bejelentkezés</h2>
+      <form id="adminForm">
+        <input id="admEmail" class="input" type="email" placeholder="Email" required />
+        <input id="admPass" class="input mt" type="password" placeholder="Jelszó" required />
+        <div id="admErr" class="mt" style="min-height:20px;color:#fca5a5;font-weight:700"></div>
+        <div class="mt" style="display:flex;gap:10px;justify-content:flex-end">
+          <button type="button" id="admCancel" class="btn btn-ghost">Mégse</button>
+          <button type="submit" class="btn btn-primary">Belépés</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-  // egyedi, ábécésorrendben
-  const set = new Set();
-  for (const m of lastItems) {
-    if (Array.isArray(m.actors)) {
-      m.actors.forEach(a => {
-        const t = (a||"").trim();
-        if (t) set.add(t);
-      });
+  <!-- Fő tartalom -->
+  <main id="main">
+    <header style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <h2 style="margin:0;color:#7dd3fc;font-weight:800">Filmek Anyunak</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="roleBadge" class="pill" style="background:#1a2540;color:#93c5fd">Vendég</span>
+        <button id="logoutBtn" class="btn btn-danger hidden">Kijelentkezés</button>
+      </div>
+    </header>
+
+    <section class="grid">
+      <button class="btn btn-ghost tile">Akció</button>
+      <button class="btn btn-ghost tile">Vígjáték</button>
+      <button class="btn btn-ghost tile">Kaland</button>
+      <button class="btn btn-ghost tile">Sorozatok</button>
+      <button class="btn btn-ghost tile">Új filmek</button>
+      <button class="btn btn-ghost tile">Thriller TV</button>
+      <button class="btn btn-ghost tile">Top Filmek</button>
+      <button class="btn btn-ghost tile">Akció TV</button>
+      <button class="btn btn-ghost tile">Vígjáték TV</button>
+      <button class="btn btn-ghost tile">Beszélgetés</button>
+      <button class="btn btn-ghost tile">Színészek szerint</button>
+      <button class="btn btn-ghost tile">Krimi</button>
+    </section>
+
+    <!-- Csak adminnak látszik -->
+    <div style="margin-top:24px">
+      <button id="addMovieBtn" class="btn btn-primary hidden">+ Új film feltöltése (csak admin)</button>
+    </div>
+
+    <p id="info" style="opacity:.7;margin-top:18px">Válassz kategóriát…</p>
+  </main>
+
+  <!-- Firebase + Auth -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+    // 🔐 Firebase config – ez a projektedhez tartozik
+    const firebaseConfig = {
+      apiKey: "AIzaSyBDSI-z3a4IFAIoKCVZVcUyue7GMoO5acY",
+      authDomain: "filmek-fe035.firebaseapp.com",
+      projectId: "filmek-fe035",
+      storageBucket: "filmek-fe035.firebasestorage.app",
+      messagingSenderId: "302167835367",
+      appId: "1:302167835367:web:6e0fd4304c4496612c1842",
+      measurementId: "G-QBG7LG0ZQH"
+    };
+
+    // ✅ Admin UID – CSAK ez a felhasználó kap admin jogot
+    const ADMIN_UID = "0W3bQfbKs9NNpP1jOIFvX2aKXcY2";
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // DOM elemek
+    const pinOverlay = document.getElementById('pinOverlay');
+    const pinInput   = document.getElementById('pinInput');
+    const pinBtn     = document.getElementById('pinBtn');
+    const pinErr     = document.getElementById('pinErr');
+    const adminRound = document.getElementById('adminRound');
+
+    const adminModal = document.getElementById('adminModal');
+    const admCancel  = document.getElementById('admCancel');
+    const admForm    = document.getElementById('adminForm');
+    const admEmail   = document.getElementById('admEmail');
+    const admPass    = document.getElementById('admPass');
+    const admErr     = document.getElementById('admErr');
+
+    const main       = document.getElementById('main');
+    const roleBadge  = document.getElementById('roleBadge');
+    const addMovieBtn= document.getElementById('addMovieBtn');
+    const logoutBtn  = document.getElementById('logoutBtn');
+
+    let isAdmin = false;
+
+    // ---- Vendég PIN (1954) ----
+    function openAsGuest() {
+      pinOverlay.style.display = 'none';
+      main.style.display = 'block';
+      roleBadge.textContent = 'Vendég';
+      addMovieBtn.classList.add('hidden');   // vendég nem látja
+      logoutBtn.classList.add('hidden');     // vendégnek nincs Firebase session
     }
-  }
+    function checkPin() {
+      pinErr.textContent = '';
+      if ((pinInput.value || '').trim() === '1954') {
+        openAsGuest();
+      } else {
+        pinErr.textContent = 'Hibás PIN!';
+        pinInput.value = '';
+        pinInput.focus();
+      }
+    }
+    pinBtn.addEventListener('click', checkPin);
+    pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkPin(); });
 
-  actorsList.innerHTML = "";
-  if (!set.size) {
-    actorsList.innerHTML = `<div class="muted">Még nincs megadott színész. Az űrlapon a „Színészek” mezőben adhatsz meg neveket.</div>`;
-    return;
-  }
-
-  [...set].sort((a,b)=>a.localeCompare(b,'hu')).forEach(name => {
-    const btn = document.createElement('button');
-    btn.className = 'secondary';
-    btn.textContent = name;
-    btn.addEventListener('click', () => {
-      selectedActor = name;
-      actorsPanel.hidden = true;
-      render();
+    // ---- Admin gomb a PIN képernyőn ----
+    adminRound.addEventListener('click', () => {
+      admErr.textContent = '';
+      adminModal.style.display = 'flex';
+      admEmail.focus();
     });
-    actorsList.appendChild(btn);
-  });
-}
+    admCancel.addEventListener('click', () => adminModal.style.display = 'none');
 
-function splitActors(s){
-  return (s||"")
-    .split(",")
-    .map(x=>x.trim())
-    .filter(Boolean);
-}
-/* ===== [SZAKASZ 16] SZÍNÉSZLISTA FELÉPÍTÉSE – END ===== */
-  <!-- ===== [SZAKASZ 17] FIREBASE – INIT + AUTH + FIRESTORE – START ===== -->
-<script type="module">
-  /* --- Firebase modulok --- */
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import {
-    getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import {
-    getFirestore, collection, addDoc, serverTimestamp,
-    onSnapshot, query, orderBy
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    // ---- Admin bejelentkezés (email/jelszó) ----
+    admForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      admErr.textContent = '';
+      try {
+        const cred = await signInWithEmailAndPassword(auth, admEmail.value.trim(), admPass.value.trim());
+        if (cred.user.uid !== ADMIN_UID) {
+          await signOut(auth);
+          admErr.textContent = 'Ez a fiók nem admin.';
+          return;
+        }
+        // sikeres admin login
+        isAdmin = true;
+        adminModal.style.display = 'none';
+        pinOverlay.style.display = 'none';
+        main.style.display = 'block';
+      } catch (err) {
+        admErr.textContent = 'Hibás email vagy jelszó.';
+      }
+    });
 
-  /* --- IDE ILLesZD BE A SAJÁT firebaseConfig-ot a konzolból --- */
-  const firebaseConfig = {
-    // apiKey: "...",
-    // authDomain: "...",
-    // projectId: "...",
-    // storageBucket: "...",
-    // messagingSenderId: "...",
-    // appId: "..."
-  };
-
-  /* --- Alap inicializálás --- */
-  const app  = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db   = getFirestore(app);
-
-  /* --- DOM horgonyok (már léteznek a lapodon) --- */
-  const pinOverlay = document.getElementById('pinOverlay');
-  const mainBox    = document.getElementById('mainBox');
-  const pinInput   = document.getElementById('pinInput');
-  const pinError   = document.getElementById('pinError');
-  const uploadBtn  = document.querySelector('.uploadbtn');
-
-  const listBox = document.getElementById('movielistBox');
-  const listEl  = document.getElementById('movielinks');
-  const titleEl = document.getElementById('movielistTitle');
-  const hintEl  = document.getElementById('movielistHint');
-
-  /* --- Állandók --- */
-  const NEW_DAYS = 7;
-  let allMovies = [];
-
-  /* === AUTH ÁLLAPOT ===
-     Admin bejelentkezve → Feltöltés engedélyezett
-     Nincs bejelentkezve → Csak olvasás (feltöltés tiltva) */
-  onAuthStateChanged(auth, (user) => {
-    pinOverlay.style.display = "none";   // olvasáshoz ne takarja a képernyőt
-    mainBox.style.display    = "";       // fő UI látható
-    if (uploadBtn) uploadBtn.disabled = !user; // csak adminnak aktív
-  });
-
-  /* === ADMIN LOGIN (PIN = jelszó, e-mail fix vagy kérhető) === */
-  // Ha van külön admin e‑mail inputod, használd azt; itt egy fix példa:
-  const ADMIN_EMAIL = "admin@csabi.app";
-  pinOverlay?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') doLogin();
-  });
-  document.getElementById('btnPinLogin')?.addEventListener('click', doLogin);
-
-  async function doLogin() {
-    pinError.textContent = "";
-    const pass = (pinInput?.value || "").trim();
-    if (!pass) { pinError.textContent = "Írd be a PIN-t!"; return; }
-    try {
-      await signInWithEmailAndPassword(auth, ADMIN_EMAIL, pass);
-      pinInput.value = "";
-    } catch (err) {
-      console.error(err);
-      pinError.textContent = "Hibás e‑mail vagy PIN!";
-    }
-  }
-
-  /* === KIJELENTKEZÉS === */
-  window.logout = async () => {
-    try { await signOut(auth); } catch(e) { console.error(e); }
-    mainBox.style.display = "none";
-    pinOverlay.style.display = "";
-    pinInput.value = "";
-    pinInput.focus();
-  };
-
-  /* === FIRESTORE STREAM – valós idejű lista === */
-  const moviesRef = collection(db, "movies");
-  const q = query(moviesRef, orderBy("createdAt", "desc"));
-  onSnapshot(q, (snap) => {
-    allMovies = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    // ha nyitva van egy lista, nem muszáj azonnal újrarajzolni; kérésre frissítünk
-  });
-
-  /* === LISTÁK MEGJELENÍTÉSE === */
-  function renderList(category) {
-    listEl.innerHTML = "";
-    hintEl.style.display = "none";
-    let data = allMovies;
-
-    if (category === "Új filmek") {
-      const cutoff = Date.now() - NEW_DAYS*24*60*60*1000;
-      data = allMovies.filter(m => {
-        const ts = m.createdAt?.toMillis?.() ?? m.createdAt ?? 0;
-        return ts >= cutoff;
-      });
-      hintEl.style.display = "block";
-      hintEl.textContent = `Az elmúlt ${NEW_DAYS} napban hozzáadott filmek.`;
-    } else {
-      data = allMovies.filter(m => (m.category || "").trim() === category);
-    }
-
-    if (!data.length) {
-      titleEl.textContent = "Nincs találat!";
-    } else {
-      titleEl.textContent = `${category} filmek:`;
-      data.forEach(movie => {
-        const a = document.createElement('a');
-        a.href = movie.url;
-        a.target = "_blank";
-        a.rel = "noopener";
-        a.className = "movielink";
-        a.textContent = movie.title;
-        listEl.appendChild(a);
-      });
-    }
-    listBox.style.display = "";
-    setTimeout(() => listBox.scrollIntoView({ behavior: 'smooth' }), 80);
-  }
-
-  /* Globális hívások – a meglévő gombjaid ezeket hívják */
-  window.showMovies = (category) => {
-    hideUploadForm();
-    renderList(category);
-  };
-  window.hideMovies = () => listBox.style.display = "none";
-
-  /* === FELTÖLTÉS (csak admin) === */
-  window.showUploadForm = () => {
-    if (!auth.currentUser) { alert("Csak admin tölthet fel. Jelentkezz be!"); return; }
-    document.getElementById('uploadBox').style.display = "";
-    hideMovies();
-  };
-  window.hideUploadForm = () => {
-    document.getElementById('uploadBox').style.display = "none";
-    document.getElementById('uploadError').textContent = "";
-  };
-  window.addMovie = async (e) => {
-    e.preventDefault();
-    if (!auth.currentUser) {
-      document.getElementById('uploadError').textContent = "Csak admin tölthet fel!";
-      return;
-    }
-    const title = document.getElementById('newTitle').value.trim();
-    const url   = document.getElementById('newUrl').value.trim();
-    const cat   = document.getElementById('newCategory').value.trim();
-
-    if (!title || !url || !cat) {
-      document.getElementById('uploadError').textContent = "Minden mező kötelező!";
-      return;
-    }
-    if (!/^https?:\/\//i.test(url)) {
-      document.getElementById('uploadError').textContent = "A linknek http(s)://-el kell kezdődnie!";
-      return;
-    }
-    try {
-      await addDoc(moviesRef, {
-        title, url, category: cat,
-        createdAt: serverTimestamp()
-      });
-      document.getElementById('newTitle').value = "";
-      document.getElementById('newUrl').value = "";
-      document.getElementById('newCategory').value = "";
-      hideUploadForm();
-      alert("Film sikeresen hozzáadva!");
-      showMovies(cat);
-    } catch (e) {
-      console.error(e);
-      document.getElementById('uploadError').textContent = "Hiba történt mentés közben!";
-    }
-  };
-
-  /* === Betöltéskor: olvasás engedélyezett, admin login külön === */
-  window.onload = () => {
-    pinOverlay.style.display = "none";
-    mainBox.style.display = "";
-  };
-</script>
-<!-- ===== [SZAKASZ 17] FIREBASE – INIT + AUTH + FIRESTORE – END ===== -->
-<!-- ===== [SZAKASZ 17] FIREBASE – INIT + AUTH + FIRESTORE – START ===== -->
-<script type="module">
-  // Firebase modulok (CDN)
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-  // ==== 1) Firebase config (TÖLTSD KI!) ====
-  // Töltsd ide be a saját configodat a Firebase konzolból (Web app létrehozás után adja):
-  // Tipp: ha most nincs kéznél, hagyd így – a lap olvasó módban működik, a feltöltés tiltva lesz.
-  const firebaseConfig = {
-    apiKey: "",           // pl. "AIzaSy...."
-    authDomain: "",       // pl. "filmek-anyunak.firebaseapp.com"
-    projectId: "",        // pl. "filmek-anyunak"
-    storageBucket: "",    // pl. "filmek-anyunak.appspot.com"
-    messagingSenderId: "",// pl. "1234567890"
-    appId: ""             // pl. "1:1234567890:web:abcdef..."
-  };
-
-  const hasConfig = Object.values(firebaseConfig).some(v => (v||"").trim()!=="");
-  if (!hasConfig) {
-    console.warn("[Filmek Anyunak] Firebase config hiányzik – olvasó mód. Töltsd ki a SZAKASZ 17-ben!");
-  }
-
-  // ==== 2) Alap inicializálás (ha van config) ====
-  const app  = hasConfig ? initializeApp(firebaseConfig) : null;
-  const auth = hasConfig ? getAuth(app) : null;
-  const db   = hasConfig ? getFirestore(app) : null;
-
-  // ==== 3) DOM elemek ====
-  const pinOverlay = document.getElementById('pinOverlay');
-  const mainBox    = document.getElementById('mainBox');
-  const pinInput   = document.getElementById('pinInput');
-  const pinError   = document.getElementById('pinError');
-  const uploadBtn  = document.querySelector('.uploadbtn');
-
-  const listBox = document.getElementById('movielistBox');
-  const listEl  = document.getElementById('movielinks');
-  const titleEl = document.getElementById('movielistTitle');
-  const hintEl  = document.getElementById('movielistHint');
-
-  const NEW_DAYS = 7;
-  let allMovies = [];
-
-  // ==== 4) Auth állapot – ha nincs config, mindenki néző ====
-  if (hasConfig) {
+    // ---- Auth állapot figyelése ----
     onAuthStateChanged(auth, (user) => {
-      // Olvasás mindenkinek – ne takarjon overlay
-      pinOverlay.style.display = "none";
-      mainBox.style.display = "";
-      // Feltöltés gomb csak adminnak aktív
-      if (uploadBtn) uploadBtn.disabled = !user;
+      if (user && user.uid === ADMIN_UID) {
+        // Admin nézet
+        isAdmin = true;
+        roleBadge.textContent = 'Admin';
+        addMovieBtn.classList.remove('hidden');
+        logoutBtn.classList.remove('hidden');
+      } else {
+        // Vendég nézet
+        isAdmin = false;
+        roleBadge.textContent = 'Vendég';
+        addMovieBtn.classList.add('hidden');
+        logoutBtn.classList.add('hidden');
+      }
     });
-  } else {
-    // Config nélkül is megjelenítjük az oldalt (olvasó mód)
-    pinOverlay.style.display = "none";
-    mainBox.style.display = "";
-    if (uploadBtn) uploadBtn.disabled = true;
-  }
 
-  // ==== 5) Admin belépés (PIN = jelszó, e-mailt fixáljuk vagy kérhetjük külön inputból) ====
-  const ADMIN_EMAIL = "admin@csabi.app"; // ha más emailt használsz, írd át
-  const loginBtn = document.getElementById('btnPinLogin'); // ha van külön gombod; ha nincs, Enter is elég
-
-  async function doLogin() {
-    if (!hasConfig) { pinError.textContent = "Hiányzó Firebase beállítás!"; return; }
-    pinError.textContent = "";
-    const pass = (pinInput?.value || "").trim();
-    if (!pass) { pinError.textContent = "Írd be a PIN-t!"; return; }
-    try {
-      await signInWithEmailAndPassword(auth, ADMIN_EMAIL, pass);
-      pinInput.value = "";
-    } catch (e) {
-      console.error(e);
-      pinError.textContent = "Hibás e‑mail vagy PIN!";
-    }
-  }
-  loginBtn?.addEventListener('click', doLogin);
-  pinOverlay?.addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
-
-  // Kilépés mindenből
-  window.logout = async () => {
-    if (hasConfig && auth) {
-      try { await signOut(auth); } catch(e){ console.error(e); }
-    }
-    mainBox.style.display = "none";
-    pinOverlay.style.display = "";
-    pinInput.value = "";
-    pinInput.focus();
-  };
-
-  // ==== 6) Firestore stream – valós idejű lista ====
-  let unsubscribe = null;
-  if (hasConfig && db) {
-    const moviesRef = collection(db, "movies");
-    const q = query(moviesRef, orderBy("createdAt","desc"));
-    unsubscribe = onSnapshot(q, (snap) => {
-      allMovies = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      // nem rajzolunk automatikusan – a felhasználó gombnyomására frissítünk
+    // ---- Kijelentkezés adminnak ----
+    logoutBtn.addEventListener('click', async () => {
+      try { await signOut(auth); } catch {}
+      // vissza PIN képernyőre
+      main.style.display = 'none';
+      pinOverlay.style.display = 'flex';
+      pinInput.focus();
     });
-  } else {
-    // Config nélkül nincs felhő – üres lista
-    allMovies = [];
-  }
 
-  // ==== 7) Listák megjelenítése (globális) ====
-  function renderList(category) {
-    listEl.innerHTML = "";
-    hintEl.style.display = "none";
-    let data = allMovies;
+    // Demo: admin feltöltő gomb akció
+    addMovieBtn.addEventListener('click', () => {
+      if (!isAdmin) return;
+      alert('Admin feltöltő felület nyitható itt.');
+    });
 
-    if (category === "Új filmek") {
-      const cutoff = Date.now() - NEW_DAYS*24*60*60*1000;
-      data = data.filter(m => {
-        const ts = m.createdAt?.toMillis?.() ?? m.createdAt ?? 0;
-        return ts >= cutoff;
-      });
-      hintEl.style.display = "block";
-      hintEl.textContent = `Az elmúlt ${NEW_DAYS} napban hozzáadott filmek.`;
-    } else {
-      data = data.filter(m => (m.category || "").trim() === category);
-    }
-
-    if (!data.length) {
-      titleEl.textContent = "Nincs találat!";
-    } else {
-      titleEl.textContent = `${category} filmek:`;
-      data.forEach(movie => {
-        const a = document.createElement('a');
-        a.href = movie.url;
-        a.target = "_blank";
-        a.rel = "noopener";
-        a.className = "movielink";
-        a.textContent = movie.title;
-        listEl.appendChild(a);
-      });
-    }
-    listBox.style.display = "";
-    setTimeout(() => listBox.scrollIntoView({ behavior: 'smooth' }), 80);
-  }
-
-  window.showMovies = (category) => {
-    hideUploadForm();
-    renderList(category);
-  };
-  window.hideMovies = () => { listBox.style.display = "none"; };
-
-  // ==== 8) Feltöltés (csak admin; config nélkül tiltva) ====
-  window.showUploadForm = () => {
-    if (!hasConfig) { alert("Firebase beállítás hiányzik."); return; }
-    if (!auth?.currentUser) { alert("Csak admin tölthet fel. Jelentkezz be!"); return; }
-    document.getElementById('uploadBox').style.display = "";
-    hideMovies();
-  };
-
-  window.hideUploadForm = () => {
-    document.getElementById('uploadBox').style.display = "none";
-    document.getElementById('uploadError').textContent = "";
-  };
-
-  window.addMovie = async (e) => {
-    e.preventDefault();
-    if (!hasConfig) { document.getElementById('uploadError').textContent = "Hiányzó Firebase beállítás!"; return; }
-    if (!auth?.currentUser) { document.getElementById('uploadError').textContent = "Csak admin tölthet fel!"; return; }
-
-    const title = document.getElementById('newTitle').value.trim();
-    const url   = document.getElementById('newUrl').value.trim();
-    const cat   = document.getElementById('newCategory').value.trim();
-
-    if (!title || !url || !cat) {
-      document.getElementById('uploadError').textContent = "Minden mező kötelező!";
-      return;
-    }
-    if (!/^https?:\/\//i.test(url)) {
-      document.getElementById('uploadError').textContent = "A linknek http(s)://-el kell kezdődnie!";
-      return;
-    }
-
-    try {
-      const moviesRef = collection(db, "movies");
-      await addDoc(moviesRef, { title, url, category: cat, createdAt: serverTimestamp() });
-      document.getElementById('newTitle').value = "";
-      document.getElementById('newUrl').value = "";
-      document.getElementById('newCategory').value = "";
-      hideUploadForm();
-      alert("Film sikeresen hozzáadva!");
-      showMovies(cat);
-    } catch (e) {
-      console.error(e);
-      document.getElementById('uploadError').textContent = "Hiba történt mentés közben!";
-    }
-  };
-
-  // ==== 9) Betöltés – olvasás engedélyezve ====
-  window.onload = () => {
-    pinOverlay.style.display = "none";
-    mainBox.style.display = "";
-  };
-</script>
-<!-- ===== [SZAKASZ 17] FIREBASE – INIT + AUTH + FIRESTORE – END ===== -->
-  
+    // fókusz a PIN mezőre indításkor
+    window.addEventListener('load', () => pinInput.focus());
+  </script>
+</body>
+</html>
