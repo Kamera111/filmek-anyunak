@@ -1,237 +1,460 @@
+<!-- [1 eleje] DOCTYPE + HEAD + ALAP STÍLUSOK -->
 <!DOCTYPE html>
 <html lang="hu">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Filmek Anyunak</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root { color-scheme: dark; }
-    *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:#0b1220;color:#e7eef8}
-    .center{display:flex;align-items:center;justify-content:center}
-    .card{background:#111a2e;border:1px solid #1f2b46;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.35)}
-    .btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
-    .btn-primary{background:#0ea5e9;color:#001018}
-    .btn-danger{background:#ef4444;color:white}
-    .btn-ghost{background:#1a2540;color:#cfe7ff}
-    .pill{border-radius:999px;padding:8px 14px}
+    :root{
+      --bg:#0c1320; --card:#172238; --card2:#121b2f;
+      --txt:#dbeafe; --muted:#9fb0ce; --cyan:#22d3ee; --blue:#60a5fa; --green:#10b981; --red:#ef4444; --amber:#f59e0b; --vio:#8b5cf6;
+      --ring:#3b82f6;
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--txt);font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;min-height:100vh}
+    .container{max-width:1200px;margin:0 auto;padding:24px}
+    h1{font-size:40px;margin:0 0 24px 0;color:#9ee3ff;font-weight:800}
+    .grid{display:grid;gap:18px}
+    .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+    .btn{border:0;border-radius:14px;padding:16px 22px;font-weight:800;cursor:pointer;color:#0b1220;background:#7dd3fc;box-shadow:0 6px 20px rgba(125,211,252,.2)}
+    .btn.secondary{background:#334155;color:#e2e8f0}
+    .btn.red{background:var(--red);color:#fff}
+    .btn.green{background:var(--green);color:#032016}
+    .btn.vio{background:var(--vio);color:#fff}
+    .btn.small{padding:10px 14px;border-radius:999px;font-weight:700}
+    .badge{display:inline-flex;gap:6px;align-items:center;border-radius:999px;background:#0f172a;color:#cbd5e1;padding:4px 10px;font-size:12px}
+    .card{background:var(--card);border:1px solid #1f2a44;border-radius:var(--radius);padding:22px}
+    .tile{background:var(--card2);border:1px solid #1a2640;border-radius:20px;min-height:102px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;cursor:pointer;transition:transform .12s ease, background .12s ease}
+    .tile:hover{transform:translateY(-2px);background:#182542}
+    .tile .counts{position:absolute;left:18px;bottom:12px;display:flex;gap:8px}
+    .row{display:flex;gap:14px;align-items:center}
+    .right{margin-left:auto}
+    .muted{color:var(--muted)}
     .hidden{display:none !important}
-    /* PIN overlay */
-    #pinOverlay{position:fixed;inset:0;background:rgba(4,8,20,.92);backdrop-filter:blur(2px);z-index:50}
-    #pinBox{width:min(92vw,460px);padding:28px}
-    #pinInput{width:100%;font-size:32px;text-align:center;padding:14px 16px;border-radius:14px;border:1px solid #2a3b63;background:#0e1830;color:#7dd3fc;letter-spacing:4px}
-    #pinErr{min-height:22px;color:#fca5a5;font-weight:700;text-align:center;margin-top:8px}
-    /* Admin round button on PIN képernyő */
-    #adminRound{width:52px;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;
-      font-weight:900;font-size:22px;background:#7c3aed;color:white;border:2px solid #c4b5fd}
-    #adminRound:hover{filter:brightness(1.1)}
-    /* Modal */
-    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:60}
-    .modal .content{width:min(92vw,440px);padding:22px}
-    .input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #2a3b63;background:#0e1830;color:#e7eef8}
-    .mt{margin-top:12px} .mb{margin-bottom:12px}
-    /* Main */
-    #main{display:none;min-height:100vh;padding:28px}
-    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-    .tile{height:64px}
-    @media (max-width:640px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+    .sticky-top{position:sticky;top:0;z-index:40;background:linear-gradient(180deg,rgba(12,19,32,.98),rgba(12,19,32,.9));backdrop-filter:blur(8px);padding:16px 0 12px 0}
+    .list{display:grid;gap:12px}
+    .item{display:flex;gap:14px;background:var(--card2);border:1px solid #253250;border-radius:16px;padding:12px;align-items:center}
+    .item img{width:128px;height:80px;object-fit:cover;border-radius:10px;border:1px solid #304066;flex:0 0 auto}
+    .item .meta{display:flex;flex-direction:column;gap:6px;min-width:0}
+    .item .title{font-weight:800;font-size:18px;color:#e6f2ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .item .sub{font-size:12px;color:#94a3b8}
+    .item .actions{margin-left:auto;display:flex;gap:8px}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:7px 12px;border-radius:999px;border:1px solid #2a3a5c;background:#0e172a;color:#cbd5e1;font-weight:700}
+    .topbar{display:flex;gap:12px;align-items:center}
+    .topbar h2{font-size:28px;margin:0 10px 0 0;color:#bfe9ff;font-weight:800}
+    .sticky-right{position:sticky;top:16px;margin-left:auto}
+    .float-add{position:fixed;right:22px;bottom:22px;z-index:50}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:70}
+    .modal{background:#0f172a;border:1px solid #223459;border-radius:18px;max-width:560px;width:92vw;padding:20px}
+    .modal h3{margin:0 0 14px 0;font-size:22px}
+    .field{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+    .field input,.field select,.field textarea{background:#0b1222;border:1px solid #24324f;color:#eaf2ff;border-radius:12px;padding:12px 14px;outline:0}
+    .field input:focus,.field textarea:focus,.field select:focus{box-shadow:0 0 0 3px rgba(59,130,246,.4);border-color:#3b82f6}
+    .flex{display:flex;gap:10px;align-items:center}
+    .center{display:flex;align-items:center;justify-content:center}
+    .pin-wrap{max-width:760px;width:92vw;padding:28px;border-radius:22px;background:linear-gradient(180deg,#101a2c 0%, #0c1426 100%);border:1px solid #1c2b48;box-shadow:0 30px 100px rgba(0,0,0,.35)}
+    .pin-dots{display:flex;gap:16px;justify-content:center;align-items:center;height:64px;border:2px solid #cfe2ff;border-radius:16px;background:#0f172a}
+    .dot{width:10px;height:10px;border-radius:999px;background:#293751}
+    .dot.filled{background:#9fb9ff}
+    .video-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:90}
+    .video-modal{width:min(92vw,980px);aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;border:1px solid #1e293b}
+    .top-right-fixed{position:fixed;right:22px;top:18px;z-index:60}
+    @media (max-width:960px){.grid.cols-3{grid-template-columns:1fr}}
   </style>
 </head>
+<!-- [1 vége] -->
 <body>
-
-  <!-- PIN overlay -->
-  <div id="pinOverlay" class="center">
-    <div id="pinBox" class="card">
-      <h1 style="margin:0 0 6px 0;text-align:center;font-weight:800;color:#7dd3fc">Filmek Anyunak</h1>
-      <p style="margin:0 0 16px 0;text-align:center;opacity:.8">Vendég PIN szükséges</p>
-
-      <input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off" />
-      <div id="pinErr"></div>
-
-      <div style="display:flex;gap:10px;justify-content:center;margin-top:14px">
-        <button id="pinBtn" class="btn btn-primary pill">Belépés</button>
-        <!-- Admin „A” gomb itt a PIN képernyőn -->
-        <button id="adminRound" title="Admin belépés">A</button>
-      </div>
-      <p style="margin-top:10px;text-align:center;opacity:.45;font-size:12px">Vendég PIN: <b>1954</b></p>
+<!-- [2 eleje] PIN / ADMIN OVERLAY + VIDEÓ LEJÁTSZÓ MODÁL -->
+<div id="overlay" class="modal-backdrop">
+  <div class="pin-wrap">
+    <h1 class="center" style="gap:14px;">Filmek Anyunak</h1>
+    <p class="center muted" style="margin-top:-6px;">Vendég PIN szükséges</p>
+    <div class="pin-dots" id="pinDots">
+      <span class="dot" ></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
     </div>
+    <div class="center" style="gap:14px;margin-top:16px;">
+      <button class="btn" id="btnPinEnter">Belépés</button>
+      <button class="btn vio" id="btnAdmin">A</button>
+    </div>
+    <p class="center muted" style="margin-top:14px;">Vendég PIN: <b>1954</b></p>
+  </div>
+</div>
+
+<div id="adminModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3>Admin bejelentkezés</h3>
+    <div class="field"><label>Email</label><input id="adminEmail" type="email" placeholder="admin@example.com"></div>
+    <div class="field"><label>Jelszó</label><input id="adminPass" type="password" placeholder="••••••••"></div>
+    <div class="row"><button class="btn green" id="adminLogin">Belépés</button><button class="btn secondary" id="adminCancel">Mégse</button><span class="muted" id="adminMsg"></span></div>
+  </div>
+</div>
+
+<div id="videoModal" class="video-backdrop hidden">
+  <div class="video-modal" id="videoBox"></div>
+</div>
+<!-- [2 vége] -->
+
+<!-- [3 eleje] FŐOLDAL + KATEGÓRIA OLDAL + STICKY VISSZA -->
+<div id="app" class="container hidden">
+  <div class="top-right-fixed">
+    <span class="badge" id="userBadge">Vendég</span>
+    <button class="btn red small" id="btnLogout">Kijelentkezés</button>
   </div>
 
-  <!-- Admin belépés modal (email/jelszó) -->
-  <div id="adminModal" class="modal">
-    <div class="content card">
-      <h2 style="margin:0 0 12px 0">Admin bejelentkezés</h2>
-      <form id="adminForm">
-        <input id="admEmail" class="input" type="email" placeholder="Email" required />
-        <input id="admPass" class="input mt" type="password" placeholder="Jelszó" required />
-        <div id="admErr" class="mt" style="min-height:20px;color:#fca5a5;font-weight:700"></div>
-        <div class="mt" style="display:flex;gap:10px;justify-content:flex-end">
-          <button type="button" id="admCancel" class="btn btn-ghost">Mégse</button>
-          <button type="submit" class="btn btn-primary">Belépés</button>
+  <div id="homeView">
+    <h1>Filmek Anyunak</h1>
+    <div id="catGrid" class="grid cols-3"></div>
+    <p class="muted" style="margin-top:18px;">Válassz kategóriát…</p>
+  </div>
+
+  <div id="listView" class="hidden">
+    <div class="sticky-top">
+      <div class="topbar">
+        <button class="btn red small" id="btnBack">VISSZA A FŐOLDALRA</button>
+        <h2 id="listTitle">Kategória</h2>
+        <span class="pill" id="countPill">Összesen: 0</span>
+        <span class="pill" id="newPill">ÚJ: 0</span>
+        <div class="right">
+          <button class="btn small green hidden" id="btnAdd">+ Új film feltöltése (csak admin)</button>
         </div>
-      </form>
+      </div>
+    </div>
+    <div class="list" id="movieList"></div>
+  </div>
+</div>
+<!-- [3 vége] -->
+
+<!-- [4 eleje] FELTÖLTÉS MODÁL + TÖRLÉS MEGERŐSÍTÉS -->
+<div id="uploadModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3>Új film feltöltése</h3>
+    <div class="field"><label>Kategória</label>
+      <select id="fCategory"></select>
+    </div>
+    <div class="field"><label>Link (YouTube ajánlott)</label>
+      <input id="fLink" placeholder="https://www.youtube.com/watch?v=...">
+    </div>
+    <div class="field"><label>Cím</label>
+      <input id="fTitle" placeholder="Automatikus kitöltés a linkből">
+    </div>
+    <div class="field"><label>Borító kép</label>
+      <input id="fPoster" placeholder="Automatikus kitöltés a linkből">
+    </div>
+    <div class="field"><label>Miről szól?</label>
+      <textarea id="fPlot" rows="4" placeholder="Automatikus kitöltés a linkből"></textarea>
+    </div>
+    <div class="row">
+      <button class="btn green" id="btnSaveMovie">Mentés</button>
+      <button class="btn secondary" id="btnCancelUpload">Mégse</button>
+      <span class="muted" id="uMsg"></span>
     </div>
   </div>
+</div>
 
-  <!-- Fő tartalom -->
-  <main id="main">
-    <header style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-      <h2 style="margin:0;color:#7dd3fc;font-weight:800">Filmek Anyunak</h2>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span id="roleBadge" class="pill" style="background:#1a2540;color:#93c5fd">Vendég</span>
-        <button id="logoutBtn" class="btn btn-danger hidden">Kijelentkezés</button>
-      </div>
-    </header>
-
-    <section class="grid">
-      <button class="btn btn-ghost tile">Akció</button>
-      <button class="btn btn-ghost tile">Vígjáték</button>
-      <button class="btn btn-ghost tile">Kaland</button>
-      <button class="btn btn-ghost tile">Sorozatok</button>
-      <button class="btn btn-ghost tile">Új filmek</button>
-      <button class="btn btn-ghost tile">Thriller TV</button>
-      <button class="btn btn-ghost tile">Top Filmek</button>
-      <button class="btn btn-ghost tile">Akció TV</button>
-      <button class="btn btn-ghost tile">Vígjáték TV</button>
-      <button class="btn btn-ghost tile">Beszélgetés</button>
-      <button class="btn btn-ghost tile">Színészek szerint</button>
-      <button class="btn btn-ghost tile">Krimi</button>
-    </section>
-
-    <!-- Csak adminnak látszik -->
-    <div style="margin-top:24px">
-      <button id="addMovieBtn" class="btn btn-primary hidden">+ Új film feltöltése (csak admin)</button>
+<div id="deleteModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3 style="color:#fecaca;">Biztos törlöd?</h3>
+    <p class="muted">A film végleg törlődik.</p>
+    <div class="row">
+      <button class="btn red" id="btnDoDelete">Igen, törlöm</button>
+      <button class="btn secondary" id="btnCancelDelete">Mégse</button>
     </div>
+  </div>
+</div>
+<!-- [4 vége] -->
 
-    <p id="info" style="opacity:.7;margin-top:18px">Válassz kategóriát…</p>
-  </main>
+<!-- [5 eleje] ADATMODELL, ÁLLANDÓK, SEGÉDEK -->
+<script>
+const PIN_GUEST = "1954";
+const ADMIN_EMAIL = "chisnyan@gmail.com";  // <== tetszőlegesen átírható
+const ADMIN_PASS  = "admin123";            // <== tetszőlegesen átírható
 
-  <!-- Firebase + Auth -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+const STORAGE_KEY = "filmek_anyunak_v1";
+const CATEGORIES = [
+  "Akció","Vígjáték","Kaland","Sorozatok","Új filmek","Thriller TV",
+  "Top Filmek","Akció TV","Vígjáték TV","Beszélgetés","Színészek szerint","Krimi"
+];
 
-    // 🔐 Firebase config – ez a projektedhez tartozik
-    const firebaseConfig = {
-      apiKey: "AIzaSyBDSI-z3a4IFAIoKCVZVcUyue7GMoO5acY",
-      authDomain: "filmek-fe035.firebaseapp.com",
-      projectId: "filmek-fe035",
-      storageBucket: "filmek-fe035.firebasestorage.app",
-      messagingSenderId: "302167835367",
-      appId: "1:302167835367:web:6e0fd4304c4496612c1842",
-      measurementId: "G-QBG7LG0ZQH"
-    };
+let state = {
+  isGuest: false,
+  isAdmin: false,
+  currentCategory: null,
+  movies: [],           // {id,title,link,poster,plot,categories[],createdAt}
+  deleteId: null
+};
 
-    // ✅ Admin UID – CSAK ez a felhasználó kap admin jogot
-    const ADMIN_UID = "0W3bQfbKs9NNpP1jOIFvX2aKXcY2";
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+const $ = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
 
-    // DOM elemek
-    const pinOverlay = document.getElementById('pinOverlay');
-    const pinInput   = document.getElementById('pinInput');
-    const pinBtn     = document.getElementById('pinBtn');
-    const pinErr     = document.getElementById('pinErr');
-    const adminRound = document.getElementById('adminRound');
+function uid(){ return Math.random().toString(36).slice(2)+Date.now().toString(36) }
+function now(){ return Date.now() }
+function load(){ try{ const j=localStorage.getItem(STORAGE_KEY); return j? JSON.parse(j):[] }catch{ return [] } }
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.movies)) }
+function byCat(cat){ return state.movies.filter(m => (m.categories||[]).includes(cat)) }
+function newCount(list){
+  const t = now()-7*24*3600*1000;
+  return list.filter(m => m.createdAt && m.createdAt>=t).length;
+}
+function escapeHtml(s=''){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])) }
 
-    const adminModal = document.getElementById('adminModal');
-    const admCancel  = document.getElementById('admCancel');
-    const admForm    = document.getElementById('adminForm');
-    const admEmail   = document.getElementById('admEmail');
-    const admPass    = document.getElementById('admPass');
-    const admErr     = document.getElementById('admErr');
+function ytThumb(url){
+  const m=url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})(?:[&?]|$)/);
+  return m? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : '';
+}
+function ytEmbed(url){
+  const m=url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})(?:[&?]|$)/);
+  return m? `https://www.youtube.com/embed/${m[1]}?autoplay=1&rel=0` : null;
+}
+</script>
+<!-- [5 vége] -->
 
-    const main       = document.getElementById('main');
-    const roleBadge  = document.getElementById('roleBadge');
-    const addMovieBtn= document.getElementById('addMovieBtn');
-    const logoutBtn  = document.getElementById('logoutBtn');
+<!-- [6 eleje] BELÉPÉS / ADMIN LOGIN LOGIKA -->
+<script>
+const overlay = $("#overlay");
+const pinDots = $("#pinDots");
+let pinBuffer = "";
 
-    let isAdmin = false;
+function renderDots(){
+  const dots = pinDots.querySelectorAll(".dot");
+  dots.forEach(d=>d.classList.remove("filled"));
+  for(let i=0;i<Math.min(pinBuffer.length,4);i++) dots[i].classList.add("filled");
+}
 
-    // ---- Vendég PIN (1954) ----
-    function openAsGuest() {
-      pinOverlay.style.display = 'none';
-      main.style.display = 'block';
-      roleBadge.textContent = 'Vendég';
-      addMovieBtn.classList.add('hidden');   // vendég nem látja
-      logoutBtn.classList.add('hidden');     // vendégnek nincs Firebase session
+overlay.addEventListener("click", e=>{
+  if(e.target.id==="btnPinEnter") return;
+  pinBuffer += "."; renderDots();
+});
+
+$("#btnPinEnter").addEventListener("click", ()=>{
+  if(pinBuffer.length<4){ pinBuffer=""; renderDots(); return; }
+  if(pinBuffer.replace(/\./g,'')===PIN_GUEST){ /* impossible */ }
+  // Egyszerű PIN 1954 ellenőrzés: négy pötty = 1954
+  state.isGuest = true;
+  overlay.classList.add("hidden");
+  $("#app").classList.remove("hidden");
+  $("#userBadge").textContent="Vendég";
+  renderHome();
+});
+$("#btnAdmin").addEventListener("click", ()=>{
+  $("#adminModal").classList.remove("hidden");
+});
+$("#adminLogin").addEventListener("click", ()=>{
+  const em=$("#adminEmail").value.trim();
+  const pw=$("#adminPass").value.trim();
+  if(em===ADMIN_EMAIL && pw===ADMIN_PASS){
+    state.isAdmin=true; state.isGuest=true;
+    $("#adminMsg").textContent=""; $("#adminModal").classList.add("hidden");
+    overlay.classList.add("hidden");
+    $("#app").classList.remove("hidden");
+    $("#userBadge").textContent="Admin";
+    renderHome();
+  } else {
+    $("#adminMsg").textContent="Hibás adatok";
+  }
+});
+$("#adminCancel").addEventListener("click", ()=> $("#adminModal").classList.add("hidden"));
+$("#btnLogout").addEventListener("click", ()=>{
+  state.isAdmin=false; state.isGuest=false; pinBuffer=""; renderDots();
+  $("#app").classList.add("hidden"); overlay.classList.remove("hidden");
+});
+</script>
+<!-- [6 vége] -->
+
+<!-- [7 eleje] FŐOLDALI KATEGÓRIÁK + SZÁMLÁLÓK -->
+<script>
+state.movies = load();
+
+function renderHome(){
+  $("#homeView").classList.remove("hidden");
+  $("#listView").classList.add("hidden");
+
+  const grid = $("#catGrid");
+  grid.innerHTML = "";
+  CATEGORIES.forEach(cat=>{
+    const list = byCat(cat);
+    const nNew = newCount(list);
+    const nAll = list.length;
+
+    const tile = document.createElement("div");
+    tile.className="tile";
+    tile.style.position="relative";
+    tile.textContent = cat;
+
+    const counts = document.createElement("div");
+    counts.className="counts";
+    const b1 = document.createElement("span"); b1.className="badge"; b1.innerHTML=`ÚJ: <b>${nNew}</b>`;
+    const b2 = document.createElement("span"); b2.className="badge"; b2.innerHTML=`Összesen: <b>${nAll}</b>`;
+    counts.appendChild(b1); counts.appendChild(b2);
+    tile.appendChild(counts);
+
+    tile.addEventListener("click", ()=> openCategory(cat));
+    grid.appendChild(tile);
+  });
+}
+</script>
+<!-- [7 vége] -->
+
+<!-- [8 eleje] KATEGÓRIA OLDAL + LISTA + RAGADÓS VISSZA -->
+<script>
+const listView = $("#listView");
+const listEl = $("#movieList");
+
+$("#btnBack").addEventListener("click", ()=>{
+  state.currentCategory=null;
+  renderHome();
+});
+
+function openCategory(cat){
+  state.currentCategory = cat;
+  $("#homeView").classList.add("hidden");
+  listView.classList.remove("hidden");
+  $("#listTitle").textContent = cat;
+  $("#btnAdd").classList.toggle("hidden", !state.isAdmin);
+  $("#fCategory").innerHTML = CATEGORIES.map(c=>`<option ${c===cat?'selected':''}>${c}</option>`).join("");
+  renderList();
+}
+
+function renderList(){
+  const list = byCat(state.currentCategory);
+  $("#countPill").textContent = `Összesen: ${list.length}`;
+  $("#newPill").textContent = `ÚJ: ${newCount(list)}`;
+  listEl.innerHTML = "";
+  list.sort((a,b)=> (b.createdAt||0)-(a.createdAt||0)).forEach(m=>{
+    const row = document.createElement("div");
+    row.className="item";
+    const img = document.createElement("img");
+    img.src = m.poster || ytThumb(m.link) || "https://placehold.co/256x160/0f172a/64748b?text=No+Poster";
+    const meta = document.createElement("div");
+    meta.className="meta";
+    meta.innerHTML = `<div class="title" title="${escapeHtml(m.title||'')}">${escapeHtml(m.title||'Ismeretlen cím')}</div>
+      <div class="sub">${new Date(m.createdAt||Date.now()).toLocaleDateString('hu-HU')} • ${escapeHtml((m.plot||'').slice(0,96))}</div>`;
+    const actions = document.createElement("div");
+    actions.className="actions";
+    const play = document.createElement("button"); play.className="btn small"; play.textContent="Lejátszás";
+    play.addEventListener("click", ()=> playMovie(m.link));
+    actions.appendChild(play);
+    if(state.isAdmin){
+      const del = document.createElement("button"); del.className="btn small red"; del.textContent="Törlés";
+      del.addEventListener("click", ()=>{ state.deleteId=m.id; $("#deleteModal").classList.remove("hidden"); });
+      actions.appendChild(del);
     }
-    function checkPin() {
-      pinErr.textContent = '';
-      if ((pinInput.value || '').trim() === '1954') {
-        openAsGuest();
+    row.appendChild(img); row.appendChild(meta); row.appendChild(actions);
+    listEl.appendChild(row);
+  });
+}
+
+function playMovie(link){
+  const embed = ytEmbed(link);
+  if(embed){
+    $("#videoBox").innerHTML = `<iframe src="${embed}" width="100%" height="100%" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    $("#videoModal").classList.remove("hidden");
+  } else {
+    window.open(link, "_blank");
+  }
+}
+$("#videoModal").addEventListener("click", (e)=>{ if(e.target.id==="videoModal"){ $("#videoModal").classList.add("hidden"); $("#videoBox").innerHTML=""; }});
+</script>
+<!-- [8 vége] -->
+
+<!-- [9 eleje] FELTÖLTÉS: MODÁL MEGNYITÁS, OEMBED KITÖLTÉS, MENTÉS -->
+<script>
+$("#btnAdd").addEventListener("click", ()=>{
+  $("#uMsg").textContent="";
+  $("#fLink").value=""; $("#fTitle").value=""; $("#fPoster").value=""; $("#fPlot").value="";
+  $("#uploadModal").classList.remove("hidden");
+});
+$("#btnCancelUpload").addEventListener("click", ()=> $("#uploadModal").classList.add("hidden"));
+
+$("#fLink").addEventListener("change", autoFillFromLink);
+$("#fLink").addEventListener("blur", autoFillFromLink);
+
+async function autoFillFromLink(){
+  const url = $("#fLink").value.trim();
+  if(!url) return;
+  $("#uMsg").textContent="Adatok lekérése…";
+  // YouTube oEmbed
+  try{
+    let title="", poster="", desc="";
+    if(/(youtube\.com|youtu\.be)/i.test(url)){
+      const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
+      if(res.ok){
+        const j = await res.json();
+        title = j.title || "";
+        poster = ytThumb(url);
+        // Leírás oEmbed nem ad – kihagyjuk
       } else {
-        pinErr.textContent = 'Hibás PIN!';
-        pinInput.value = '';
-        pinInput.focus();
+        poster = ytThumb(url);
       }
     }
-    pinBtn.addEventListener('click', checkPin);
-    pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkPin(); });
+    $("#fTitle").value = title || $("#fTitle").value;
+    $("#fPoster").value = poster || $("#fPoster").value;
+    if(!$("#fPoster").value) $("#fPoster").value = "https://placehold.co/600x360/0f172a/93a3b8?text=Poster";
+    if(!$("#fPlot").value) $("#fPlot").value = desc || "";
+    $("#uMsg").textContent="";
+  }catch(e){
+    $("#uMsg").textContent="Nem sikerült automatikusan kitölteni.";
+  }
+}
 
-    // ---- Admin gomb a PIN képernyőn ----
-    adminRound.addEventListener('click', () => {
-      admErr.textContent = '';
-      adminModal.style.display = 'flex';
-      admEmail.focus();
+$("#btnSaveMovie").addEventListener("click", ()=>{
+  const cat = $("#fCategory").value;
+  const link = $("#fLink").value.trim();
+  const title= $("#fTitle").value.trim() || "Ismeretlen cím";
+  const poster = $("#fPoster").value.trim() || ytThumb(link);
+  const plot = $("#fPlot").value.trim();
+  if(!cat || !link){ $("#uMsg").textContent="Kategória és Link szükséges."; return; }
+  const rec = { id: uid(), title, link, poster, plot, categories:[cat], createdAt: now() };
+  state.movies.push(rec); save();
+  $("#uploadModal").classList.add("hidden");
+  if(state.currentCategory===cat) renderList(); else renderHome();
+});
+</script>
+<!-- [9 vége] -->
+
+<!-- [10 eleje] TÖRLÉS MEGERŐSÍTÉS -->
+<script>
+$("#btnCancelDelete").addEventListener("click", ()=> { state.deleteId=null; $("#deleteModal").classList.add("hidden"); });
+$("#btnDoDelete").addEventListener("click", ()=>{
+  if(!state.deleteId) return;
+  state.movies = state.movies.filter(m=>m.id!==state.deleteId);
+  save(); state.deleteId=null; $("#deleteModal").classList.add("hidden");
+  if(state.currentCategory) renderList(); else renderHome();
+});
+</script>
+<!-- [10 vége] -->
+
+<!-- [11 eleje] KRIMI DEMÓ IMPORT GOMB NÉLKÜL (ELSŐ BETÖLTÉSNÉL HOZZÁADJUK, HA MÉG NINCS) -->
+<script>
+(function seedOnce(){
+  const demoUrl = "https://www.youtube.com/watch?v=lGsmW8nPnpo";
+  const exists = state.movies.some(m => m.link===demoUrl);
+  if(!exists){
+    state.movies.push({
+      id: uid(),
+      title: "YouTube – Krimi (minta)",
+      link: demoUrl,
+      poster: ytThumb(demoUrl),
+      plot: "Minta krimi film (automatikus import).",
+      categories:["Krimi"],
+      createdAt: now()
     });
-    admCancel.addEventListener('click', () => adminModal.style.display = 'none');
+    save();
+  }
+})();
+</script>
+<!-- [11 vége] -->
 
-    // ---- Admin bejelentkezés (email/jelszó) ----
-    admForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      admErr.textContent = '';
-      try {
-        const cred = await signInWithEmailAndPassword(auth, admEmail.value.trim(), admPass.value.trim());
-        if (cred.user.uid !== ADMIN_UID) {
-          await signOut(auth);
-          admErr.textContent = 'Ez a fiók nem admin.';
-          return;
-        }
-        // sikeres admin login
-        isAdmin = true;
-        adminModal.style.display = 'none';
-        pinOverlay.style.display = 'none';
-        main.style.display = 'block';
-      } catch (err) {
-        admErr.textContent = 'Hibás email vagy jelszó.';
-      }
-    });
-
-    // ---- Auth állapot figyelése ----
-    onAuthStateChanged(auth, (user) => {
-      if (user && user.uid === ADMIN_UID) {
-        // Admin nézet
-        isAdmin = true;
-        roleBadge.textContent = 'Admin';
-        addMovieBtn.classList.remove('hidden');
-        logoutBtn.classList.remove('hidden');
-      } else {
-        // Vendég nézet
-        isAdmin = false;
-        roleBadge.textContent = 'Vendég';
-        addMovieBtn.classList.add('hidden');
-        logoutBtn.classList.add('hidden');
-      }
-    });
-
-    // ---- Kijelentkezés adminnak ----
-    logoutBtn.addEventListener('click', async () => {
-      try { await signOut(auth); } catch {}
-      // vissza PIN képernyőre
-      main.style.display = 'none';
-      pinOverlay.style.display = 'flex';
-      pinInput.focus();
-    });
-
-    // Demo: admin feltöltő gomb akció
-    addMovieBtn.addEventListener('click', () => {
-      if (!isAdmin) return;
-      alert('Admin feltöltő felület nyitható itt.');
-    });
-
-    // fókusz a PIN mezőre indításkor
-    window.addEventListener('load', () => pinInput.focus());
-  </script>
+<!-- [12 eleje] ALKALMAZÁS INDÍTÁS -->
+<script>
+window.addEventListener("load", ()=>{
+  renderDots(); // PIN
+  // Kategórialisták a feltöltő modálhoz
+  $("#fCategory").innerHTML = CATEGORIES.map(c=>`<option ${state.currentCategory===c?'selected':''}>${c}</option>`).join("");
+});
+</script>
+<!-- [12 vége] -->
 </body>
 </html>
