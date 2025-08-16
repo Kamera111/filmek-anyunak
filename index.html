@@ -72,11 +72,25 @@
   <div class="pin-wrap">
     <h1 class="center" style="gap:14px;">Filmek Anyunak</h1>
     <p class="center muted" style="margin-top:-6px;">Vendég PIN szükséges</p>
-    <div class="pin-dots" id="pinDots">
-      <span class="dot" ></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+
+    <!-- Láthatatlan PIN mező – gépeléskor automatikus belépés -->
+    <input id="pinField"
+           type="password"
+           inputmode="numeric"
+           pattern="[0-9]*"
+           maxlength="4"
+           autocomplete="one-time-code"
+           autofocus
+           style="position:absolute;opacity:0;pointer-events:none;height:1px;width:1px;"/>
+
+    <!-- Vizuális PIN pöttyök -->
+    <div class="pin-dots" id="pinDots" tabindex="0" title="Írd be a PIN-t">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
     </div>
+
     <div class="center" style="gap:14px;margin-top:16px;">
-      <button class="btn" id="btnPinEnter">Belépés</button>
+      <!-- Belépés gomb már nem szükséges, maradhat tartaléknak -->
+      <button class="btn" id="btnPinEnter" style="display:none;">Belépés</button>
       <button class="btn vio" id="btnAdmin">A</button>
     </div>
     <p class="center muted" style="margin-top:14px;">Vendég PIN: <b>1954</b></p>
@@ -215,31 +229,42 @@ function ytEmbed(url){
 <script>
 const overlay = $("#overlay");
 const pinDots = $("#pinDots");
-let pinBuffer = "";
+const pinField = $("#pinField");
 
 function renderDots(){
+  const val = (pinField.value || "").slice(0,4);
   const dots = pinDots.querySelectorAll(".dot");
   dots.forEach(d=>d.classList.remove("filled"));
-  for(let i=0;i<Math.min(pinBuffer.length,4);i++) dots[i].classList.add("filled");
+  for(let i=0;i<val.length;i++) dots[i].classList.add("filled");
 }
 
-overlay.addEventListener("click", e=>{
-  if(e.target.id==="btnPinEnter") return;
-  pinBuffer += "."; renderDots();
-});
+function tryAutoEnter(){
+  const val = pinField.value;
+  if(val.length===4){
+    if(val===PIN_GUEST){
+      state.isGuest = true;
+      overlay.classList.add("hidden");
+      $("#app").classList.remove("hidden");
+      $("#userBadge").textContent="Vendég";
+      renderHome();
+    }else{
+      // rossz PIN → törlés és pöttyök reset
+      pinField.value="";
+      renderDots();
+    }
+  }
+}
 
-$("#btnPinEnter").addEventListener("click", ()=>{
-  if(pinBuffer.length<4){ pinBuffer=""; renderDots(); return; }
-  if(pinBuffer.replace(/\./g,'')===PIN_GUEST){ /* impossible */ }
-  // Egyszerű PIN 1954 ellenőrzés: négy pötty = 1954
-  state.isGuest = true;
-  overlay.classList.add("hidden");
-  $("#app").classList.remove("hidden");
-  $("#userBadge").textContent="Vendég";
-  renderHome();
-});
+// fókusz a pötty keretre kattintva
+pinDots.addEventListener("click", ()=> pinField.focus() );
+
+// automatikus belépés gépelésre
+pinField.addEventListener("input", ()=>{ renderDots(); tryAutoEnter(); });
+
+// Admin
 $("#btnAdmin").addEventListener("click", ()=>{
   $("#adminModal").classList.remove("hidden");
+  $("#adminEmail").focus();
 });
 $("#adminLogin").addEventListener("click", ()=>{
   const em=$("#adminEmail").value.trim();
@@ -257,8 +282,10 @@ $("#adminLogin").addEventListener("click", ()=>{
 });
 $("#adminCancel").addEventListener("click", ()=> $("#adminModal").classList.add("hidden"));
 $("#btnLogout").addEventListener("click", ()=>{
-  state.isAdmin=false; state.isGuest=false; pinBuffer=""; renderDots();
+  state.isAdmin=false; state.isGuest=false; pinField.value=""; renderDots();
   $("#app").classList.add("hidden"); overlay.classList.remove("hidden");
+  // fókusz vissza a pin mezőre
+  setTimeout(()=>pinField.focus(), 0);
 });
 </script>
 <!-- [6 vége] -->
