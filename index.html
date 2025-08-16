@@ -155,7 +155,7 @@
   <div id="adminModal" class="modal-backdrop">
     <div class="modal">
       <h3 style="margin:0 0 6px; font-size:22px; font-weight:800; color:#cfeafe">Admin bejelentkezés</h3>
-      <div class="field"><label>Email</label><input id="adminEmail" type="email" placeholder="chisnyan@gmail.com"></div>
+      <div class="field"><label>Email</label><input id="adminEmail" type="email" placeholder="admin@example.com"></div>
       <div class="field"><label>Jelszó</label><input id="adminPass" type="password" placeholder="••••••••••••"></div>
       <div class="row" style="justify-content:space-between">
         <span id="adminMsg" class="muted"></span>
@@ -230,11 +230,14 @@
   </div>
   <!-- [4 vége] -->
 
-  <!-- [5.1 eleje] PIN + ADMIN BELÉPTETÉS (JS) -->
+  <!-- [5 eleje] JavaScript logika (PIN, Admin, Adatkezelés, UI) -->
   <script>
+    // [5.1 PIN + ADMIN BELÉPTETÉS]
     const GUEST_PIN = "1954";
-    const OK_EMAIL = "chisnyan@gmail.com";
-    const OK_PASS  = "C10201443ccc";
+    // ***FONTOS BIZTONSÁGI MEGJEGYZÉS: Ne használd éles környezetben így a jelszót!***
+    // Ezt a részt Firebase Authentication-nel kellene helyettesíteni!
+    const OK_EMAIL = "admin@example.com"; // Megváltoztattam, hogy egyértelmű legyen, ez csak példa.
+    const OK_PASS  = "Jelszo123"; // Megváltoztattam, hogy egyértelmű legyen, ez csak példa.
 
     const gateOverlay   = document.getElementById('overlay');
     const guestPinInput = document.getElementById('pinField');
@@ -248,6 +251,7 @@
     const adminMsg      = document.getElementById('adminMsg');
 
     let IS_ADMIN = false;
+    // Window objektum kiegészítése az isAdmin flaggel, hogy bárhol elérhető legyen
     window.__APP__ = window.__APP__ || {};
     Object.defineProperty(window.__APP__, 'isAdmin', { get(){ return IS_ADMIN; } });
 
@@ -268,7 +272,10 @@
     guestPinInput.addEventListener('keydown', e=>{ if(e.key==='Enter') guestTryOpen(); });
 
     openAdminBtn.addEventListener('click', ()=>{
-      adminMsg.textContent = ''; adminModal.style.display='flex';
+      adminMsg.textContent = '';
+      adminEmailEl.value = OK_EMAIL; // A demo kedvéért automatikusan kitölti
+      adminPassEl.value = OK_PASS;   // A demo kedvéért automatikusan kitölti
+      adminModal.style.display='flex';
       setTimeout(()=> adminEmailEl.focus(), 10);
     });
     adminCancelBtn.addEventListener('click', ()=> adminModal.style.display='none');
@@ -289,12 +296,10 @@
     adminPassEl.addEventListener('keydown', e=>{ if(e.key==='Enter') doAdminLogin(); });
 
     window.addEventListener('load', ()=> guestPinInput.focus());
-  </script>
-  <!-- [5.1 vége] -->
 
-  <!-- [6 eleje] ADATKEZELÉS, LISTÁK, SZÁMLÁLÓK, LEJÁTSZÁS -->
-  <script>
-    /* 6.1 Kategóriák */
+    // [5.2 ADATKEZELÉS, LISTÁK, SZÁMLÁLÓK, LEJÁTSZÁS]
+
+    /* Kategóriák */
     const CATEGORIES = [
       { key:'akcio',       label:'Akció' },
       { key:'vigjatek',    label:'Vígjáték' },
@@ -306,15 +311,14 @@
       { key:'szineszek',   label:'Színészek szerint' },
       { key:'krimi',       label:'Krimi' }
     ];
-    const CAT_BY_LABEL = Object.fromEntries(CATEGORIES.map(c=>[c.label,c.key]));
 
-    /* 6.2 Perzisztencia */
+    /* Perzisztencia (Local Storage) */
     const LS_KEY = 'fa_movies_v1';
-    function loadDB(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch{ return {}; } }
-    function saveDB(db){ try{ localStorage.setItem(LS_KEY, JSON.stringify(db)); }catch{} }
-    let DB = loadDB();
+    function loadDB(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch(e){ console.error("Error loading DB:", e); return {}; } }
+    function saveDB(db){ try{ localStorage.setItem(LS_KEY, JSON.stringify(db)); }catch(e){ console.error("Error saving DB:", e); } }
+    let DB = loadDB(); // Az adatbázis betöltése indításkor
 
-    /* 6.3 Segédek */
+    /* Segédfüggvények */
     const pageHome = document.getElementById('page-home');
     const pageList = document.getElementById('page-list');
     const listTitle= document.getElementById('listTitle');
@@ -337,9 +341,12 @@
     function daysAgo(n){ return now() - n*24*60*60*1000; }
     function isNew(ts){ return (ts||0) >= daysAgo(7); }
 
+    // Egyedi ID generátor
+    function uid(){ return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+
     function normalizeMovie(m){
       return {
-        id: m.id || (crypto.randomUUID ? crypto.randomUUID() : String(now())+Math.random()),
+        id: m.id || uid(), // Használd a frissített uid() függvényt
         title: (m.title||'Ismeretlen cím').trim(),
         url: (m.url||'').trim(),
         poster: (m.poster||'').trim(),
@@ -360,20 +367,27 @@
         return m ? m[1] : null;
       }catch{ return null; }
     }
+    // Új: ytThumb segédfüggvény a miniatűr kép URL-hez
+    function ytThumb(url) {
+      const vid = extractYtId(url);
+      return vid ? `https://img.youtube.com/vi/${vid}/hqdefault.jpg` : null;
+    }
+
     async function fetchYouTubeMeta(url){
       try{
+        // YouTube oEmbed API használata
         const res = await fetch(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(url)}`);
-        if(!res.ok) throw 0;
+        if(!res.ok) throw new Error("YouTube oEmbed API request failed.");
         const data = await res.json();
-        const vid = extractYtId(url);
-        const poster = vid ? `https://img.youtube.com/vi/${vid}/hqdefault.jpg` : (data.thumbnail_url || '');
+        const poster = ytThumb(url) || (data.thumbnail_url || ''); // Használd a ytThumbot is
         return { title: data.title || 'Ismeretlen cím', poster };
-      }catch{
+      }catch(e){
+        console.warn("Could not fetch YouTube meta for:", url, e);
         return { title: 'Ismeretlen cím', poster: '' };
       }
     }
 
-    /* 6.4 Főoldali gombok létrehozása */
+    /* Főoldali gombok létrehozása */
     function makeCatButtons(){
       catGrid.innerHTML = '';
       CATEGORIES.forEach(c=>{
@@ -390,7 +404,7 @@
       });
     }
 
-    /* 6.5 Számlálók frissítése */
+    /* Számlálók frissítése */
     function updateBadges(){
       CATEGORIES.forEach(c=>{
         const arr   = listByCat(c.key);
@@ -406,14 +420,23 @@
       });
     }
 
-    /* 6.6 Oldalváltás */
+    /* Oldalváltás */
     function showHome(){ pageHome.style.display='block'; pageList.style.display='none'; }
     function showList(){ pageHome.style.display='none'; pageList.style.display='block'; }
 
     btnBack.addEventListener('click', showHome);
-    logoutGuest.addEventListener('click', ()=> location.href='https://www.google.com');
+    // Visszaállítás a kezdeti állapotra (overlay megjelenítése)
+    logoutGuest.addEventListener('click', ()=> {
+      IS_ADMIN = false; // Admin státusz törlése
+      guestPinInput.value = ''; // PIN mező ürítése
+      gateOverlay.style.display = 'flex'; // Overlay megjelenítése
+      showHome(); // Vissza a főoldalra, ha épp a lista oldalon voltunk
+      guestPinInput.focus(); // Fókusz a PIN mezőre
+      updateBadges(); // Frissítsd a jelvényeket, ha a felhasználó kilép
+    });
 
-    /* 6.7 Lista renderelés + lejátszás */
+
+    /* Lista renderelés + lejátszás */
     const videoModal = document.getElementById('videoModal');
     const videoBox   = document.getElementById('videoBox');
     function openVideo(url){
@@ -433,13 +456,16 @@
     function closeVideo(){ videoBox.innerHTML=''; videoModal.style.display='none'; }
     videoModal.addEventListener('click', e=>{ if(e.target===videoModal) closeVideo(); });
 
-    let CURRENT_CAT = null;
+    let CURRENT_CAT = null; // Aktuálisan kiválasztott kategória tárolása
     function renderList(key){
-      CURRENT_CAT = key;
+      CURRENT_CAT = key; // Kategória beállítása
       const cat = CATEGORIES.find(c=>c.key===key);
       listTitle.textContent = cat ? cat.label : 'Kategória';
 
       const arr = listByCat(key);
+      // Rendezés legújabb hozzáadás szerint, ha van createdAt. Ha nincs, akkor az eredeti sorrend marad.
+      arr.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
       listGrid.innerHTML = '';
       if (arr.length===0){
         const empty = document.createElement('div');
@@ -453,7 +479,7 @@
           const card = document.createElement('div');
           card.className='movie-card';
           card.innerHTML = `
-            <div class="poster"><img src="${m.poster || 'https://placehold.co/320x180?text=Nincs+bor%C3%ADt%C3%B3'}" alt=""></div>
+            <div class="poster"><img src="${m.poster || 'https://placehold.co/320x180?text=Nincs+bor%C3%ADt%C3%B3'}" alt="${m.title}"></div>
             <div>
               <div class="title">${m.title}</div>
               ${m.desc ? `<div class="desc">${m.desc}</div>` : ``}
@@ -465,32 +491,45 @@
           `;
           card.querySelector('.btn.green').addEventListener('click', ()=> openVideo(m.url));
           if (window.__APP__.isAdmin){
-            card.querySelector('[data-del]').addEventListener('click', ()=>{
-              if (confirm('Biztosan törlöd?')){
-                delMovie(key, card.querySelector('[data-del]').dataset.del);
-                renderList(key); updateBadges();
-              }
-            });
+            const delBtn = card.querySelector('[data-del]');
+            if (delBtn) { // Ellenőrizzük, hogy létezik-e a törlés gomb
+              delBtn.addEventListener('click', ()=>{
+                if (confirm('Biztosan törlöd?')){
+                  delMovie(key, delBtn.dataset.del);
+                  renderList(key); // Frissítsd a listát a törlés után
+                  updateBadges();  // Frissítsd a számlálókat
+                }
+              });
+            }
           }
           listGrid.appendChild(card);
         });
       }
-      btnAdd.classList.toggle('hidden', !window.__APP__.isAdmin);
+      btnAdd.classList.toggle('hidden', !window.__APP__.isAdmin); // Feltöltés gomb láthatósága admin mód szerint
       showList();
     }
 
     function openCategory(key){ renderList(key); }
 
-    /* 6.8 Feltöltő modal logika (auto kitöltés link alapján) */
-    function showAdd(){ if(!window.__APP__.isAdmin) return; addMsg.textContent=''; addModal.style.display='flex'; setTimeout(()=>addLink.focus(),10); }
-    function hideAdd(){ addModal.style.display='none'; addLink.value=''; addTitle.value=''; addPoster.value=''; addDesc.value=''; addMsg.textContent=''; }
+    /* Feltöltő modal logika (auto kitöltés link alapján) */
+    function showAdd(){
+      if(!window.__APP__.isAdmin) return;
+      addMsg.textContent='';
+      addLink.value=''; addTitle.value=''; addPoster.value=''; addDesc.value=''; // Űrlap ürítése
+      addModal.style.display='flex';
+      setTimeout(()=>addLink.focus(),10);
+    }
+    function hideAdd(){
+      addModal.style.display='none';
+      addLink.value=''; addTitle.value=''; addPoster.value=''; addDesc.value=''; addMsg.textContent='';
+    }
     btnAdd.addEventListener('click', showAdd);
     addCancel.addEventListener('click', hideAdd);
 
     addLink.addEventListener('input', async ()=>{
       const url = addLink.value.trim();
       if (!url) { addTitle.value=''; addPoster.value=''; return; }
-      addMsg.textContent='Kitöltés…';
+      addMsg.textContent='Adatok lekérése…';
       const meta = await fetchYouTubeMeta(url);
       addTitle.value  = meta.title || addTitle.value;
       addPoster.value = meta.poster || addPoster.value;
@@ -507,13 +546,13 @@
         poster: addPoster.value.trim(),
         desc: addDesc.value.trim()
       };
-      addMovie(CURRENT_CAT, movie);
-      hideAdd();
-      renderList(CURRENT_CAT);
-      updateBadges();
+      addMovie(CURRENT_CAT, movie); // Film hozzáadása a DB-hez
+      hideAdd(); // Modál bezárása
+      renderList(CURRENT_CAT); // Lista frissítése
+      updateBadges(); // Számlálók frissítése
     });
 
-    /* 6.9 Események: belépések */
+    /* Események: belépések */
     window.addEventListener('guest-logged-in', ()=>{
       makeCatButtons();
       updateBadges();
@@ -523,210 +562,37 @@
       makeCatButtons();
       updateBadges();
       showHome();
+      // Az add button láthatóságát a renderList is kezeli, de ide is be lehet tenni biztos, ami biztos.
       btnAdd.classList.toggle('hidden', !window.__APP__.isAdmin);
     });
 
-    /* 6.10 Első indítás (ha már belépve maradt volna, itt most mindig overlay van) */
-    // csak gombok és számlálók előkészítése háttérben
-    makeCatButtons(); updateBadges();
-  </script>
-  <!-- [6 vége] -->
-
-</body>
-</html>
-
-<!-- [7 eleje] FŐOLDALI KATEGÓRIÁK + SZÁMLÁLÓK -->
-<script>
-state.movies = load();
-
-function renderHome(){
-  $("#homeView").classList.remove("hidden");
-  $("#listView").classList.add("hidden");
-
-  const grid = $("#catGrid");
-  grid.innerHTML = "";
-  CATEGORIES.forEach(cat=>{
-    const list = byCat(cat);
-    const nNew = newCount(list);
-    const nAll = list.length;
-
-    const tile = document.createElement("div");
-    tile.className="tile";
-    tile.style.position="relative";
-    tile.textContent = cat;
-
-    const counts = document.createElement("div");
-    counts.className="counts";
-    const b1 = document.createElement("span"); b1.className="badge"; b1.innerHTML=`ÚJ: <b>${nNew}</b>`;
-    const b2 = document.createElement("span"); b2.className="badge"; b2.innerHTML=`Összesen: <b>${nAll}</b>`;
-    counts.appendChild(b1); counts.appendChild(b2);
-    tile.appendChild(counts);
-
-    tile.addEventListener("click", ()=> openCategory(cat));
-    grid.appendChild(tile);
-  });
-}
-</script>
-<!-- [7 vége] -->
-
-<!-- [8 eleje] KATEGÓRIA OLDAL + LISTA + RAGADÓS VISSZA -->
-<script>
-const listView = $("#listView");
-const listEl = $("#movieList");
-
-$("#btnBack").addEventListener("click", ()=>{
-  state.currentCategory=null;
-  renderHome();
-});
-
-function openCategory(cat){
-  state.currentCategory = cat;
-  $("#homeView").classList.add("hidden");
-  listView.classList.remove("hidden");
-  $("#listTitle").textContent = cat;
-  $("#btnAdd").classList.toggle("hidden", !state.isAdmin);
-  $("#fCategory").innerHTML = CATEGORIES.map(c=>`<option ${c===cat?'selected':''}>${c}</option>`).join("");
-  renderList();
-}
-
-function renderList(){
-  const list = byCat(state.currentCategory);
-  $("#countPill").textContent = `Összesen: ${list.length}`;
-  $("#newPill").textContent = `ÚJ: ${newCount(list)}`;
-  listEl.innerHTML = "";
-  list.sort((a,b)=> (b.createdAt||0)-(a.createdAt||0)).forEach(m=>{
-    const row = document.createElement("div");
-    row.className="item";
-    const img = document.createElement("img");
-    img.src = m.poster || ytThumb(m.link) || "https://placehold.co/256x160/0f172a/64748b?text=No+Poster";
-    const meta = document.createElement("div");
-    meta.className="meta";
-    meta.innerHTML = `<div class="title" title="${escapeHtml(m.title||'')}">${escapeHtml(m.title||'Ismeretlen cím')}</div>
-      <div class="sub">${new Date(m.createdAt||Date.now()).toLocaleDateString('hu-HU')} • ${escapeHtml((m.plot||'').slice(0,96))}</div>`;
-    const actions = document.createElement("div");
-    actions.className="actions";
-    const play = document.createElement("button"); play.className="btn small"; play.textContent="Lejátszás";
-    play.addEventListener("click", ()=> playMovie(m.link));
-    actions.appendChild(play);
-    if(state.isAdmin){
-      const del = document.createElement("button"); del.className="btn small red"; del.textContent="Törlés";
-      del.addEventListener("click", ()=>{ state.deleteId=m.id; $("#deleteModal").classList.remove("hidden"); });
-      actions.appendChild(del);
-    }
-    row.appendChild(img); row.appendChild(meta); row.appendChild(actions);
-    listEl.appendChild(row);
-  });
-}
-
-function playMovie(link){
-  const embed = ytEmbed(link);
-  if(embed){
-    $("#videoBox").innerHTML = `<iframe src="${embed}" width="100%" height="100%" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-    $("#videoModal").classList.remove("hidden");
-  } else {
-    window.open(link, "_blank");
-  }
-}
-$("#videoModal").addEventListener("click", (e)=>{ if(e.target.id==="videoModal"){ $("#videoModal").classList.add("hidden"); $("#videoBox").innerHTML=""; }});
-</script>
-<!-- [8 vége] -->
-
-<!-- [9 eleje] FELTÖLTÉS: MODÁL MEGNYITÁS, OEMBED KITÖLTÉS, MENTÉS -->
-<script>
-$("#btnAdd").addEventListener("click", ()=>{
-  $("#uMsg").textContent="";
-  $("#fLink").value=""; $("#fTitle").value=""; $("#fPoster").value=""; $("#fPlot").value="";
-  $("#uploadModal").classList.remove("hidden");
-});
-$("#btnCancelUpload").addEventListener("click", ()=> $("#uploadModal").classList.add("hidden"));
-
-$("#fLink").addEventListener("change", autoFillFromLink);
-$("#fLink").addEventListener("blur", autoFillFromLink);
-
-async function autoFillFromLink(){
-  const url = $("#fLink").value.trim();
-  if(!url) return;
-  $("#uMsg").textContent="Adatok lekérése…";
-  // YouTube oEmbed
-  try{
-    let title="", poster="", desc="";
-    if(/(youtube\.com|youtu\.be)/i.test(url)){
-      const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
-      if(res.ok){
-        const j = await res.json();
-        title = j.title || "";
-        poster = ytThumb(url);
-        // Leírás oEmbed nem ad – kihagyjuk
-      } else {
-        poster = ytThumb(url);
+    /* Első indítás (Seed demo adat, ha nincs) */
+    (function seedOnce(){
+      const demoUrl = "https://www.youtube.com/watch?v=lGsmW8nPnpo";
+      // Ellenőrizd, hogy a DB-ben van-e "krimi" kulcs és azon belül a demo URL
+      const krimiMovies = listByCat('krimi');
+      const exists = krimiMovies.some(m => m.url === demoUrl);
+      if(!exists){
+        const demoMovie = {
+          id: uid(),
+          title: "YouTube – Krimi (minta)",
+          url: demoUrl,
+          poster: ytThumb(demoUrl) || "https://placehold.co/320x180?text=No+Poster",
+          desc: "Minta krimi film (automatikus import).",
+          createdAt: now()
+        };
+        addMovie('krimi', demoMovie); // Használd az addMovie függvényt
       }
-    }
-    $("#fTitle").value = title || $("#fTitle").value;
-    $("#fPoster").value = poster || $("#fPoster").value;
-    if(!$("#fPoster").value) $("#fPoster").value = "https://placehold.co/600x360/0f172a/93a3b8?text=Poster";
-    if(!$("#fPlot").value) $("#fPlot").value = desc || "";
-    $("#uMsg").textContent="";
-  }catch(e){
-    $("#uMsg").textContent="Nem sikerült automatikusan kitölteni.";
-  }
-}
+    })();
 
-$("#btnSaveMovie").addEventListener("click", ()=>{
-  const cat = $("#fCategory").value;
-  const link = $("#fLink").value.trim();
-  const title= $("#fTitle").value.trim() || "Ismeretlen cím";
-  const poster = $("#fPoster").value.trim() || ytThumb(link);
-  const plot = $("#fPlot").value.trim();
-  if(!cat || !link){ $("#uMsg").textContent="Kategória és Link szükséges."; return; }
-  const rec = { id: uid(), title, link, poster, plot, categories:[cat], createdAt: now() };
-  state.movies.push(rec); save();
-  $("#uploadModal").classList.add("hidden");
-  if(state.currentCategory===cat) renderList(); else renderHome();
-});
-</script>
-<!-- [9 vége] -->
 
-<!-- [10 eleje] TÖRLÉS MEGERŐSÍTÉS -->
-<script>
-$("#btnCancelDelete").addEventListener("click", ()=> { state.deleteId=null; $("#deleteModal").classList.add("hidden"); });
-$("#btnDoDelete").addEventListener("click", ()=>{
-  if(!state.deleteId) return;
-  state.movies = state.movies.filter(m=>m.id!==state.deleteId);
-  save(); state.deleteId=null; $("#deleteModal").classList.add("hidden");
-  if(state.currentCategory) renderList(); else renderHome();
-});
-</script>
-<!-- [10 vége] -->
+    /* Alkalmazás indítás */
+    // Csak gombok és számlálók előkészítése háttérben
+    makeCatButtons();
+    updateBadges();
+    // A PIN overlay már alapból látható, az oldal betöltésekor fókuszál rá a 5.1-es blokk végén lévő listener
+  </script>
+  <!-- [5 vége] -->
 
-<!-- [11 eleje] KRIMI DEMÓ IMPORT GOMB NÉLKÜL (ELSŐ BETÖLTÉSNÉL HOZZÁADJUK, HA MÉG NINCS) -->
-<script>
-(function seedOnce(){
-  const demoUrl = "https://www.youtube.com/watch?v=lGsmW8nPnpo";
-  const exists = state.movies.some(m => m.link===demoUrl);
-  if(!exists){
-    state.movies.push({
-      id: uid(),
-      title: "YouTube – Krimi (minta)",
-      link: demoUrl,
-      poster: ytThumb(demoUrl),
-      plot: "Minta krimi film (automatikus import).",
-      categories:["Krimi"],
-      createdAt: now()
-    });
-    save();
-  }
-})();
-</script>
-<!-- [11 vége] -->
-
-<!-- [12 eleje] ALKALMAZÁS INDÍTÁS -->
-<script>
-window.addEventListener("load", ()=>{
-  renderDots(); // PIN
-  // Kategórialisták a feltöltő modálhoz
-  $("#fCategory").innerHTML = CATEGORIES.map(c=>`<option ${state.currentCategory===c?'selected':''}>${c}</option>`).join("");
-});
-</script>
-<!-- [12 vége] -->
 </body>
 </html>
