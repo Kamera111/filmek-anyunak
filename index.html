@@ -1,159 +1,75 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-  <!-- [1 eleje] HEAD + STÍLUSOK -->
-<head>
+  <!-- [1 ELEJE] HEAD + STÍLUSOK -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Filmek Anyunak</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg: #0f172a;
-      --card:#111827;
-      --muted:#9ca3af;
-      --text:#e5e7eb;
-      --cyan:#06b6d4;
-      --cyan2:#0891b2;
-      --red:#ef4444;
-      --red2:#b91c1c;
-      --green:#10b981;
-      --vio:#7c3aed;
-      --bord:#334155;
+      --bg:#0f172a; --card:#111827; --muted:#9ca3af; --text:#e5e7eb;
+      --cyan:#06b6d4; --cyan2:#0891b2; --red:#ef4444; --green:#10b981; --vio:#7c3aed; --bord:#334155;
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
     .hidden{display:none !important}
 
     /* ===== PIN / OVERLAY ===== */
-    .overlay{
-      position:fixed; inset:0; z-index:50;
-      display:flex; align-items:center; justify-content:center;
-      background:rgba(0,0,0,.85);
-      padding:24px;
-    }
-    .pin-card{
-      width:100%; max-width:380px; background:var(--card);
-      border:1px solid var(--bord);
-      border-radius:20px; padding:22px; display:grid; gap:14px;
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-    }
-    .pin-input{
-      width:100%;
-      padding:18px 16px;
-      border-radius:14px;
-      border:2px solid var(--bord);
-      background:#0b1324;
-      color:var(--text);
-      font-size:26px;
-      text-align:center;
-      letter-spacing:10px;
-    }
-    .pin-input::placeholder{letter-spacing:0; color:var(--muted); font-size:16px}
-    .row{display:flex; gap:10px; align-items:center; justify-content:center}
-    .btn{
-      border:none; cursor:pointer; font-weight:800; color:#fff;
-      padding:12px 16px; border-radius:12px; transition:.2s;
-      background:#1f2937; border:1px solid var(--bord)
-    }
+    .overlay{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.85);padding:24px;}
+    .pin-card{width:100%;max-width:380px;background:var(--card);border:1px solid var(--bord);border-radius:20px;padding:22px;display:grid;gap:14px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .pin-input{width:100%;padding:18px 16px;border-radius:14px;border:2px solid var(--bord);background:#0b1324;color:var(--text);font-size:26px;text-align:center;letter-spacing:10px}
+    .pin-input::placeholder{letter-spacing:0;color:var(--muted);font-size:16px}
+    .row{display:flex;gap:10px;align-items:center;justify-content:center}
+    .btn{border:none;cursor:pointer;font-weight:800;color:#fff;padding:12px 16px;border-radius:12px;transition:.2s;background:#1f2937;border:1px solid var(--bord)}
     .btn:hover{filter:brightness(1.1)}
-    .btn.vio{background:var(--vio)}
-    .btn.red{background:var(--red)}
-    .btn.green{background:var(--green)}
-    .muted{color:var(--muted); font-size:14px}
+    .btn.vio{background:var(--vio)} .btn.red{background:var(--red)} .btn.green{background:var(--green)}
+    .muted{color:var(--muted);font-size:14px}
 
     /* ===== FŐOLDAL ===== */
-    .container{max-width:980px; margin:0 auto; padding:20px}
-    h1{margin:28px 0 20px; text-align:center; font-size:38px; font-weight:800; color:#8be9fd}
+    .container{max-width:980px;margin:0 auto;padding:20px}
+    h1{margin:28px 0 20px;text-align:center;font-size:38px;font-weight:800;color:#8be9fd}
 
-    /* <<< ITT: 3 oszlopos rács >>> */
-    .grid{
-      display:grid; gap:16px;
-      grid-template-columns: repeat(3, 1fr);
-    }
-    @media (max-width: 900px){
-      .grid{ grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 600px){
-      .grid{ grid-template-columns: 1fr; }
-    }
+    /* 3 oszlopos rács */
+    .grid{display:grid;gap:16px;grid-template-columns:repeat(3,1fr)}
+    @media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:600px){.grid{grid-template-columns:1fr}}
 
-    .cat-btn{
-      position:relative;
-      background:#0b1324; border:1px solid var(--bord);
-      border-radius:16px; padding:20px; text-align:center;
-      font-weight:800; font-size:20px; cursor:pointer;
-      color:#cfeafe;
-    }
+    .cat-btn{position:relative;background:#0b1324;border:1px solid var(--bord);border-radius:16px;padding:20px;text-align:center;font-weight:800;font-size:20px;cursor:pointer;color:#cfeafe}
     .cat-btn:hover{background:#0d1630}
-    .badge{
-      position:absolute; left:10px; top:8px; font-size:12px; font-weight:800;
-      padding:4px 8px; border-radius:999px; background:var(--red);
-    }
-    .total{
-      position:absolute; right:10px; bottom:8px; font-size:12px; font-weight:800;
-      color:#fff; opacity:.9;
-    }
-    .footer-actions{display:flex; justify-content:center; margin:26px 0 10vh; gap:10px}
+    .badge{position:absolute;left:10px;top:8px;font-size:12px;font-weight:800;padding:4px 8px;border-radius:999px;background:var(--red)}
+    .total{position:absolute;right:10px;bottom:8px;font-size:12px;font-weight:800;color:#fff;opacity:.9}
+    .footer-actions{display:flex;justify-content:center;margin:26px 0 10vh;gap:10px}
 
     /* ===== LISTA OLDAL ===== */
     #page-list{display:none}
-    .list-header{
-      position:sticky; top:0; z-index:15;
-      display:flex; align-items:center; justify-content:center;
-      background:linear-gradient(180deg, rgba(15,23,42,.98), rgba(15,23,42,.92));
-      padding:10px; border-bottom:1px solid var(--bord);
-      backdrop-filter: blur(6px);
-    }
-    .list-title{font-size:26px; font-weight:800; text-align:center; margin:6px 0; color:#cfeafe}
-    .top-right{ position:absolute; right:10px; top:10px; }
-    .top-left{  position:absolute; left:10px;  top:10px; }
-    .cards{max-width:980px; margin:16px auto 60px; padding:0 12px; display:grid; gap:14px}
-    .movie-card{
-      display:grid; grid-template-columns:120px 1fr; gap:14px;
-      background:var(--card); border:1px solid var(--bord); border-radius:16px; padding:12px;
-    }
-    .poster img{width:100%; height:100%; max-height:160px; object-fit:cover; border-radius:12px}
-    .title{font-size:18px; font-weight:800; color:#8be9fd}
-    .desc{font-size:14px; color:var(--muted); margin-top:6px}
-    .btn.sm{padding:8px 10px; font-size:12px; border-radius:10px}
+    .list-header{position:sticky;top:0;z-index:15;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(15,23,42,.92));padding:10px;border-bottom:1px solid var(--bord);backdrop-filter:blur(6px)}
+    .list-title{font-size:26px;font-weight:800;text-align:center;margin:6px 0;color:#cfeafe}
+    .top-right{position:absolute;right:10px;top:10px}
+    .top-left{position:absolute;left:10px;top:10px}
+    .cards{max-width:980px;margin:16px auto 60px;padding:0 12px;display:grid;gap:14px}
+    .movie-card{display:grid;grid-template-columns:120px 1fr;gap:14px;background:var(--card);border:1px solid var(--bord);border-radius:16px;padding:12px}
+    .poster img{width:100%;height:100%;max-height:160px;object-fit:cover;border-radius:12px}
+    .title{font-size:18px;font-weight:800;color:#8be9fd}
+    .desc{font-size:14px;color:var(--muted);margin-top:6px}
+    .btn.sm{padding:8px 10px;font-size:12px;border-radius:10px}
 
     /* ===== MODÁLOK ===== */
-    .modal-backdrop{
-      position:fixed; inset:0; z-index:60; display:none;
-      align-items:center; justify-content:center;
-      background:rgba(0,0,0,.75); padding:18px;
-    }
-    .modal{
-      width:100%; max-width:520px; background:var(--card); border:1px solid var(--bord);
-      border-radius:16px; padding:18px; display:grid; gap:10px;
-    }
-    .field{display:grid; gap:6px}
-    .field input, .field textarea, .field select{
-      background:#0b1324; color:var(--text); border:1px solid var(--bord);
-      border-radius:10px; padding:10px 12px; outline:none
-    }
-    .video-backdrop{
-      position:fixed; inset:0; display:none; z-index:70;
-      background:rgba(0,0,0,.9); align-items:center; justify-content:center; padding:16px;
-    }
-    .video-modal{
-      width:min(1100px,96vw); aspect-ratio:16/9; background:#000; border-radius:12px; overflow:hidden;
-      border:1px solid #222;
-    }
+    .modal-backdrop{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.75);padding:18px}
+    .modal{width:100%;max-width:520px;background:var(--card);border:1px solid var(--bord);border-radius:16px;padding:18px;display:grid;gap:10px}
+    .field{display:grid;gap:6px}
+    .field input,.field textarea,.field select{background:#0b1324;color:var(--text);border:1px solid var(--bord);border-radius:10px;padding:10px 12px;outline:none}
+    .video-backdrop{position:fixed;inset:0;display:none;z-index:70;background:rgba(0,0,0,.9);align-items:center;justify-content:center;padding:16px}
+    .video-modal{width:min(1100px,96vw);aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;border:1px solid #222}
   </style>
-</head>
-<!-- [1 vége] -->
-
+  <!-- [1 VÉGE] -->
 </head>
 <body>
 
-  <!-- [2 eleje] PIN / ADMIN OVERLAY + VIDEÓ LEJÁTSZÓ MODÁL -->
+  <!-- [2 ELEJE] PIN / ADMIN OVERLAY + VIDEÓ MODÁL -->
   <div id="overlay" class="overlay">
     <div class="pin-card">
-      <input id="pinField" class="pin-input" type="password" maxlength="4"
-             inputmode="numeric" pattern="[0-9]*"
-             placeholder="kattints ide Írd a PINt!"/>
+      <input id="pinField" class="pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="érints ide és add a PINt!"/>
       <div class="row">
         <button id="btnAdmin" class="btn vio" title="Admin">A</button>
       </div>
@@ -162,7 +78,7 @@
 
   <div id="adminModal" class="modal-backdrop">
     <div class="modal">
-      <h3 style="margin:0 0 6px; font-size:22px; font-weight:800; color:#cfeafe">Admin bejelentkezés</h3>
+      <h3 style="margin:0 0 6px;font-size:22px;font-weight:800;color:#cfeafe">Admin bejelentkezés</h3>
       <div class="field"><label>Email</label><input id="adminEmail" type="email" placeholder="admin@example.com"></div>
       <div class="field"><label>Jelszó</label><input id="adminPass" type="password" placeholder="••••••••••••"></div>
       <div class="row" style="justify-content:space-between">
@@ -176,41 +92,32 @@
   </div>
 
   <div id="videoModal" class="video-backdrop"><div id="videoBox" class="video-modal"></div></div>
-  <!-- [2 vége] -->
+  <!-- [2 VÉGE] -->
 
-  <!-- [3 eleje] FŐOLDAL (KATEGÓRIA GOMBOK + SZÁMLÁLÓK) -->
+  <!-- [3 ELEJE] FŐOLDAL (KATEGÓRIA GOMBOK + SZÁMLÁLÓK) -->
   <div id="page-home" class="container">
     <h1>Filmek Anyunak</h1>
-
-    <div class="grid" id="catGrid">
-      <!-- Gombok automatikusan generálva JS-ből a CATEGORIES alapján -->
-    </div>
-
+    <div class="grid" id="catGrid"></div>
     <div class="footer-actions">
       <button id="logoutGuest" class="btn red">Kilépés mindenből</button>
     </div>
   </div>
-  <!-- [3 vége] -->
+  <!-- [3 VÉGE] -->
 
-  <!-- [4 eleje] LISTA OLDAL (STICKY VISSZA + ADMIN FELTÖLTÉS) -->
+  <!-- [4 ELEJE] LISTA OLDAL (STICKY VISSZA + ADMIN FELTÖLTÉS) -->
   <div id="page-list" class="container">
     <div class="list-header">
-      <div class="top-left">
-        <button id="btnAdd" class="btn vio hidden">+ Feltöltés</button>
-      </div>
+      <div class="top-left"><button id="btnAdd" class="btn vio hidden">+ Feltöltés</button></div>
       <div class="list-title" id="listTitle">Kategória</div>
-      <div class="top-right">
-        <button id="btnBack" class="btn red">VISSZA A FŐOLDALRA</button>
-      </div>
+      <div class="top-right"><button id="btnBack" class="btn red">VISSZA A FŐOLDALRA</button></div>
     </div>
-
     <div id="listGrid" class="cards"></div>
   </div>
 
-  <!-- Feltöltő modal (csak admin) -->
+  <!-- Új film modal -->
   <div id="addModal" class="modal-backdrop">
     <div class="modal">
-      <h3 style="margin:0 0 6px; font-size:22px; font-weight:800; color:#cfeafe">Új film hozzáadása</h3>
+      <h3 style="margin:0 0 6px;font-size:22px;font-weight:800;color:#cfeafe">Új film hozzáadása</h3>
       <div class="field">
         <label>Link (YouTube ajánlott)</label>
         <input id="addLink" type="url" placeholder="https://www.youtube.com/watch?v=...">
@@ -225,7 +132,7 @@
       </div>
       <div class="field">
         <label>Miről szól? (opcionális)</label>
-        <textarea id="addDesc" rows="3" placeholder="Rövid leírás"></textarea>
+        <textarea id="addDesc" rows="3" placeholder="A film tartalma automatikusan kitöltődik, ha van elérhető adat."></textarea>
       </div>
       <div class="row" style="justify-content:space-between">
         <span id="addMsg" class="muted"></span>
@@ -236,16 +143,15 @@
       </div>
     </div>
   </div>
-  <!-- [4 vége] -->
+  <!-- [4 VÉGE] -->
 
-  <!-- [5 eleje] JavaScript logika (PIN, Admin, Adatkezelés, UI) -->
+  <!-- [5 ELEJE] JAVASCRIPT (PIN, ADMIN, ADAT, UI) -->
   <script>
-    // [5.1 PIN + ADMIN BELÉPTETÉS]
+    /* [5.1] PIN + ADMIN BELÉPTETÉS */
     const GUEST_PIN = "1954";
-    // ***FONTOS BIZTONSÁGI MEGJEGYZÉS: Ne használd éles környezetben így a jelszót!***
-    // Ezt a részt Firebase Authentication-nel kellene helyettesíteni!
-    const OK_EMAIL = "admin@example.com"; // Megváltoztattam, hogy egyértelmű legyen, ez csak példa.
-    const OK_PASS  = "Jelszo123"; // Megváltoztattam, hogy egyértelmű legyen, ez csak példa.
+    // Admin belépési adatok (kért fix)
+    const OK_EMAIL = "chisnyan@gmail.com";
+    const OK_PASS  = "C10201443ccc";
 
     const gateOverlay   = document.getElementById('overlay');
     const guestPinInput = document.getElementById('pinField');
@@ -259,7 +165,6 @@
     const adminMsg      = document.getElementById('adminMsg');
 
     let IS_ADMIN = false;
-    // Window objektum kiegészítése az isAdmin flaggel, hogy bárhol elérhető legyen
     window.__APP__ = window.__APP__ || {};
     Object.defineProperty(window.__APP__, 'isAdmin', { get(){ return IS_ADMIN; } });
 
@@ -281,8 +186,8 @@
 
     openAdminBtn.addEventListener('click', ()=>{
       adminMsg.textContent = '';
-      adminEmailEl.value = OK_EMAIL; // A demo kedvéért automatikusan kitölti
-      adminPassEl.value = OK_PASS;   // A demo kedvéért automatikusan kitölti
+      adminEmailEl.value = OK_EMAIL;
+      adminPassEl.value  = OK_PASS;
       adminModal.style.display='flex';
       setTimeout(()=> adminEmailEl.focus(), 10);
     });
@@ -302,305 +207,193 @@
     }
     adminLoginBtn.addEventListener('click', doAdminLogin);
     adminPassEl.addEventListener('keydown', e=>{ if(e.key==='Enter') doAdminLogin(); });
-
     window.addEventListener('load', ()=> guestPinInput.focus());
 
-    // [5.2 ADATKEZELÉS, LISTÁK, SZÁMLÁLÓK, LEJÁTSZÁS]
-
-    /* Kategóriák */
+    /* [5.2] ADATKEZELÉS, LISTÁK, SZÁMLÁLÓK, LEJÁTSZÁS */
     const CATEGORIES = [
-      { key:'akcio',       label:'Akció' },
-      { key:'vigjatek',    label:'Vígjáték' },
-      { key:'uj',          label:'Új filmek' },
-      { key:'thrillertv',  label:'Thriller TV' },
-      { key:'top',         label:'Top Filmek' },
-      { key:'akciotv',     label:'Akció TV' },
-      { key:'vigjatektv',  label:'Vígjáték TV' },
-      { key:'szineszek',   label:'Színészek szerint' },
-      { key:'krimi',       label:'Krimi' }
+      { key:'akcio',label:'Akció' }, { key:'vigjatek',label:'Vígjáték' }, { key:'uj',label:'Új filmek' },
+      { key:'thrillertv',label:'Thriller TV' }, { key:'top',label:'Top Filmek' }, { key:'akciotv',label:'Akció TV' },
+      { key:'vigjatektv',label:'Vígjáték TV' }, { key:'szineszek',label:'Színészek szerint' }, { key:'krimi',label:'Krimi' }
     ];
 
-    /* Perzisztencia (Local Storage) */
     const LS_KEY = 'fa_movies_v1';
-    function loadDB(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch(e){ console.error("Error loading DB:", e); return {}; } }
-    function saveDB(db){ try{ localStorage.setItem(LS_KEY, JSON.stringify(db)); }catch(e){ console.error("Error saving DB:", e); } }
-    let DB = loadDB(); // Az adatbázis betöltése indításkor
+    function loadDB(){ try{return JSON.parse(localStorage.getItem(LS_KEY))||{};}catch(e){return{};} }
+    function saveDB(db){ try{localStorage.setItem(LS_KEY,JSON.stringify(db));}catch(e){} }
+    let DB = loadDB();
 
-    /* Segédfüggvények */
-    const pageHome = document.getElementById('page-home');
-    const pageList = document.getElementById('page-list');
-    const listTitle= document.getElementById('listTitle');
-    const listGrid = document.getElementById('listGrid');
-    const catGrid  = document.getElementById('catGrid');
-    const btnBack  = document.getElementById('btnBack');
-    const btnAdd   = document.getElementById('btnAdd');
-    const logoutGuest = document.getElementById('logoutGuest');
+    const pageHome=document.getElementById('page-home');
+    const pageList=document.getElementById('page-list');
+    const listTitle=document.getElementById('listTitle');
+    const listGrid=document.getElementById('listGrid');
+    const catGrid=document.getElementById('catGrid');
+    const btnBack=document.getElementById('btnBack');
+    const btnAdd=document.getElementById('btnAdd');
+    const logoutGuest=document.getElementById('logoutGuest');
 
-    const addModal = document.getElementById('addModal');
-    const addLink  = document.getElementById('addLink');
-    const addTitle = document.getElementById('addTitle');
-    const addPoster= document.getElementById('addPoster');
-    const addDesc  = document.getElementById('addDesc');
-    const addMsg   = document.getElementById('addMsg');
-    const addSave  = document.getElementById('addSave');
-    const addCancel= document.getElementById('addCancel');
+    const addModal=document.getElementById('addModal');
+    const addLink=document.getElementById('addLink');
+    const addTitle=document.getElementById('addTitle');
+    const addPoster=document.getElementById('addPoster');
+    const addDesc=document.getElementById('addDesc');
+    const addMsg=document.getElementById('addMsg');
+    const addSave=document.getElementById('addSave');
+    const addCancel=document.getElementById('addCancel');
 
-    function now(){ return Date.now(); }
-    function daysAgo(n){ return now() - n*24*60*60*1000; }
-    function isNew(ts){ return (ts||0) >= daysAgo(7); }
-
-    // Egyedi ID generátor
-    function uid(){ return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+    function now(){return Date.now();}
+    function daysAgo(n){return now()-n*24*60*60*1000;}
+    function isNew(ts){return (ts||0)>=daysAgo(7);}
+    function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 
     function normalizeMovie(m){
-      return {
-        id: m.id || uid(), // Használd a frissített uid() függvényt
-        title: (m.title||'Ismeretlen cím').trim(),
-        url: (m.url||'').trim(),
-        poster: (m.poster||'').trim(),
-        desc: (m.desc||'').trim(),
-        createdAt: m.createdAt || now()
-      };
+      return { id:m.id||uid(), title:(m.title||'Ismeretlen cím').trim(), url:(m.url||'').trim(),
+        poster:(m.poster||'').trim(), desc:(m.desc||'').trim(), createdAt:m.createdAt||now() };
     }
     function listByCat(key){ DB[key] ||= []; return DB[key]; }
-    function addMovie(key, movie){ DB[key] ||= []; DB[key].unshift(normalizeMovie(movie)); saveDB(DB); }
-    function delMovie(key, id){ if(!DB[key]) return; DB[key]=DB[key].filter(x=>x.id!==id); saveDB(DB); }
+    function addMovie(key,m){ DB[key] ||= []; DB[key].unshift(normalizeMovie(m)); saveDB(DB); }
+    function delMovie(key,id){ if(!DB[key])return; DB[key]=DB[key].filter(x=>x.id!==id); saveDB(DB); }
 
     function extractYtId(url){
-      try{
-        const u = new URL(url);
-        if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
-        if (u.searchParams.get('v')) return u.searchParams.get('v');
-        const m = url.match(/\/embed\/([A-Za-z0-9_\-]+)/);
-        return m ? m[1] : null;
-      }catch{ return null; }
+      try{const u=new URL(url);
+        if(u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+        if(u.searchParams.get('v')) return u.searchParams.get('v');
+        const m=url.match(/\/embed\/([A-Za-z0-9_\-]+)/); return m?m[1]:null;
+      }catch{return null;}
     }
-    // Új: ytThumb segédfüggvény a miniatűr kép URL-hez
-    function ytThumb(url) {
-      const vid = extractYtId(url);
-      return vid ? `https://img.youtube.com/vi/${vid}/hqdefault.jpg` : null;
-    }
+    function ytThumb(url){const vid=extractYtId(url);return vid?`https://img.youtube.com/vi/${vid}/hqdefault.jpg`:null;}
 
     async function fetchYouTubeMeta(url){
       try{
-        // YouTube oEmbed API használata
-        const res = await fetch(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(url)}`);
-        if(!res.ok) throw new Error("YouTube oEmbed API request failed.");
-        const data = await res.json();
-        const poster = ytThumb(url) || (data.thumbnail_url || ''); // Használd a ytThumbot is
-        return { title: data.title || 'Ismeretlen cím', poster };
+        const r=await fetch(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(url)}`);
+        if(!r.ok) throw 0;
+        const d=await r.json();
+        return { title:d.title||'Ismeretlen cím', poster: ytThumb(url) || d.thumbnail_url || '' };
       }catch(e){
-        console.warn("Could not fetch YouTube meta for:", url, e);
-        return { title: 'Ismeretlen cím', poster: '' };
+        // fallback noembed (leírás is lehet néha)
+        try{
+          const r=await fetch("https://noembed.com/embed?url="+encodeURIComponent(url));
+          const d=await r.json();
+          return { title:d.title||'Ismeretlen cím', poster: ytThumb(url) || d.thumbnail_url || '', desc: d.description || '' };
+        }catch{ return { title:'Ismeretlen cím', poster:'' }; }
       }
     }
 
-    /* Főoldali gombok létrehozása */
     function makeCatButtons(){
-      catGrid.innerHTML = '';
+      catGrid.innerHTML='';
       CATEGORIES.forEach(c=>{
-        const b = document.createElement('button');
-        b.className = 'cat-btn';
-        b.dataset.cat = c.key;
-        b.innerHTML = `
-          <span class="badge" id="new-${c.key}" style="display:none">ÚJ: 0</span>
-          <div style="font-size:18px;font-weight:800">${c.label}</div>
-          <span class="total" id="total-${c.key}">Összesen: 0</span>
-        `;
-        b.addEventListener('click', ()=> openCategory(c.key));
+        const b=document.createElement('button');
+        b.className='cat-btn'; b.dataset.cat=c.key;
+        b.innerHTML=`<span class="badge" id="new-${c.key}" style="display:none">ÚJ: 0</span>
+                     <div style="font-size:18px;font-weight:800">${c.label}</div>
+                     <span class="total" id="total-${c.key}">Összesen: 0</span>`;
+        b.addEventListener('click',()=>openCategory(c.key));
         catGrid.appendChild(b);
       });
     }
 
-    /* Számlálók frissítése */
     function updateBadges(){
       CATEGORIES.forEach(c=>{
-        const arr   = listByCat(c.key);
-        const total = arr.length;
-        const news  = arr.filter(m=>isNew(m.createdAt)).length;
-        const newEl = document.getElementById(`new-${c.key}`);
-        const totEl = document.getElementById(`total-${c.key}`);
-        if (newEl){
-          if (news>0){ newEl.textContent = `ÚJ: ${news}`; newEl.style.display='inline-block'; }
-          else newEl.style.display='none';
-        }
-        if (totEl) totEl.textContent = `Összesen: ${total}`;
+        const arr=listByCat(c.key), total=arr.length, news=arr.filter(m=>isNew(m.createdAt)).length;
+        const ne=document.getElementById(`new-${c.key}`), te=document.getElementById(`total-${c.key}`);
+        if(ne){ if(news>0){ne.textContent=`ÚJ: ${news}`; ne.style.display='inline-block';} else ne.style.display='none'; }
+        if(te) te.textContent=`Összesen: ${total}`;
       });
     }
 
-    /* Oldalváltás */
-    function showHome(){ pageHome.style.display='block'; pageList.style.display='none'; }
-    function showList(){ pageHome.style.display='none'; pageList.style.display='block'; }
+    function showHome(){pageHome.style.display='block';pageList.style.display='none';}
+    function showList(){pageHome.style.display='none';pageList.style.display='block';}
+    btnBack.addEventListener('click',showHome);
 
-    btnBack.addEventListener('click', showHome);
-    // Visszaállítás a kezdeti állapotra (overlay megjelenítése)
-    logoutGuest.addEventListener('click', ()=> {
-      IS_ADMIN = false; // Admin státusz törlése
-      guestPinInput.value = ''; // PIN mező ürítése
-      gateOverlay.style.display = 'flex'; // Overlay megjelenítése
-      showHome(); // Vissza a főoldalra, ha épp a lista oldalon voltunk
-      guestPinInput.focus(); // Fókusz a PIN mezőre
-      updateBadges(); // Frissítsd a jelvényeket, ha a felhasználó kilép
+    logoutGuest.addEventListener('click',()=>{
+      IS_ADMIN=false; guestPinInput.value=''; gateOverlay.style.display='flex'; showHome(); guestPinInput.focus(); updateBadges();
     });
 
-
-    /* Lista renderelés + lejátszás */
-    const videoModal = document.getElementById('videoModal');
-    const videoBox   = document.getElementById('videoBox');
+    const videoModal=document.getElementById('videoModal');
+    const videoBox=document.getElementById('videoBox');
     function openVideo(url){
-      let html = '';
-      const yt = extractYtId(url);
-      if (yt){
-        html = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-      } else if (/vimeo\.com/.test(url)){
-        const id = url.split('/').pop();
-        html = `<iframe width="100%" height="100%" src="https://player.vimeo.com/video/${id}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
-      } else {
-        html = `<video controls autoplay style="width:100%;height:100%;object-fit:contain;"><source src="${url}"></video>`;
-      }
-      videoBox.innerHTML = html;
-      videoModal.style.display='flex';
+      let html=''; const yt=extractYtId(url);
+      if(yt){ html=`<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`; }
+      else if(/vimeo\.com/.test(url)){ const id=url.split('/').pop(); html=`<iframe width="100%" height="100%" src="https://player.vimeo.com/video/${id}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`; }
+      else { html=`<video controls autoplay style="width:100%;height:100%;object-fit:contain;"><source src="${url}"></video>`; }
+      videoBox.innerHTML=html; videoModal.style.display='flex';
     }
     function closeVideo(){ videoBox.innerHTML=''; videoModal.style.display='none'; }
-    videoModal.addEventListener('click', e=>{ if(e.target===videoModal) closeVideo(); });
+    videoModal.addEventListener('click',e=>{ if(e.target===videoModal) closeVideo(); });
 
-    let CURRENT_CAT = null; // Aktuálisan kiválasztott kategória tárolása
+    let CURRENT_CAT=null;
     function renderList(key){
-      CURRENT_CAT = key; // Kategória beállítása
-      const cat = CATEGORIES.find(c=>c.key===key);
-      listTitle.textContent = cat ? cat.label : 'Kategória';
-
-      const arr = listByCat(key);
-      // Rendezés legújabb hozzáadás szerint, ha van createdAt. Ha nincs, akkor az eredeti sorrend marad.
-      arr.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-      listGrid.innerHTML = '';
-      if (arr.length===0){
-        const empty = document.createElement('div');
-        empty.className = 'muted';
-        empty.style.textAlign='center';
-        empty.style.padding='24px';
-        empty.textContent = 'Nincs találat ebben a kategóriában.';
-        listGrid.appendChild(empty);
-      } else {
+      CURRENT_CAT=key;
+      const cat=CATEGORIES.find(c=>c.key===key);
+      listTitle.textContent=cat?cat.label:'Kategória';
+      const arr=listByCat(key).slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+      listGrid.innerHTML='';
+      if(arr.length===0){
+        const d=document.createElement('div'); d.className='muted'; d.style.textAlign='center'; d.style.padding='24px';
+        d.textContent='Nincs találat ebben a kategóriában.'; listGrid.appendChild(d);
+      }else{
         arr.forEach(m=>{
-          const card = document.createElement('div');
-          card.className='movie-card';
-          card.innerHTML = `
-            <div class="poster"><img src="${m.poster || 'https://placehold.co/320x180?text=Nincs+bor%C3%ADt%C3%B3'}" alt="${m.title}"></div>
-            <div>
-              <div class="title">${m.title}</div>
-              ${m.desc ? `<div class="desc">${m.desc}</div>` : ``}
-              <div class="row" style="margin-top:10px; justify-content:flex-start">
-                <button class="btn sm green">Lejátszás</button>
-                ${window.__APP__.isAdmin ? `<button class="btn sm red" data-del="${m.id}">Törlés</button>` : ``}
-              </div>
-            </div>
-          `;
-          card.querySelector('.btn.green').addEventListener('click', ()=> openVideo(m.url));
-          if (window.__APP__.isAdmin){
-            const delBtn = card.querySelector('[data-del]');
-            if (delBtn) { // Ellenőrizzük, hogy létezik-e a törlés gomb
-              delBtn.addEventListener('click', ()=>{
-                if (confirm('Biztosan törlöd?')){
-                  delMovie(key, delBtn.dataset.del);
-                  renderList(key); // Frissítsd a listát a törlés után
-                  updateBadges();  // Frissítsd a számlálókat
-                }
-              });
-            }
+          const card=document.createElement('div'); card.className='movie-card';
+          card.innerHTML=`<div class="poster"><img src="${m.poster||'https://placehold.co/320x180?text=Nincs+bor%C3%ADt%C3%B3'}" alt="${m.title}"></div>
+                          <div><div class="title">${m.title}</div>
+                          ${m.desc?`<div class="desc">${m.desc}</div>`:''}
+                          <div class="row" style="margin-top:10px;justify-content:flex-start">
+                            <button class="btn sm green">Lejátszás</button>
+                            ${window.__APP__.isAdmin?`<button class="btn sm red" data-del="${m.id}">Törlés</button>`:''}
+                          </div></div>`;
+          card.querySelector('.btn.green').addEventListener('click',()=>openVideo(m.url));
+          if(window.__APP__.isAdmin){
+            const delBtn=card.querySelector('[data-del]');
+            if(delBtn){ delBtn.addEventListener('click',()=>{ if(confirm('Biztosan törlöd?')){ delMovie(key,delBtn.dataset.del); renderList(key); updateBadges(); } }); }
           }
           listGrid.appendChild(card);
         });
       }
-      btnAdd.classList.toggle('hidden', !window.__APP__.isAdmin); // Feltöltés gomb láthatósága admin mód szerint
+      btnAdd.classList.toggle('hidden',!window.__APP__.isAdmin);
       showList();
     }
-
     function openCategory(key){ renderList(key); }
 
-    /* Feltöltő modal logika (auto kitöltés link alapján) */
     function showAdd(){
       if(!window.__APP__.isAdmin) return;
-      addMsg.textContent='';
-      addLink.value=''; addTitle.value=''; addPoster.value=''; addDesc.value=''; // Űrlap ürítése
-      addModal.style.display='flex';
-      setTimeout(()=>addLink.focus(),10);
+      addMsg.textContent=''; addLink.value=''; addTitle.value=''; addPoster.value=''; addDesc.value='';
+      addModal.style.display='flex'; setTimeout(()=>addLink.focus(),10);
     }
-    function hideAdd(){
-      addModal.style.display='none';
-      addLink.value=''; addTitle.value=''; addPoster.value=''; addDesc.value=''; addMsg.textContent='';
-    }
-    btnAdd.addEventListener('click', showAdd);
-    addCancel.addEventListener('click', hideAdd);
+    function hideAdd(){ addModal.style.display='none'; addLink.value=''; addTitle.value=''; addPoster.value=''; addDesc.value=''; addMsg.textContent=''; }
+    btnAdd.addEventListener('click',showAdd);
+    addCancel.addEventListener('click',hideAdd);
 
-    addLink.addEventListener('input', async ()=>{
-      const url = addLink.value.trim();
-      if (!url) { addTitle.value=''; addPoster.value=''; return; }
+    // Automatikus meta-kitoltes (cím, borító, leírás ha elérhető)
+    addLink.addEventListener('blur', async ()=>{
+      const url=addLink.value.trim(); if(!url) return;
       addMsg.textContent='Adatok lekérése…';
-      const meta = await fetchYouTubeMeta(url);
-      addTitle.value  = meta.title || addTitle.value;
-      addPoster.value = meta.poster || addPoster.value;
+      const meta=await fetchYouTubeMeta(url);
+      if(meta.title && !addTitle.value) addTitle.value=meta.title;
+      if(meta.poster && !addPoster.value) addPoster.value=meta.poster;
+      if(meta.desc && !addDesc.value) addDesc.value=meta.desc;
       addMsg.textContent='';
     });
 
-    addSave.addEventListener('click', ()=>{
-      if (!CURRENT_CAT) { addMsg.textContent='Válassz kategóriát előbb!'; return; }
-      const url = addLink.value.trim();
-      if (!url){ addMsg.textContent='Adj meg egy linket!'; return; }
-      const movie = {
-        title: addTitle.value.trim() || 'Ismeretlen cím',
-        url,
-        poster: addPoster.value.trim(),
-        desc: addDesc.value.trim()
-      };
-      addMovie(CURRENT_CAT, movie); // Film hozzáadása a DB-hez
-      hideAdd(); // Modál bezárása
-      renderList(CURRENT_CAT); // Lista frissítése
-      updateBadges(); // Számlálók frissítése
+    addSave.addEventListener('click',()=>{
+      if(!CURRENT_CAT){ addMsg.textContent='Válassz kategóriát előbb!'; return; }
+      const url=addLink.value.trim(); if(!url){ addMsg.textContent='Adj meg egy linket!'; return; }
+      const movie={ title:addTitle.value.trim()||'Ismeretlen cím', url, poster:addPoster.value.trim(), desc:addDesc.value.trim() };
+      addMovie(CURRENT_CAT,movie); hideAdd(); renderList(CURRENT_CAT); updateBadges();
     });
 
-    /* Események: belépések */
-    window.addEventListener('guest-logged-in', ()=>{
-      makeCatButtons();
-      updateBadges();
-      showHome();
-    });
-    window.addEventListener('admin-logged-in', ()=>{
-      makeCatButtons();
-      updateBadges();
-      showHome();
-      // Az add button láthatóságát a renderList is kezeli, de ide is be lehet tenni biztos, ami biztos.
-      btnAdd.classList.toggle('hidden', !window.__APP__.isAdmin);
-    });
+    window.addEventListener('guest-logged-in',()=>{ makeCatButtons(); updateBadges(); showHome(); });
+    window.addEventListener('admin-logged-in',()=>{ makeCatButtons(); updateBadges(); showHome(); btnAdd.classList.toggle('hidden',!window.__APP__.isAdmin); });
 
-    /* Első indítás (Seed demo adat, ha nincs) */
+    /* Seed – minta krimi link */
     (function seedOnce(){
-      const demoUrl = "https://www.youtube.com/watch?v=lGsmW8nPnpo";
-      // Ellenőrizd, hogy a DB-ben van-e "krimi" kulcs és azon belül a demo URL
-      const krimiMovies = listByCat('krimi');
-      const exists = krimiMovies.some(m => m.url === demoUrl);
-      if(!exists){
-        const demoMovie = {
-          id: uid(),
-          title: "YouTube – Krimi (minta)",
-          url: demoUrl,
-          poster: ytThumb(demoUrl) || "https://placehold.co/320x180?text=No+Poster",
-          desc: "Minta krimi film (automatikus import).",
-          createdAt: now()
-        };
-        addMovie('krimi', demoMovie); // Használd az addMovie függvényt
+      const demoUrl="https://www.youtube.com/watch?v=lGsmW8nPnpo";
+      const arr=listByCat('krimi'); if(!arr.some(m=>m.url===demoUrl)){
+        addMovie('krimi',{ id:uid(), title:"YouTube – Krimi (minta)", url:demoUrl, poster:ytThumb(demoUrl)||"https://placehold.co/320x180?text=No+Poster", desc:"Minta krimi film (automatikus import).", createdAt:now() });
       }
     })();
 
-
-    /* Alkalmazás indítás */
-    // Csak gombok és számlálók előkészítése háttérben
-    makeCatButtons();
-    updateBadges();
-    // A PIN overlay már alapból látható, az oldal betöltésekor fókuszál rá a 5.1-es blokk végén lévő listener
+    // Indítás: gombok + számlálók (overlay alapból látszik)
+    makeCatButtons(); updateBadges();
   </script>
-  <!-- [5 vége] -->
+  <!-- [5 VÉGE] -->
 
 </body>
 </html>
