@@ -232,60 +232,71 @@ const pinDots = $("#pinDots");
 const pinField = $("#pinField");
 
 function renderDots(){
-  const val = (pinField.value || "").slice(0,4);
-  const dots = pinDots.querySelectorAll(".dot");
-  dots.forEach(d=>d.classList.remove("filled"));
-  for(let i=0;i<val.length;i++) dots[i].classList.add("filled");
+  const val = pinField.val().slice(0, 4);
+  const dots = pinDots.find(".dot");
+  dots.removeClass("filled");
+  dots.each((i, d) => {
+    if (i < val.length) $(d).addClass("filled");
+  });
 }
 
 function tryAutoEnter(){
-  const val = pinField.value;
-  if(val.length===4){
-    if(val===PIN_GUEST){
+  const val = pinField.val();
+  if (val.length === 4) {
+    if (typeof PIN_GUEST !== "undefined" && val === PIN_GUEST) {
       state.isGuest = true;
-      overlay.classList.add("hidden");
-      $("#app").classList.remove("hidden");
-      $("#userBadge").textContent="Vendég";
+      overlay.addClass("hidden");
+      $("#app").removeClass("hidden");
+      $("#userBadge").text("Vendég");
       renderHome();
-    }else{
-      // rossz PIN → törlés és pöttyök reset
-      pinField.value="";
+    } else {
+      pinField.val("");
       renderDots();
     }
   }
 }
 
-// fókusz a pötty keretre kattintva
-pinDots.addEventListener("click", ()=> pinField.focus() );
+pinDots.on("click", () => pinField.focus());
+pinField.on("input", () => {
+  renderDots();
+  tryAutoEnter();
+});
 
-// automatikus belépés gépelésre
-pinField.addEventListener("input", ()=>{ renderDots(); tryAutoEnter(); });
-
-// Admin
-$("#btnAdmin").addEventListener("click", ()=>{
-  $("#adminModal").classList.remove("hidden");
+$("#btnAdmin").on("click", () => {
+  $("#adminModal").removeClass("hidden");
   $("#adminEmail").focus();
 });
-$("#adminLogin").addEventListener("click", ()=>{
-  const em=$("#adminEmail").value.trim();
-  const pw=$("#adminPass").value.trim();
-  if(em===ADMIN_EMAIL && pw===ADMIN_PASS){
-    state.isAdmin=true; state.isGuest=true;
-    $("#adminMsg").textContent=""; $("#adminModal").classList.add("hidden");
-    overlay.classList.add("hidden");
-    $("#app").classList.remove("hidden");
-    $("#userBadge").textContent="Admin";
+
+$("#adminLogin").on("click", () => {
+  const em = $("#adminEmail").val().trim();
+  const pw = $("#adminPass").val().trim();
+  if (typeof ADMIN_EMAIL !== "undefined" && typeof ADMIN_PASS !== "undefined" &&
+      em === ADMIN_EMAIL && pw === ADMIN_PASS) {
+    state.isAdmin = true;
+    state.isGuest = true;
+    $("#adminMsg").text("");
+    $("#adminModal").addClass("hidden");
+    overlay.addClass("hidden");
+    $("#app").removeClass("hidden");
+    $("#userBadge").text("Admin");
     renderHome();
   } else {
-    $("#adminMsg").textContent="Hibás adatok";
+    $("#adminMsg").text("Hibás adatok");
   }
 });
-$("#adminCancel").addEventListener("click", ()=> $("#adminModal").classList.add("hidden"));
-$("#btnLogout").addEventListener("click", ()=>{
-  state.isAdmin=false; state.isGuest=false; pinField.value=""; renderDots();
-  $("#app").classList.add("hidden"); overlay.classList.remove("hidden");
-  // fókusz vissza a pin mezőre
-  setTimeout(()=>pinField.focus(), 0);
+
+$("#adminCancel").on("click", () => {
+  $("#adminModal").addClass("hidden");
+});
+
+$("#btnLogout").on("click", () => {
+  state.isAdmin = false;
+  state.isGuest = false;
+  pinField.val("");
+  renderDots();
+  $("#app").addClass("hidden");
+  overlay.removeClass("hidden");
+  setTimeout(() => pinField.focus(), 0);
 });
 </script>
 <!-- [6 vége] -->
