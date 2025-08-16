@@ -67,49 +67,94 @@
 </head>
 <!-- [1 vége] -->
 <body>
-<!-- [2 eleje] PIN / ADMIN OVERLAY + VIDEÓ LEJÁTSZÓ MODÁL -->
-<div id="overlay" class="modal-backdrop">
-  <div class="pin-wrap">
-    <h1 class="center" style="gap:14px;">Filmek Anyunak</h1>
-    <p class="center muted" style="margin-top:-6px;">Vendég PIN szükséges</p>
+<!-- [2.2] – Vendég/Admin belépő overlay (HTML+CSS) -->
+<style>
+  /* Belépő overlay */
+  #gateOverlay{
+    position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center;
+    background:#0b1320;
+  }
+  .gate-card{
+    width:min(980px,92vw); border-radius:28px; background:#111a2b; padding:28px 22px 34px;
+    box-shadow:0 10px 60px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.05) inset;
+  }
+  .gate-row{display:flex; justify-content:center; gap:14px; margin-top:10px;}
+  .pin-input{
+    width:100%; height:84px; border-radius:22px; border:2px solid #b7caf8;
+    outline:none; background:#0f192a; color:#cfe3ff; font-size:28px; text-align:center;
+    caret-color:#74b4ff;
+  }
+  .pin-input::placeholder{color:#7f91b2; opacity:.95;}
+  .gate-actions{display:flex; align-items:center; justify-content:center; gap:16px; margin-top:18px;}
+  .btn{
+    border:none; border-radius:18px; padding:14px 22px; font-weight:700; cursor:pointer;
+  }
+  .btn-admin{
+    width:78px; height:78px; border-radius:20px; background:#7b55f5; color:#fff; font-size:32px;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 10px 30px rgba(123,85,245,.35);
+  }
 
-    <!-- Láthatatlan PIN mező – gépeléskor automatikus belépés -->
-    <input id="pinField"
-           type="password"
-           inputmode="numeric"
-           pattern="[0-9]*"
-           maxlength="4"
-           autocomplete="one-time-code"
-           autofocus
-           style="position:absolute;opacity:0;pointer-events:none;height:1px;width:1px;"/>
+  /* Admin modal */
+  #adminModal{position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center;}
+  .admin-card{
+    width:min(980px,92vw); border-radius:28px; background:#111a2b; padding:28px 22px 34px;
+    box-shadow:0 10px 60px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.05) inset;
+  }
+  .admin-title{font-size:38px; font-weight:800; color:#cfe3ff; margin:4px 0 22px;}
+  .admin-field{display:flex; flex-direction:column; gap:10px; margin:16px 0;}
+  .admin-input{
+    height:66px; border-radius:16px; border:2px solid #b7caf8; outline:none; background:#0f192a; color:#cfe3ff;
+    font-size:20px; padding:0 16px;
+  }
+  .admin-actions{display:flex; gap:16px; margin-top:8px;}
+  .btn-ok{background:#10b981; color:#031821;}
+  .btn-cancel{background:#334155; color:#cfe3ff;}
+  .admin-error{color:#ff7676; font-weight:700; margin-left:12px;}
+</style>
 
-    <!-- Vizuális PIN pöttyök -->
-    <div class="pin-dots" id="pinDots" tabindex="0" title="Írd be a PIN-t">
-      <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+<div id="gateOverlay" aria-hidden="false">
+  <div class="gate-card">
+    <!-- Címek NEM jelennek meg, csak a mező + Admin -->
+    <div class="gate-row">
+      <input id="guestPin"
+             class="pin-input"
+             type="tel"
+             inputmode="numeric"
+             pattern="[0-9]*"
+             maxlength="4"
+             placeholder="érints ide és add a PINt!" />
     </div>
 
-    <div class="center" style="gap:14px;margin-top:16px;">
-      <!-- Belépés gomb már nem szükséges, maradhat tartaléknak -->
-      <button class="btn" id="btnPinEnter" style="display:none;">Belépés</button>
-      <button class="btn vio" id="btnAdmin">A</button>
+    <div class="gate-actions">
+      <!-- NINCS belépés gomb a vendégnek, csak Admin gomb -->
+      <button id="openAdmin" class="btn btn-admin" title="Admin">A</button>
     </div>
-    <p class="center muted" style="margin-top:14px;">Vendég PIN: <b>1954</b></p>
   </div>
 </div>
 
-<div id="adminModal" class="modal-backdrop hidden">
-  <div class="modal">
-    <h3>Admin bejelentkezés</h3>
-    <div class="field"><label>Email</label><input id="adminEmail" type="email" placeholder="admin@example.com"></div>
-    <div class="field"><label>Jelszó</label><input id="adminPass" type="password" placeholder="••••••••"></div>
-    <div class="row"><button class="btn green" id="adminLogin">Belépés</button><button class="btn secondary" id="adminCancel">Mégse</button><span class="muted" id="adminMsg"></span></div>
+<!-- Admin modal -->
+<div id="adminModal">
+  <div class="admin-card">
+    <div class="admin-title">Admin bejelentkezés</div>
+
+    <div class="admin-field">
+      <label for="adminEmail" style="color:#9fb3d9;font-weight:700;">Email</label>
+      <input id="adminEmail" class="admin-input" type="email" autocomplete="username" value="chisnyan@gmail.com" />
+    </div>
+
+    <div class="admin-field">
+      <label for="adminPass" style="color:#9fb3d9;font-weight:700;">Jelszó</label>
+      <input id="adminPass" class="admin-input" type="password" autocomplete="current-password" value="C10201443ccc" />
+    </div>
+
+    <div class="admin-actions">
+      <button id="adminLoginBtn" class="btn btn-ok">Belépés</button>
+      <button id="adminCancelBtn" class="btn btn-cancel">Mégse</button>
+      <span id="adminErr" class="admin-error" aria-live="polite"></span>
+    </div>
   </div>
 </div>
-
-<div id="videoModal" class="video-backdrop hidden">
-  <div class="video-modal" id="videoBox"></div>
-</div>
-<!-- [2 vége] -->
+<!-- [/2.2] -->
 
 <!-- [3 eleje] FŐOLDAL + KATEGÓRIA OLDAL + STICKY VISSZA -->
 <div id="app" class="container hidden">
@@ -180,50 +225,86 @@
 </div>
 <!-- [4 vége] -->
 
-<!-- [5 eleje] ADATMODELL, ÁLLANDÓK, SEGÉDEK -->
+<!-- [5.1] – PIN és admin beléptetés (JS) -->
 <script>
-const PIN_GUEST = "1954";
-const ADMIN_EMAIL = "chisnyan@gmail.com";  // <== tetszőlegesen átírható
-const ADMIN_PASS  = "admin123";            // <== tetszőlegesen átírható
+  // Beállítások
+  const GUEST_PIN = "1954";
 
-const STORAGE_KEY = "filmek_anyunak_v1";
-const CATEGORIES = [
-  "Akció","Vígjáték","Kaland","Sorozatok","Új filmek","Thriller TV",
-  "Top Filmek","Akció TV","Vígjáték TV","Beszélgetés","Színészek szerint","Krimi"
-];
+  // Elemszelektorok
+  const gateOverlay = document.getElementById('gateOverlay');
+  const guestPinInput = document.getElementById('guestPin');
 
-let state = {
-  isGuest: false,
-  isAdmin: false,
-  currentCategory: null,
-  movies: [],           // {id,title,link,poster,plot,categories[],createdAt}
-  deleteId: null
-};
+  const adminModal = document.getElementById('adminModal');
+  const openAdminBtn = document.getElementById('openAdmin');
+  const adminEmailEl = document.getElementById('adminEmail');
+  const adminPassEl  = document.getElementById('adminPass');
+  const adminLoginBtn = document.getElementById('adminLoginBtn');
+  const adminCancelBtn = document.getElementById('adminCancelBtn');
+  const adminErrEl = document.getElementById('adminErr');
 
-const $ = sel => document.querySelector(sel);
-const $$ = sel => document.querySelectorAll(sel);
+  // Állapot
+  let isAdmin = false;
 
-function uid(){ return Math.random().toString(36).slice(2)+Date.now().toString(36) }
-function now(){ return Date.now() }
-function load(){ try{ const j=localStorage.getItem(STORAGE_KEY); return j? JSON.parse(j):[] }catch{ return [] } }
-function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.movies)) }
-function byCat(cat){ return state.movies.filter(m => (m.categories||[]).includes(cat)) }
-function newCount(list){
-  const t = now()-7*24*3600*1000;
-  return list.filter(m => m.createdAt && m.createdAt>=t).length;
-}
-function escapeHtml(s=''){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])) }
+  // ========== Vendég PIN: automatikus belépés 4 szám után ==========
+  function tryGuestOpen() {
+    const v = (guestPinInput.value || '').trim();
+    if (v.length === 4) {
+      if (v === GUEST_PIN) {
+        // Vendég beléptetése – azonnal főoldal
+        gateOverlay.style.display = 'none';
+        document.body.classList.remove('locked'); // ha volt
+        window.dispatchEvent(new CustomEvent('guest-logged-in', { detail: { role:'guest' } }));
+      } else {
+        guestPinInput.value = '';
+        guestPinInput.placeholder = 'Hibás PIN! Próbáld újra…';
+        setTimeout(()=> guestPinInput.placeholder = 'érints ide és add a PINt!', 2000);
+      }
+    }
+  }
+  guestPinInput.addEventListener('input', tryGuestOpen);
+  // Enterre is elfogadjuk (ha valaki mégis megnyomná):
+  guestPinInput.addEventListener('keydown', (e)=>{
+    if (e.key === 'Enter') tryGuestOpen();
+  });
 
-function ytThumb(url){
-  const m=url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})(?:[&?]|$)/);
-  return m? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : '';
-}
-function ytEmbed(url){
-  const m=url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})(?:[&?]|$)/);
-  return m? `https://www.youtube.com/embed/${m[1]}?autoplay=1&rel=0` : null;
-}
+  // ========== Admin overlay nyit/zár ==========
+  openAdminBtn.addEventListener('click', () => {
+    adminErrEl.textContent = '';
+    adminModal.style.display = 'flex';
+    setTimeout(()=> adminEmailEl.focus(), 50);
+  });
+  adminCancelBtn.addEventListener('click', () => {
+    adminModal.style.display = 'none';
+  });
+
+  // ========== Admin belépés (lokális ellenőrzés + esemény) ==========
+  async function handleAdminLogin(){
+    adminErrEl.textContent = '';
+    const email = (adminEmailEl.value || '').trim();
+    const pass  = (adminPassEl.value  || '').trim();
+
+    // Kért fix adatok
+    const OK_EMAIL = 'chisnyan@gmail.com';
+    const OK_PASS  = 'C10201443ccc';
+
+    if (email === OK_EMAIL && pass === OK_PASS) {
+      isAdmin = true;
+      adminModal.style.display = 'none';
+      gateOverlay.style.display = 'none';
+      window.dispatchEvent(new CustomEvent('admin-logged-in', { detail: { role:'admin', email } }));
+    } else {
+      adminErrEl.textContent = 'Hibás adatok';
+    }
+  }
+  adminLoginBtn.addEventListener('click', handleAdminLogin);
+  adminPassEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleAdminLogin();
+  });
+
+  // Opcionális: első fókusz a PIN-re
+  window.addEventListener('load', ()=> guestPinInput && guestPinInput.focus());
 </script>
-<!-- [5 vége] -->
+<!-- [/5.1] -->
 
 <!-- [6 eleje] BELÉPÉS / ADMIN LOGIN LOGIKA -->
 <script>
