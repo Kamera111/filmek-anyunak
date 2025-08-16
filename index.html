@@ -2,6 +2,7 @@
 <html lang="hu">
 <head>
   <!-- [1 eleje] HEAD + STÍLUSOK -->
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Filmek Anyunak</title>
@@ -64,15 +65,24 @@
     /* ===== FŐOLDAL ===== */
     .container{max-width:980px; margin:0 auto; padding:20px}
     h1{margin:28px 0 20px; text-align:center; font-size:38px; font-weight:800; color:#8be9fd}
+
+    /* <<< ITT: 3 oszlopos rács >>> */
     .grid{
-      display:grid; gap:12px;
-      grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+      display:grid; gap:16px;
+      grid-template-columns: repeat(3, 1fr);
     }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
     .cat-btn{
       position:relative;
       background:#0b1324; border:1px solid var(--bord);
-      border-radius:16px; padding:16px; text-align:center;
-      font-weight:800; font-size:16px; cursor:pointer;
+      border-radius:16px; padding:20px; text-align:center;
+      font-weight:800; font-size:20px; cursor:pointer;
       color:#cfeafe;
     }
     .cat-btn:hover{background:#0d1630}
@@ -96,12 +106,8 @@
       backdrop-filter: blur(6px);
     }
     .list-title{font-size:26px; font-weight:800; text-align:center; margin:6px 0; color:#cfeafe}
-    .top-right{
-      position:absolute; right:10px; top:10px;
-    }
-    .top-left{
-      position:absolute; left:10px; top:10px;
-    }
+    .top-right{ position:absolute; right:10px; top:10px; }
+    .top-left{  position:absolute; left:10px;  top:10px; }
     .cards{max-width:980px; margin:16px auto 60px; padding:0 12px; display:grid; gap:14px}
     .movie-card{
       display:grid; grid-template-columns:120px 1fr; gap:14px;
@@ -136,7 +142,9 @@
       border:1px solid #222;
     }
   </style>
-  <!-- [1 vége] -->
+</head>
+<!-- [1 vége] -->
+
 </head>
 <body>
 
