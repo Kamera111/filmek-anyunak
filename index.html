@@ -107,19 +107,14 @@
 <!-- ===== [SZAKASZ 3] FIREBASE SDK + INIT – START ===== -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-  import { 
-    getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut 
-  } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-  import { 
-    getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy 
-  } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+  import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-  // HELYES config (kulcsok pontosan!)
   const firebaseConfig = {
-    apiKey: "AIzaSyBDSI-z3a4lFIAloKCVZcUyue7GMoO5acY",
+    apiKey: "AIzaSyBDSI-z3a4lFIAloKCVZcUyue7GMoO5acY",   // <- HELYES (kis lFIA)
     authDomain: "filmek-fe035.firebaseapp.com",
     projectId: "filmek-fe035",
-    storageBucket: "filmek-fe035.appspot.com",
+    storageBucket: "filmek-fe035.appspot.com",           // <- HELYES domain
     messagingSenderId: "302167835367",
     appId: "1:302167835367:web:6e0fd4304c4496612c1842",
     measurementId: "G-QBG7LG0ZQH"
@@ -129,9 +124,7 @@
   const auth = getAuth(app);
   const db   = getFirestore(app);
 
-  // Globális elérés a többi szakasznak
-  window.fb = {
-    app, auth, db,
+  window.fb = { app, auth, db,
     fs: { collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy }
   };
 </script>
