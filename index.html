@@ -80,6 +80,117 @@
 
     <div class="footer">© FilmeK Anyunak</div>
   </div>
+<!-- ===== [SZAKASZ 1B] RESPONSIVE CSS – START ===== -->
+<style>
+  /* Alap konténer */
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  /* Nagy, fehér kártya-gombok rácsa */
+  .catsFull {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin: 12px 0 24px;
+  }
+  .catsFull .cat.block {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 18px;
+    border-radius: 22px;
+    border: 1px solid #2b3648;
+    background: #111827;
+    color: #e5e7eb;               /* FEHÉR felirat */
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: .3px;
+    transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
+  }
+  .catsFull .cat.block:hover {
+    background: #0f172a;
+    box-shadow: 0 0 0 2px #233147 inset;
+  }
+  .catsFull .cat.block:active {
+    transform: scale(.98);
+  }
+
+  /* Filmkártyák (ha vannak) – reszponzív kép/typó */
+  .movie img { width: 100%; height: auto; border-radius: 10px; }
+  .movie .title { font-size: 16px; }
+  @media (min-width: 420px) {
+    .movie .title { font-size: 17px; }
+  }
+
+  /* PIN mező – mobilon is szép, nem túl nagy */
+  .pinInput {
+    width: 14ch;               /* 8–10 karakter szélességhez elég */
+    max-width: 100%;
+    text-align: center;
+    font-size: 24px;
+    letter-spacing: .4ch;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid #334155;
+    background: #0b1220;
+    color: #e5e7eb;
+    margin-inline: auto;
+    display: block;
+  }
+  @media (min-width: 480px) {
+    .pinInput { font-size: 28px; }
+  }
+
+  /* Felső címsor (ha van) – kicsit kisebb mobilon */
+  h1,h2 {
+    line-height: 1.2;
+    margin: 10px 0 6px;
+  }
+  h1 { font-size: clamp(22px, 5vw, 32px); }
+  h2 { font-size: clamp(18px, 4.5vw, 24px); }
+
+  /* Kártya dobozok */
+  .card {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 16px;
+    padding: 14px;
+  }
+
+  /* Gombok */
+  .btn {
+    background: #1f2937;
+    color: #fff;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .btn:active { transform: scale(.98); }
+
+  /* Admin „A” kör gomb – érintésbarát */
+  .admin-fab {
+    width: 44px; height: 44px;
+    border-radius: 999px;
+    display: grid; place-items: center;
+    border: 1px solid #334155;
+    background: #1f2937; color: #e5e7eb;
+    margin: 10px auto 0;
+  }
+  .admin-fab:active { transform: scale(.96); }
+
+  /* Kisebb kijelzőn tömörebb margók */
+  @media (max-width: 420px) {
+    .wrap { padding: 12px; }
+    .catsFull { gap: 10px; }
+    .catsFull .cat.block { padding: 14px 16px; font-size: 16px; }
+  }
+</style>
+<!-- ===== [SZAKASZ 1B] RESPONSIVE CSS – END ===== -->
 
   <!-- ===== [SZAKASZ 2] FIREBASE INIT (EGYSÉGES 10.12.4) – START ===== -->
   <script type="module">
@@ -368,6 +479,8 @@
 <!-- ===== [SZAKASZ 5] AUTH – END ===== -->
 
 <!-- ===== [SZAKASZ 6] KATEGÓRIA GOMBSOR – START ===== -->
+<!-- A régi „Filmlisták” cím és a kis pill-gombsor TÖRÖLVE.
+     Csak a nagy, kártya-stílusú fehér feliratú gombok maradnak. -->
 <div class="catsFull" id="cats">
   <button class="cat block" data-cat="akcio">Akció</button>
   <button class="cat block" data-cat="thriller">Thriller</button>
