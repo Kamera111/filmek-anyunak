@@ -37,73 +37,35 @@
 </head>
 <body>
 
-  <!-- ===== [SZAKASZ 2] ALAP NÉZETEK (PIN / ADMIN / APP) – START ===== -->
-  <div id="pinView" class="wrap">
-    <div class="card pinBox">
-      <h2>Belépés vendégként</h2>
-      <p class="muted">A vendég belépés a <b>guest@filmek-anyunak.app</b> / <b>195400</b> párossal történik.</p>
-      <label for="guestPin">Vendég PIN (csak látvány, automatikus a belépés)</label>
-      <input id="guestPin" class="pinInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••••" />
-      <div style="height:10px"></div>
-      <button id="btnGuestEnter" class="btn" style="width:100%">Belépés vendégként</button>
-      <p class="hint">Vendégként csak olvasni tudsz. Feltöltéshez jelentkezz be adminnal.</p>
-    </div>
+<!-- ===== [SZAKASZ 2] FIREBASE INIT – START ===== -->
+<script type="module">
+  // Firebase importok
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-    <div class="card loginBox">
-      <h2>Admin belépés</h2>
-      <form id="adminLoginForm">
-        <label for="adminEmail">Admin email</label>
-        <input id="adminEmail" type="email" placeholder="chisnyan@gmail.com" required />
-        <label for="adminPass">Admin jelszó (rejtve)</label>
-        <input id="adminPass" type="password" placeholder="••••••••" required />
-        <div style="height:10px"></div>
-        <button id="btnAdminLogin" class="btn" style="width:100%">Belépés adminként</button>
-      </form>
-    </div>
-  </div>
+  // Firebase config – HELYES adatok
+  const firebaseConfig = {
+    apiKey: "AIzaSyBDSI-z3a4lFIAloKCVZcUyue7GMoO5acY",
+    authDomain: "filmek-fe035.firebaseapp.com",
+    projectId: "filmek-fe035",
+    storageBucket: "filmek-fe035.appspot.com",
+    messagingSenderId: "302167835367",
+    appId: "1:302167835367:web:6e0fd4304c4496612c1842",
+    measurementId: "G-QBG7LG0ZQH"
+  };
 
-  <div id="app" class="wrap hidden">
-    <div class="sticky">
-      <header>
-        <div class="title">Filmek Anyunak</div>
-        <div style="margin-left:auto;display:flex;gap:8px">
-          <button id="btnAddGlobal" class="btn hidden">+ Új film</button>
-          <button id="btnAdminLogout" class="btn hidden">Kijelentkezés</button>
-        </div>
-      </header>
-      <div class="catbar" id="catBar"></div>
-    </div>
+  // Inicializálás
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    <div id="lists" class="grid"></div>
-
-    <div id="adminPanel" class="card hidden" style="margin-top:16px">
-      <h3>Új film hozzáadása (admin)</h3>
-      <form id="addMovieForm">
-        <div class="row">
-          <div>
-            <label>Kategória</label>
-            <select name="cat" id="catSelect"></select>
-          </div>
-          <div>
-            <label>Cím</label>
-            <input name="title" type="text" required placeholder="Film címe" />
-          </div>
-        </div>
-        <label>Lejátszási link</label>
-        <input name="url" type="url" required placeholder="https://..." />
-        <label>Borító kép (opcionális)</label>
-        <input name="cover" type="url" placeholder="https://..." />
-        <label>Leírás (opcionális)</label>
-        <textarea name="desc" rows="3" placeholder="Rövid tartalom..."></textarea>
-        <div style="height:10px"></div>
-        <button class="btn">Hozzáadás</button>
-      </form>
-    </div>
-
-    <div class="footer">© 2025 – Készítette szeretettel: Csabi</div>
-  </div>
-  <!-- ===== [SZAKASZ 2] ALAP NÉZETEK – END ===== -->
-
+  // Debug – futás közben ellenőrzés
+  console.log("Firebase init OK, apiKey kezdete:", firebaseConfig.apiKey.slice(0, 12));
+  console.log("storageBucket:", firebaseConfig.storageBucket);
+</script>
+<!-- ===== [SZAKASZ 2] FIREBASE INIT – END ===== -->
+  
 <!-- ===== [SZAKASZ 3] FIREBASE SDK + INIT – START ===== -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
