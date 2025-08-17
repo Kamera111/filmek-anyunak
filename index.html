@@ -66,31 +66,40 @@
 </script>
 <!-- ===== [SZAKASZ 2] FIREBASE INIT – END ===== -->
   
-<!-- ===== [SZAKASZ 3] FIREBASE SDK + INIT – START ===== -->
+<!-- ===== [SZAKASZ 3] AUTH + FIRESTORE – START ===== -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-  import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+  // A már inicializált app lekérése (nem hozunk létre újat!)
+  import { getApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+  import { 
+    getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy 
+  } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBDSI-z3a4lFIAloKCVZcUyue7GMoO5acY",   // <- figyelj: kis "lFIA"
-  authDomain: "filmek-fe035.firebaseapp.com",
-  projectId: "filmek-fe035",
-  storageBucket: "filmek-fe035.appspot.com",           // <- appspot.com
-  messagingSenderId: "302167835367",
-  appId: "1:302167835367:web:6e0fd4304c4496612c1842",
-  measurementId: "G-QBG7LG0ZQH"
-};
-
-  const app  = initializeApp(firebaseConfig);
+  if (!getApps().length) {
+    console.error("Firebase app még nincs inicializálva – ellenőrizd a [SZAKASZ 2]-t!");
+  }
+  const app  = getApp();
   const auth = getAuth(app);
   const db   = getFirestore(app);
 
-  window.fb = { app, auth, db,
+  // Ezt használja a többi szakasz
+  window.fb = {
+    app, auth, db,
     fs: { collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy }
   };
+
+  // Debug: futó config ellenőrzése (segít az apiKey hibát levadászni)
+  try {
+    // @ts-ignore – a .options nem tipizált, de létezik a futó példányon
+    const opts = app.options || {};
+    console.log("[FB] apiKey:", opts.apiKey);
+    console.log("[FB] authDomain:", opts.authDomain);
+    console.log("[FB] storageBucket:", opts.storageBucket);
+  } catch (e) {
+    console.warn("Nem sikerült kiolvasni az app.options-t:", e);
+  }
 </script>
-<!-- ===== [SZAKASZ 3] FIREBASE SDK + INIT – END ===== -->
+<!-- ===== [SZAKASZ 3] AUTH + FIRESTORE – END ===== -->
 
   <!-- ===== [SZAKASZ 4] KATEGÓRIÁK + ALAP UI – START ===== -->
   <script type="module">
