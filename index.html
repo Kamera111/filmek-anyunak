@@ -367,34 +367,15 @@
 
 <!-- ===== [SZAKASZ 5] AUTH – END ===== -->
 
-  <!-- ===== [SZAKASZ 6] ÚJ FILM HOZZÁADÁS – START ===== -->
-  <script type="module">
-    const { db, fs } = window.fb;
-    const form = document.getElementById('addMovieForm');
-
-    form.addEventListener('submit', async e=>{
-      e.preventDefault();
-      const fd   = new FormData(form);
-      const cat  = fd.get('cat');
-      const title= (fd.get('title')||'').toString().trim();
-      const url  = (fd.get('url')||'').toString().trim();
-      const cover= (fd.get('cover')||'').toString().trim() || null;
-      const desc = (fd.get('desc')||'').toString().trim() || null;
-
-      if (!title || !url) { alert("Cím és link kötelező."); return; }
-
-      try{
-        await fs.addDoc(fs.collection(db,`categories/${cat}/movies`), {
-          title, url, cover, desc, createdAt: fs.serverTimestamp()
-        });
-        form.reset();
-        alert("Hozzáadva.");
-      }catch(e){
-        alert("Hiba: "+e.message);
-      }
-    });
-  </script>
-  <!-- ===== [SZAKASZ 6] ÚJ FILM HOZZÁADÁS – END ===== -->
+<!-- ===== [SZAKASZ 6] KATEGÓRIA GOMBSOR – START ===== -->
+<div class="catsFull" id="cats">
+  <button class="cat block" data-cat="akcio">Akció</button>
+  <button class="cat block" data-cat="thriller">Thriller</button>
+  <button class="cat block" data-cat="krimi">Krimi</button>
+  <button class="cat block" data-cat="vigjatek">Vígjáték</button>
+  <button class="cat block" data-cat="szineszek">Színészek</button>
+</div>
+<!-- ===== [SZAKASZ 6] KATEGÓRIA GOMBSOR – END ===== -->
 
   <!-- ===== [SZAKASZ 7] FIRESTORE SECURITY RULES – CSAK A FIREBASE CONSOLE-BA =====
 rules_version = '2';
