@@ -37,16 +37,17 @@
 </head>
 <body>
 
-<!-- ===== [SZAKASZ 2] FIREBASE INIT – START ===== -->
+<!-- ===== [SZAKASZ 2] FIREBASE CONFIG – START ===== -->
 <script type="module">
-  // Firebase importok
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+  // Importáljuk a szükséges Firebase modulokat
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-  // Firebase config – HELYES adatok
+  // Firebase konfiguráció
   const firebaseConfig = {
-    apiKey: "AIzaSyBDSI-z3a4lFIAloKCVZcUyue7GMoO5acY",
+    apiKey: "AIzaSyBDSI-z3a4IFAIoKCVZVcUyue7GMoO5acY",
     authDomain: "filmek-fe035.firebaseapp.com",
     projectId: "filmek-fe035",
     storageBucket: "filmek-fe035.appspot.com",
@@ -55,16 +56,15 @@
     measurementId: "G-QBG7LG0ZQH"
   };
 
-  // Inicializálás
+  // Firebase inicializálása
   const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+  const analytics = getAnalytics(app);
 
-  // Debug – futás közben ellenőrzés
-  console.log("Firebase init OK, apiKey kezdete:", firebaseConfig.apiKey.slice(0, 12));
-  console.log("storageBucket:", firebaseConfig.storageBucket);
+  // Firestore és Auth inicializálása
+  export const db = getFirestore(app);
+  export const auth = getAuth(app);
 </script>
-<!-- ===== [SZAKASZ 2] FIREBASE INIT – END ===== -->
+<!-- ===== [SZAKASZ 2] FIREBASE CONFIG – END ===== -->
   
 <!-- ===== [SZAKASZ 3] AUTH + FIRESTORE – START ===== -->
 <script type="module">
