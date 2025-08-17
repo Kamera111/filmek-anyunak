@@ -110,15 +110,15 @@
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
   import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBDSI-z3a4lFIAloKCVZcUyue7GMoO5acY",   // <- HELYES (kis lFIA)
-    authDomain: "filmek-fe035.firebaseapp.com",
-    projectId: "filmek-fe035",
-    storageBucket: "filmek-fe035.appspot.com",           // <- HELYES domain
-    messagingSenderId: "302167835367",
-    appId: "1:302167835367:web:6e0fd4304c4496612c1842",
-    measurementId: "G-QBG7LG0ZQH"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyBDSI-z3a4lFIAloKCVZcUyue7GMoO5acY",   // <- figyelj: kis "lFIA"
+  authDomain: "filmek-fe035.firebaseapp.com",
+  projectId: "filmek-fe035",
+  storageBucket: "filmek-fe035.appspot.com",           // <- appspot.com
+  messagingSenderId: "302167835367",
+  appId: "1:302167835367:web:6e0fd4304c4496612c1842",
+  measurementId: "G-QBG7LG0ZQH"
+};
 
   const app  = initializeApp(firebaseConfig);
   const auth = getAuth(app);
