@@ -200,20 +200,26 @@
 <!-- ===== [SZAKASZ 5] AUTH (VENDÉG + ADMIN GOMB) – START ===== -->
 
 <style>
+  /* Mobilbarát, kompakt belépő UI */
   #pinView{
     display:flex;flex-direction:column;align-items:center;gap:10px;margin:28px auto;
   }
+  /* PIN mező: kb. 22 karakter, hogy elférjen a „Katt ide! Add a kódot!” */
   #guestPin{
     width:22ch;max-width:90vw;padding:10px 14px;border-radius:12px;
     border:1px solid #334155;background:#0b1220;color:#e5e7eb;
     font-size:1rem;text-align:center;outline:none;
   }
   #guestPin::placeholder{color:#94a3b8}
+  /* Kis, kör alakú admin-gomb */
   #btnShowAdmin{
     padding:6px 10px;font-size:12px;border-radius:999px;background:#1f2937;
     color:#fff;border:1px solid #334155;cursor:pointer
   }
+  /* Hibaüzenet a PIN-hez */
   #pinError{color:#fda4af;font-size:.9rem;text-align:center;min-height:1.2em}
+
+  /* Admin űrlap (rejtve indul) */
   #adminLoginForm{display:none;width:22ch;max-width:90vw;gap:8px}
   #adminLoginForm.show{display:grid}
   #adminLoginForm input{
@@ -222,10 +228,12 @@
   #adminLoginForm button{
     padding:10px 12px;border-radius:12px;background:#1f2937;color:#fff;border:1px solid #334155;cursor:pointer
   }
+
   @media (max-width:480px){ #guestPin{font-size:.95rem} }
 </style>
 
 <div id="pinView" class="wrap">
+  <!-- Vendég PIN (6 szám után automatikus belépés) -->
   <input
     id="guestPin"
     class="pinInput"
@@ -237,13 +245,26 @@
     aria-label="Vendég PIN"
     autocomplete="one-time-code"
   />
+  <!-- Hibaüzenet -->
   <div id="pinError" role="alert" aria-live="polite" style="display:none;"></div>
 
+  <!-- Admin űrlap megnyitása -->
   <button id="btnShowAdmin" type="button" title="Admin belépés">A</button>
 
+  <!-- Admin belépő (mindig üres mezőkkel, autofill tiltva) -->
   <form id="adminLoginForm" autocomplete="off">
-    <input id="adminEmail" type="email" placeholder="Admin email" required />
-    <input id="adminPass"  type="password" placeholder="Jelszó" required />
+    <input
+      id="adminEmail" type="email" inputmode="email"
+      placeholder="Admin email" value=""
+      autocomplete="off" autocapitalize="none" spellcheck="false"
+      name="admin_email" required
+    />
+    <input
+      id="adminPass" type="password"
+      placeholder="Jelszó" value=""
+      autocomplete="new-password" autocapitalize="none"
+      spellcheck="false" name="admin_pass" required
+    />
     <button type="submit">Admin belépés</button>
   </form>
 </div>
@@ -252,23 +273,26 @@
   import { onAuthStateChanged, signInWithEmailAndPassword, signOut }
     from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
-  // A [SZAKASZ 2–3]-ból jön:
+  // A [SZAKASZ 2–3]-ból jön (initializeApp + window.fb.auth)
   const auth = window.fb && window.fb.auth;
   if (!auth) {
     console.error("Auth nincs inicializálva. Ellenőrizd a [SZAKASZ 2–3]-at!");
   }
 
+  // Elemeink
   const pinView      = document.getElementById('pinView');
-  const appView      = document.getElementById('app');
+  const appView      = document.getElementById('app');          // a fő nézeted
   const guestPin     = document.getElementById('guestPin');
   const pinError     = document.getElementById('pinError');
   const btnShowAdmin = document.getElementById('btnShowAdmin');
   const adminForm    = document.getElementById('adminLoginForm');
 
-  const btnLogout    = document.getElementById('btnAdminLogout'); // ha van felül
-  const btnAdd       = document.getElementById('btnAddGlobal');   // +Új film gomb
-  const adminPanel   = document.getElementById('adminPanel');     // admin-only szekció
+  // Opcionális, ha felül vannak:
+  const btnLogout    = document.getElementById('btnAdminLogout');
+  const btnAdd       = document.getElementById('btnAddGlobal');
+  const adminPanel   = document.getElementById('adminPanel');
 
+  // ===== Vendég belépés (automatikus 6 szám után) =====
   async function guestLogin() {
     try {
       await signInWithEmailAndPassword(auth, "guest@filmek-anyunak.app", "195400");
@@ -282,17 +306,28 @@
 
   if (guestPin) {
     guestPin.addEventListener('input', () => {
+      // új inputnál tüntessük el a hibát
       if (pinError.style.display !== "none") pinError.style.display = "none";
+      // pontosan 6 karakter → automatikus belépés
       if (guestPin.value.length === 6) guestLogin();
     });
   }
 
+  // ===== Admin űrlap mutatása/elrejtése; mezők kiürítése megnyitáskor =====
   if (btnShowAdmin && adminForm) {
     btnShowAdmin.addEventListener('click', () => {
       adminForm.classList.toggle('show');
+      if (adminForm.classList.contains('show')) {
+        const emailEl = document.getElementById('adminEmail');
+        const passEl  = document.getElementById('adminPass');
+        if (emailEl) emailEl.value = "";
+        if (passEl)  passEl.value  = "";
+        emailEl && emailEl.focus();
+      }
     });
   }
 
+  // ===== Admin belépés =====
   if (adminForm) {
     adminForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -302,14 +337,19 @@
         await signInWithEmailAndPassword(auth, email, pass);
       } catch (e) {
         alert("Hiba: " + (e && e.message ? e.message : e));
+      } finally {
+        const passEl = document.getElementById('adminPass');
+        if (passEl) passEl.value = "";
       }
     });
   }
 
+  // ===== Kijelentkezés (ha van gombod) =====
   if (btnLogout) {
     btnLogout.addEventListener('click', async () => { await signOut(auth); });
   }
 
+  // ===== Auth állapot figyelése =====
   onAuthStateChanged(auth, (u) => {
     const logged  = !!u;
     const isAdmin = logged && u.email === "chisnyan@gmail.com";
