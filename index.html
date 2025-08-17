@@ -200,80 +200,32 @@
 <!-- ===== [SZAKASZ 5] AUTH (VENDÉG + ADMIN GOMB) – START ===== -->
 
 <style>
-  /* Kifejezetten a belépő szakasz stílusai (mobilbarát) */
-  #pinView {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    margin: 28px auto;
+  #pinView{
+    display:flex;flex-direction:column;align-items:center;gap:10px;margin:28px auto;
   }
-
-  /* A PIN-mező: kb. 18 karakter szélesség, középre zárva */
-  #guestPin {
-    width: 22ch;               /* elfér: "Katt ide a kódot!" */
-    max-width: 90vw;           /* mobilon sose lógjon ki */
-    padding: 10px 14px;
-    border-radius: 12px;
-    border: 1px solid #334155;
-    background: #0b1220;
-    color: #e5e7eb;
-    font-size: 1rem;
-    text-align: center;
-    outline: none;
+  #guestPin{
+    width:22ch;max-width:90vw;padding:10px 14px;border-radius:12px;
+    border:1px solid #334155;background:#0b1220;color:#e5e7eb;
+    font-size:1rem;text-align:center;outline:none;
   }
-  #guestPin::placeholder { color: #94a3b8; }
-
-  /* Kis, kör alakú A gomb az admin űrlaphoz */
-  #btnShowAdmin {
-    padding: 6px 10px;
-    font-size: 12px;
-    border-radius: 999px;
-    background:#1f2937; 
-    color:#fff; 
-    border:1px solid #334155;
-    cursor:pointer;
+  #guestPin::placeholder{color:#94a3b8}
+  #btnShowAdmin{
+    padding:6px 10px;font-size:12px;border-radius:999px;background:#1f2937;
+    color:#fff;border:1px solid #334155;cursor:pointer
   }
-
-  /* Hibaüzenet */
-  #pinError {
-    color:#fda4af;
-    font-size: .9rem;
-    text-align:center;
-    min-height: 1.2em;
+  #pinError{color:#fda4af;font-size:.9rem;text-align:center;min-height:1.2em}
+  #adminLoginForm{display:none;width:22ch;max-width:90vw;gap:8px}
+  #adminLoginForm.show{display:grid}
+  #adminLoginForm input{
+    padding:10px 12px;border-radius:12px;border:1px solid #334155;background:#0b1220;color:#e5e7eb
   }
-
-  /* Rejtett/nyitott admin űrlap – keskeny, mobilbarát oszlop */
-  #adminLoginForm {
-    display: none;
-    width: 22ch;
-    max-width: 90vw;
-    gap: 8px;
+  #adminLoginForm button{
+    padding:10px 12px;border-radius:12px;background:#1f2937;color:#fff;border:1px solid #334155;cursor:pointer
   }
-  #adminLoginForm.show { display: grid; }
-  #adminLoginForm input {
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid #334155;
-    background: #0b1220;
-    color:#e5e7eb;
-  }
-  #adminLoginForm button {
-    padding: 10px 12px;
-    border-radius: 12px;
-    background:#1f2937; 
-    color:#fff; 
-    border:1px solid #334155;
-    cursor:pointer;
-  }
-
-  @media (max-width: 480px) {
-    #guestPin { font-size: .95rem; }
-  }
+  @media (max-width:480px){ #guestPin{font-size:.95rem} }
 </style>
 
 <div id="pinView" class="wrap">
-  <!-- Vendég PIN (automatikus belépés 6 szám után) -->
   <input
     id="guestPin"
     class="pinInput"
@@ -285,17 +237,13 @@
     aria-label="Vendég PIN"
     autocomplete="one-time-code"
   />
-
-  <!-- Hibaüzenet helye -->
   <div id="pinError" role="alert" aria-live="polite" style="display:none;"></div>
 
-  <!-- Admin gomb (kis "A") -->
-  <button id="btnShowAdmin" title="Admin belépés">A</button>
+  <button id="btnShowAdmin" type="button" title="Admin belépés">A</button>
 
-  <!-- Rejtett admin belépő -->
   <form id="adminLoginForm" autocomplete="off">
     <input id="adminEmail" type="email" placeholder="Admin email" required />
-    <input id="adminPass" type="password" placeholder="Jelszó" required />
+    <input id="adminPass"  type="password" placeholder="Jelszó" required />
     <button type="submit">Admin belépés</button>
   </form>
 </div>
@@ -304,27 +252,80 @@
   import { onAuthStateChanged, signInWithEmailAndPassword, signOut }
     from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
-  // A korábban inicializált objektumok (SZAKASZ 2-3) elérhetőek: window.fb.auth, window.fb...
-  const auth = window.fb?.auth;
+  // A [SZAKASZ 2–3]-ból jön:
+  const auth = window.fb && window.fb.auth;
   if (!auth) {
-    console.error("Auth nem érhető el. Ellenőrizd a [SZAKASZ 2-3]-at!");
+    console.error("Auth nincs inicializálva. Ellenőrizd a [SZAKASZ 2–3]-at!");
   }
 
-  const pinView       = document.getElementById('pinView');
-  const appView       = document.getElementById('app');              // már létező fő nézet
-  const guestPin      = document.getElementById('guestPin');
-  const pinError      = document.getElementById('pinError');
-  const btnShowAdmin  = document.getElementById('btnShowAdmin');
-  const adminForm     = document.getElementById('adminLoginForm');
+  const pinView      = document.getElementById('pinView');
+  const appView      = document.getElementById('app');
+  const guestPin     = document.getElementById('guestPin');
+  const pinError     = document.getElementById('pinError');
+  const btnShowAdmin = document.getElementById('btnShowAdmin');
+  const adminForm    = document.getElementById('adminLoginForm');
 
-  const btnLogout     = document.getElementById('btnAdminLogout');   // ha van a felső menüben
-  const btnAdd        = document.getElementById('btnAddGlobal');     // +Új film gomb
-  const adminPanel    = document.getElementById('adminPanel');       // admin-only részek
+  const btnLogout    = document.getElementById('btnAdminLogout'); // ha van felül
+  const btnAdd       = document.getElementById('btnAddGlobal');   // +Új film gomb
+  const adminPanel   = document.getElementById('adminPanel');     // admin-only szekció
 
-  // ========== Vendég belépés (automatikus 6 szám után) ==========
   async function guestLogin() {
     try {
-      await signInWithEmailAndPassword(
+      await signInWithEmailAndPassword(auth, "guest@filmek-anyunak.app", "195400");
+    } catch (e) {
+      pinError.textContent = "Hibás PIN kód!";
+      pinError.style.display = "block";
+      guestPin.value = "";
+      guestPin.focus();
+    }
+  }
+
+  if (guestPin) {
+    guestPin.addEventListener('input', () => {
+      if (pinError.style.display !== "none") pinError.style.display = "none";
+      if (guestPin.value.length === 6) guestLogin();
+    });
+  }
+
+  if (btnShowAdmin && adminForm) {
+    btnShowAdmin.addEventListener('click', () => {
+      adminForm.classList.toggle('show');
+    });
+  }
+
+  if (adminForm) {
+    adminForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('adminEmail').value.trim();
+      const pass  = document.getElementById('adminPass').value;
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+      } catch (e) {
+        alert("Hiba: " + (e && e.message ? e.message : e));
+      }
+    });
+  }
+
+  if (btnLogout) {
+    btnLogout.addEventListener('click', async () => { await signOut(auth); });
+  }
+
+  onAuthStateChanged(auth, (u) => {
+    const logged  = !!u;
+    const isAdmin = logged && u.email === "chisnyan@gmail.com";
+
+    pinView.classList.toggle('hidden', logged);
+    if (appView) appView.classList.toggle('hidden', !logged);
+
+    if (btnAdd)     btnAdd.classList.toggle('hidden', !isAdmin);
+    if (btnLogout)  btnLogout.classList.toggle('hidden', !logged);
+    if (adminPanel) adminPanel.classList.toggle('hidden', !isAdmin);
+
+    if (logged && window.startRealtime) window.startRealtime();
+  });
+</script>
+
+<!-- ===== [SZAKASZ 5] AUTH – END ===== -->
 
   <!-- ===== [SZAKASZ 6] ÚJ FILM HOZZÁADÁS – START ===== -->
   <script type="module">
