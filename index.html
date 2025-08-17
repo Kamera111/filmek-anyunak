@@ -223,49 +223,68 @@
   </script>
   <!-- ===== [SZAKASZ 4] AUTH – END ===== -->
 
-  <!-- ===== [SZAKASZ 5] FIRESTORE LISTÁZÁS – START ===== -->
+  <!-- ===== [SZAKASZ 5] AUTH (VENDÉG + ADMIN GOMB) – START ===== -->
+  <div id="pinView" class="wrap">
+    <!-- Vendég PIN beírás -->
+    <input id="guestPin" class="pinInput" type="text" maxlength="6" placeholder="Katt ide, add a kódot" />
+    <button id="btnGuestEnter" class="btn">Belépés vendégként</button>
+
+    <!-- Admin gomb (kis méretű „A”) -->
+    <button id="btnShowAdmin" class="btn" style="padding:4px 8px;font-size:12px;">A</button>
+
+    <!-- Rejtett admin belépő form -->
+    <form id="adminLoginForm" class="hidden" style="margin-top:12px">
+      <input id="adminEmail" type="email" placeholder="Admin email" required />
+      <input id="adminPass" type="password" placeholder="Jelszó" required />
+      <button type="submit" class="btn">Admin belépés</button>
+    </form>
+  </div>
+
   <script type="module">
-    const { db, fs } = window.fb;
+    import { onAuthStateChanged, signInWithEmailAndPassword, signOut } 
+      from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
-    function listenCategory(cat){
-      const q = fs.query(
-        fs.collection(db,`categories/${cat}/movies`),
-        fs.orderBy("createdAt","desc")
-      );
-      return fs.onSnapshot(q, snap=>{
-        const items=[]; snap.forEach(d=>items.push({id:d.id, ...d.data()}));
-        renderCategory(cat, items);
-      });
+    const auth = window.fb.auth;
+    const pinView=document.getElementById('pinView'), appView=document.getElementById('app');
+    const guestPin=document.getElementById('guestPin'), btnGuest=document.getElementById('btnGuestEnter');
+    const adminForm=document.getElementById('adminLoginForm');
+    const btnLogout=document.getElementById('btnAdminLogout'), btnAdd=document.getElementById('btnAddGlobal');
+    const adminPanel=document.getElementById('adminPanel');
+    const btnShowAdmin=document.getElementById('btnShowAdmin');
+
+    // Vendég automatikus belépés
+    async function guestLoginFixed(){ 
+      try{ await signInWithEmailAndPassword(auth,"guest@filmek-anyunak.app","195400"); }
+      catch(e){ alert("Vendég belépési hiba: "+e.message); }
     }
+    btnGuest?.addEventListener('click',e=>{e.preventDefault();guestLoginFixed();});
+    guestPin?.addEventListener('input',()=>{ if(guestPin.value.length===6) guestLoginFixed(); });
 
-    function renderCategory(cat, items){
-      const w = document.querySelector(`[data-cat-list="${cat}"]`);
-      if (!w) return;
-      w.innerHTML = items.map(m=>`
-        <div class="movie">
-          <a class="title" href="${m.url}" target="_blank" rel="noopener">${m.title||'Cím nélkül'}</a>
-          ${m.cover?`<img src="${m.cover}" alt="">`:''}
-          ${m.desc?`<div class="muted">${m.desc}</div>`:''}
-          <button class="btn del btn-del hidden" data-cat="${cat}" data-id="${m.id}">🗑</button>
-        </div>
-      `).join('');
+    // Admin form előhozása
+    btnShowAdmin?.addEventListener('click',()=>{ adminForm.classList.toggle('hidden'); });
 
-      const isAdmin = !!window.fb.auth.currentUser && window.fb.auth.currentUser.email==="chisnyan@gmail.com";
-      w.querySelectorAll('.btn-del').forEach(b=>{
-        b.classList.toggle('hidden', !isAdmin);
-        b.onclick = async ()=>{
-          await fs.deleteDoc(fs.doc(db,`categories/${b.dataset.cat}/movies/${b.dataset.id}`));
-        };
-      });
-    }
+    // Admin belépés
+    adminForm?.addEventListener('submit',async e=>{
+      e.preventDefault();
+      try{ await signInWithEmailAndPassword(auth,adminEmail.value.trim(),adminPass.value); }
+      catch(e){ alert("Hiba: "+e.message); }
+    });
 
-    let unsub=[];
-    window.startRealtime = ()=>{
-      unsub.forEach(u=>u&&u());
-      unsub = ["akcio","thriller","krimi","vigjatek","szineszek"].map(c=>listenCategory(c));
-    };
+    // Kijelentkezés
+    btnLogout?.addEventListener('click',async()=>{await signOut(auth);});
+
+    // Állapot figyelése
+    onAuthStateChanged(auth,u=>{
+      const logged=!!u, isAdmin=logged&&u.email==="chisnyan@gmail.com";
+      pinView.classList.toggle('hidden',logged);
+      appView.classList.toggle('hidden',!logged);
+      btnAdd.classList.toggle('hidden',!isAdmin);
+      btnLogout.classList.toggle('hidden',!logged);
+      adminPanel.classList.toggle('hidden',!isAdmin);
+      if(logged) window.startRealtime?.();
+    });
   </script>
-  <!-- ===== [SZAKASZ 5] FIRESTORE LISTÁZÁS – END ===== -->
+  <!-- ===== [SZAKASZ 5] AUTH – END ===== -->
 
   <!-- ===== [SZAKASZ 6] ÚJ FILM HOZZÁADÁS – START ===== -->
   <script type="module">
