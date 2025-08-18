@@ -140,50 +140,54 @@
 
   <!-- ===== [SZAKASZ 7] SCRIPT – START ===== -->
   <script>
-    // Kijelentkezés (helykijelölés – ha van auth, erre rákötheted)
-    document.getElementById('btnLogout')?.addEventListener('click', () => {
-      alert('Kijelentkezés… (ide kösd az auth kiléptetést, ha használtok)');
-      // pl.: location.href = 'login.html';
-    });
-
-    // Egyszerű router-helyettesítő a kategória gombokhoz (később adhatunk tényleges listákat)
+    const CORRECT_PIN = "195400";
+    const gate = document.getElementById('gate');
+    const app  = document.getElementById('app');
+    const pinInput = document.getElementById('pin');
+    const btnPinOk = document.getElementById('btnPinOk');
+    const btnLogout = document.getElementById('btnLogout');
     const view = document.getElementById('view');
-    const catTexts = {
-      'krimi': 'Krimi kategória (tartalom hamarosan itt).',
-      'thriller': 'Thriller kategória (tartalom hamarosan itt).',
-      'akcio': 'Akció kategória (tartalom hamarosan itt).',
-      'elo-thriller': 'ÉLŐ Thriller TV – külső lejátszó/stream.',
-      'elo-akcio': 'ÉLŐ Akció TV – külső lejátszó/stream.',
-      'elo-vigjatek': 'ÉLŐ vígjáték TV – külső lejátszó/stream.',
-      'thriller-2': 'Thriller (alsó sor) – tartalom később.',
-      'akcio-2': 'Akció (alsó sor) – tartalom később.'
-    };
+    const LOG_KEY = 'fa_logged_in';
 
-    function setView(msg){
-      if(!view) return;
-      view.innerHTML = `
-        <div style="
-          border:1px solid rgba(255,255,255,.08);
-          background:linear-gradient(180deg, #0f172a, #0b1222);
-          border-radius:16px; padding:18px 16px; color:#e5e7eb;
-        ">${msg}</div>`;
+    // ha már belépett ezen az eszközön
+    if(localStorage.getItem(LOG_KEY)==='true'){ showApp(); }
+
+    function showApp(){ gate.hidden=true; app.hidden=false; }
+    function showGate(){ gate.hidden=false; app.hidden=true; }
+
+    btnPinOk?.addEventListener('click', tryLogin);
+    pinInput?.addEventListener('keyup', e=>{ if(e.key==='Enter') tryLogin(); });
+
+    function tryLogin(){
+      if(pinInput.value.trim()===CORRECT_PIN){
+        localStorage.setItem(LOG_KEY,'true');
+        showApp();
+      } else {
+        alert("Hibás PIN! Tipp: 195400");
+      }
     }
 
-    document.querySelectorAll('.cat[data-cat]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const key = btn.getAttribute('data-cat');
-        setView(catTexts[key] ?? '…');
-      });
+    // === JAVÍTVA ===
+    btnLogout?.addEventListener('click', ()=>{
+      localStorage.removeItem(LOG_KEY);  // törli a belépés jelzést
+      location.reload();                 // újratölti az oldalt -> újra PIN-t kér
     });
 
-    // „ÉLŐ Mozi +TV” külön link – új lapon nyílik (már <a> elem)
-    // Biztonsági figyelmeztetés, ha popup blokkolná:
-    const eloMozi = document.getElementById('eloMoziLink');
-    eloMozi?.addEventListener('click', ()=>{
-      setView('ÉLŐ Mozi +TV megnyitása új lapon…');
-      // nincs további teendő, mivel a <a> viszi a linket
-    });
+    const catTexts = {
+      'krimi':'Krimi kategória (hamarosan).',
+      'thriller':'Thriller kategória.',
+      'akcio':'Akció kategória.',
+      'elo-thriller':'ÉLŐ Thriller TV – stream.',
+      'elo-akcio':'ÉLŐ Akció TV – stream.',
+      'elo-vigjatek':'ÉLŐ vígjáték TV – stream.',
+      'thriller-2':'Thriller (alsó sor).',
+      'akcio-2':'Akció (alsó sor).'
+    };
+    document.querySelectorAll('.cat[data-cat]')?.forEach(b=>b.addEventListener('click',()=>{
+      view.innerHTML=`<div style="border:1px solid rgba(255,255,255,.08);background:#0f172a;border-radius:16px;padding:18px 16px">${catTexts[b.dataset.cat]??''}</div>`;
+    }));
   </script>
   <!-- ===== [SZAKASZ 7] SCRIPT – END ===== -->
+
 </body>
 </html>
