@@ -1,423 +1,189 @@
 <!doctype html>
 <html lang="hu">
 <head>
-  <!-- ===== [1. RÉSZ – HEAD + META + FONTOK] – START ===== -->
+  <!-- ===== [SZAKASZ 1] HEAD + META – START ===== -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-  <meta name="theme-color" content="#111827" />
   <title>Filmek Anyunak</title>
-  <meta name="description" content="Filmek Anyunak – egyszerűsített webapp PIN-es vendég belépéssel és admin kategóriakezeléssel." />
+  <meta name="description" content="Filmek Anyunak – egyszerű, gyors, szeretettel." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E">
+  <!-- ===== [SZAKASZ 1] HEAD + META – END ===== -->
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
-  <!-- ===== [1. RÉSZ – HEAD + META + FONTOK] – END ===== -->
+  <!-- ===== [SZAKASZ 2] STÍLUSOK – START ===== -->
   <style>
-    /* ===== [2. RÉSZ – ALAP CSS + ELRENDEZÉS] – START ===== */
-    :root { --bg:#ededed; --ink:#111827; --card:#ffffff; --muted:#6b7280; --btn:#1f2937; --btn-ink:#fff; }
-    * { box-sizing: border-box; }
-    html, body { height:100%; }
-    body {
-      margin:0; background:var(--bg); color:var(--ink);
-      font-family:'Roboto', system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+    :root{
+      --bg:#0b1324;
+      --panel:#0f172a;
+      --card:#111827;
+      --txt:#e5e7eb;
+      --muted:#94a3b8;
+      --accent:#22d3ee;
+      --accent-2:#60a5fa;
+      --ring: rgba(34,211,238,.35);
+      --radius:20px;
     }
-    .wrap-page {
-      min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px;
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:1200px;margin:0 auto;padding:20px}
+    .sticky{
+      position:sticky;top:0;z-index:10;
+      background:linear-gradient(180deg, rgba(11,19,36,.95), rgba(11,19,36,.78) 70%, rgba(11,19,36,0));
+      backdrop-filter: blur(6px);
+      margin:-20px -20px 16px -20px; padding:16px 20px 8px 20px;
+      border-bottom:1px solid rgba(255,255,255,.04);
     }
-    .card {
-      width:100%; max-width:420px; background:var(--card);
-      border-radius:18px; box-shadow:0 8px 30px rgba(0,0,0,.08);
-      padding:22px;
+    header{
+      display:flex;align-items:center;gap:12px;
     }
-    h1 { margin:0 0 12px; font-size:1.6rem; }
-    .muted { color:var(--muted); font-size:.95rem; }
+    .title{font-size:clamp(22px,3vw,34px);font-weight:800;letter-spacing:.4px}
+    .btn{
+      background:linear-gradient(180deg, #1f2937, #111827);
+      color:var(--txt); border:1px solid rgba(255,255,255,.08);
+      border-radius:14px; padding:10px 14px; cursor:pointer;
+      box-shadow: 0 0 0 0 var(--ring);
+      transition:transform .06s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .btn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.18)}
+    .btn:focus{outline:none; box-shadow:0 0 0 6px var(--ring)}
 
-    .tabs { display:flex; gap:8px; margin:14px 0 18px; }
-    .tab {
-      flex:1; text-align:center; padding:10px 12px; border-radius:12px;
-      background:#f3f4f6; cursor:pointer; font-weight:600; user-select:none;
+    /* Kategória rács */
+    #catBar{display:flex;flex-direction:column;gap:20px;margin-top:6px}
+    .cats-row{
+      display:grid; gap:20px;
+      grid-template-columns: repeat(12, 1fr);
     }
-    .tab.active { background:#111827; color:#fff; }
-
-    .row { display:flex; flex-direction:column; gap:8px; margin:10px 0 16px; }
-    label { font-weight:600; font-size:.95rem; }
-    input[type="text"], input[type="email"], input[type="password"] {
-      width:100%; padding:12px 14px; border-radius:12px; border:1px solid #d1d5db; outline:none;
-      font-size:1rem; background:#fff;
-    }
-    .btn {
-      width:100%; padding:12px 14px; border-radius:12px;
-      border:none; background:var(--btn); color:var(--btn-ink); font-weight:700;
-      cursor:pointer;
-    }
-    .btn.inline { width:auto; padding:10px 12px; }
-    .flex { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    .center { text-align:center; }
-
-    .hide { display:none !important; }
-    /* ===== [2. RÉSZ – ALAP CSS + ELRENDEZÉS] – END ===== */
-
-    /* ===== [3. RÉSZ – APP FEJLÉC + KATEGÓRIASÁV + ADMIN PANEL CSS] – START ===== */
-    .app-wrap { max-width:1100px; margin:0 auto; padding:16px; }
-    header.app-head {
-      display:flex; align-items:center; gap:10px; padding:8px 0 14px;
-    }
-    .title { font-weight:800; font-size:1.3rem; }
-    .spacer { flex:1; }
-    .btn.outline {
-      background:#fff; color:#111827; border:1px solid #e5e7eb;
+    /* 3 nagy gomb soronként desktopon */
+    .cats-row > .cat,
+    .cats-row > a.cat{
+      grid-column: span 4;
     }
 
-    #catBar { padding:8px 0; }
-    #cats { display:flex; flex-wrap:wrap; gap:8px; }
-
-    .cat {
-      position: relative;
-      display:inline-flex; align-items:center; justify-content:center;
-      padding:10px 14px; border-radius:999px;
-      background:#1f2937; color:#fff; border:none; cursor:pointer; font-weight:600;
+    .cat{
+      display:flex;align-items:center;justify-content:center;text-align:center;
+      background:linear-gradient(180deg, var(--panel), #0b1222 70%);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      padding:24px 18px; min-height:96px; color:var(--txt);
+      font-size:clamp(20px,2.2vw,28px); font-weight:800; letter-spacing:.3px;
+      cursor:pointer; text-decoration:none; user-select:none;
+      transition: transform .08s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease;
     }
-    .cat .edit {
-      display:none; position:absolute; top:-6px; right:-6px;
-      width:24px; height:24px; border-radius:999px; background:#fff; color:#111827;
-      border:1px solid #e5e7eb; font-size:14px; line-height:22px; cursor:pointer;
-    }
-    .admin .cat .edit { display:inline-block; }
+    .cat:hover{transform: translateY(-2px); border-color: rgba(255,255,255,.16); box-shadow: 0 6px 22px rgba(0,0,0,.35)}
+    .cat:active{transform: translateY(0)}
+    .block{background: linear-gradient(180deg, #0f172a, #0b1222)}
+    .live{background: linear-gradient(180deg, #0f172a, #0b1222), radial-gradient(1200px 1200px at 100% 0%, rgba(34,211,238,.12), transparent 45%); background-blend-mode: screen, normal}
+    .live strong{color:var(--accent)}
+    footer{color:var(--muted);text-align:center;margin:28px 0 12px 0;font-size:14px}
 
-    .cat-admin { margin-top:12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    .cat-admin input { padding:10px 12px; border-radius:12px; border:1px solid #d1d5db; }
-    .btn.small { padding:10px 12px; border-radius:12px; border:none; background:#111827; color:#fff; }
-    .hint { font-size:12px; color:#6b7280; }
-    /* ===== [3. RÉSZ – APP FEJLÉC + KATEGÓRIASÁV + ADMIN PANEL CSS] – END ===== */
-
-    /* ===== [4. RÉSZ – TARTALOM HELYŐR] – START ===== */
-    .content {
-      margin-top:16px; padding:16px; background:#fff; border-radius:14px; border:1px solid #e5e7eb;
-      min-height:120px;
+    /* Reszponzív */
+    @media (max-width: 960px){
+      .cats-row > .cat, .cats-row > a.cat{grid-column: span 6}
     }
-    /* ===== [4. RÉSZ – TARTALOM HELYŐR] – END ===== */
+    @media (max-width: 560px){
+      .cats-row > .cat, .cats-row > a.cat{grid-column: span 12}
+      .cat{min-height:84px}
+    }
   </style>
+  <!-- ===== [SZAKASZ 2] STÍLUSOK – END ===== -->
 </head>
+
 <body>
-  <!-- ===== [5. RÉSZ – BELÉPŐ KÉPERNYŐ (VENDÉG + ADMIN)] – START ===== -->
-  <div id="screenAuth" class="wrap-page">
-    <div class="card">
-      <h1>Belépés</h1>
-      <div class="muted">Válassz módot: vendég PIN vagy admin adatok.</div>
-
-      <div class="tabs" role="tablist" aria-label="Belépési mód">
-        <div id="tabGuest" class="tab active" role="tab" aria-selected="true">Vendég PIN</div>
-        <div id="tabAdmin" class="tab" role="tab" aria-selected="false">Admin</div>
-      </div>
-
-      <!-- Vendég PIN -->
-      <div id="panelGuest" class="panel">
-        <div class="row">
-          <label for="guestPin">Vendég PIN</label>
-          <!-- Látható PIN: gépelés közben NEM pöttyöz, és 4 számnál automatikus belépés -->
-          <input id="guestPin" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Írd be: 1954" autocomplete="off">
-          <div class="muted">A PIN beírása után 4 számjegynél automatikusan belép.</div>
-        </div>
-        <button id="btnGuestEnter" class="btn">Belépés</button>
-      </div>
-
-      <!-- Admin -->
-      <div id="panelAdmin" class="panel hide">
-        <div class="row">
-          <label for="adminEmail">Admin e-mail</label>
-          <input id="adminEmail" type="email" placeholder="pl. chisnyan@gmail.com" autocomplete="username">
-        </div>
-        <div class="row">
-          <label for="adminPass">Admin jelszó</label>
-          <!-- Rejtett jelszó (pöttyök) -->
-          <input id="adminPass" type="password" placeholder="••••••••••••" autocomplete="current-password">
-        </div>
-        <button id="btnAdminEnter" class="btn">Admin belépés</button>
-        <div class="muted" style="margin-top:8px;">A jelszó nem lesz előre kitöltve, mindig kézzel kell beírni.</div>
-      </div>
-    </div>
-  </div>
-  <!-- ===== [5. RÉSZ – BELÉPŐ KÉPERNYŐ (VENDÉG + ADMIN)] – END ===== -->
-
-  <!-- ===== [6. RÉSZ – APP FELÜLET (CSAK BELÉPÉS UTÁN)] – START ===== -->
-  <div id="screenApp" class="hide">
-    <div class="app-wrap">
-      <header class="app-head">
+  <!-- ===== [SZAKASZ 3] APP FEJLÉC – START ===== -->
+  <div class="wrap" id="app">
+    <div class="sticky">
+      <header>
         <div class="title">Filmek Anyunak</div>
-        <div class="spacer"></div>
-        <button id="btnLogout" class="btn inline outline">Kijelentkezés</button>
+        <button id="btnLogout" class="btn" style="margin-left:auto">Kijelentkezés</button>
       </header>
-
-      <div id="catBar">
-        <div class="catsFull" id="cats"></div>
-
-        <!-- Admin panel – csak admin módban látszik -->
-        <div id="catAdminPanel" class="cat-admin" hidden>
-          <input id="newCatName" type="text" placeholder="Új kategória neve…" />
-          <button id="btnAddCat" class="btn small">+ Kategória</button>
-          <span class="hint">Átnevezés: admin módban katt a gombon a ✎ ikonra.</span>
-        </div>
-      </div>
-
-      <div class="content" id="content">
-        <div class="muted">Tartalomhely: ide jöhet a kiválasztott kategória listája/filmjei.</div>
-      </div>
     </div>
+  <!-- ===== [SZAKASZ 3] APP FEJLÉC – END ===== -->
+
+  <!-- ===== [SZAKASZ 4] KATEGÓRIA GOMBSOROK – START ===== -->
+    <div id="catBar">
+
+      <!-- [SOR 1]  Krimi • Thriller • Akció -->
+      <div class="cats-row" id="row-1">
+        <button class="cat block" data-cat="krimi">Krimi</button>
+        <button class="cat block" data-cat="thriller">Thriller</button>
+        <button class="cat block" data-cat="akcio">Akció</button>
+      </div>
+
+      <!-- [SOR 2]  ÉLŐ Thriller TV • ÉLŐ Akció TV • ÉLŐ vígjáték TV (ÁTHELYEZVE IDE, A SOR VÉGÉRE) -->
+      <div class="cats-row" id="row-2">
+        <button class="cat block live" data-cat="elo-thriller"><strong>ÉLŐ</strong> Thriller TV</button>
+        <button class="cat block live" data-cat="elo-akcio"><strong>ÉLŐ</strong> Akció TV</button>
+        <button class="cat block live" data-cat="elo-vigjatek"><strong>ÉLŐ</strong> vígjáték TV</button>
+      </div>
+
+      <!-- [SOR 3]  ÉLŐ Mozi +TV (LINK) • Thriller • Akció -->
+      <div class="cats-row" id="row-3">
+        <a class="cat block live" id="eloMoziLink"
+           href="https://player.telekomtvgo.hu/player/live?channelNumber=13"
+           target="_blank" rel="noopener noreferrer">
+           <strong>ÉLŐ</strong> Mozi +TV
+        </a>
+        <button class="cat block" data-cat="thriller-2">Thriller</button>
+        <button class="cat block" data-cat="akcio-2">Akció</button>
+      </div>
+
+    </div>
+  <!-- ===== [SZAKASZ 4] KATEGÓRIA GOMBSOROK – END ===== -->
+
+  <!-- ===== [SZAKASZ 5] TARTALOM TERÜLET (HELYŐR) – START ===== -->
+    <div id="view" style="margin-top:22px"></div>
+  <!-- ===== [SZAKASZ 5] TARTALOM TERÜLET (HELYŐR) – END ===== -->
+
+  <!-- ===== [SZAKASZ 6] LÁBLÉC – START ===== -->
+    <footer>© Filmek Anyunak</footer>
   </div>
-  <!-- ===== [6. RÉSZ – APP FELÜLET (CSAK BELÉPÉS UTÁN)] – END ===== -->
+  <!-- ===== [SZAKASZ 6] LÁBLÉC – END ===== -->
 
-  <!-- ===== [7. RÉSZ – JS: ÁLLAPOT, AUTH, KATEGÓRIÁK, RENDER, ESEMÉNYEK] – START ===== -->
+  <!-- ===== [SZAKASZ 7] SCRIPT – START ===== -->
   <script>
-    (function () {
-      // ---------- [7.1 RÉSZ – ÁLLAPOT + ELEMEK] ----------
-      const GUEST_PIN = '1954';
-      const ADMIN_EMAIL = 'chisnyan@gmail.com';
-      const ADMIN_PASS  = 'C10201443ccc';
+    // Kijelentkezés (helykijelölés – ha van auth, erre rákötheted)
+    document.getElementById('btnLogout')?.addEventListener('click', () => {
+      alert('Kijelentkezés… (ide kösd az auth kiléptetést, ha használtok)');
+      // pl.: location.href = 'login.html';
+    });
 
-      let isAdmin = false;
+    // Egyszerű router-helyettesítő a kategória gombokhoz (később adhatunk tényleges listákat)
+    const view = document.getElementById('view');
+    const catTexts = {
+      'krimi': 'Krimi kategória (tartalom hamarosan itt).',
+      'thriller': 'Thriller kategória (tartalom hamarosan itt).',
+      'akcio': 'Akció kategória (tartalom hamarosan itt).',
+      'elo-thriller': 'ÉLŐ Thriller TV – külső lejátszó/stream.',
+      'elo-akcio': 'ÉLŐ Akció TV – külső lejátszó/stream.',
+      'elo-vigjatek': 'ÉLŐ vígjáték TV – külső lejátszó/stream.',
+      'thriller-2': 'Thriller (alsó sor) – tartalom később.',
+      'akcio-2': 'Akció (alsó sor) – tartalom később.'
+    };
 
-      const screenAuth  = document.getElementById('screenAuth');
-      const screenApp   = document.getElementById('screenApp');
-      const tabGuest    = document.getElementById('tabGuest');
-      const tabAdmin    = document.getElementById('tabAdmin');
-      const panelGuest  = document.getElementById('panelGuest');
-      const panelAdmin  = document.getElementById('panelAdmin');
-      const guestPinInp = document.getElementById('guestPin');
-      const btnGuest    = document.getElementById('btnGuestEnter');
-      const adminEmail  = document.getElementById('adminEmail');
-      const adminPass   = document.getElementById('adminPass');
-      const btnAdmin    = document.getElementById('btnAdminEnter');
-      const btnLogout   = document.getElementById('btnLogout');
+    function setView(msg){
+      if(!view) return;
+      view.innerHTML = `
+        <div style="
+          border:1px solid rgba(255,255,255,.08);
+          background:linear-gradient(180deg, #0f172a, #0b1222);
+          border-radius:16px; padding:18px 16px; color:#e5e7eb;
+        ">${msg}</div>`;
+    }
 
-      const catsEl      = document.getElementById('cats');
-      const catPanel    = document.getElementById('catAdminPanel');
-      const inputNewCat = document.getElementById('newCatName');
-      const btnAddCat   = document.getElementById('btnAddCat');
-      const contentEl   = document.getElementById('content');
-
-      // ---------- [7.2 RÉSZ – NÉZETVÁLTÓK] ----------
-      function showAuth() {
-        screenAuth.classList.remove('hide');
-        screenApp.classList.add('hide');
-      }
-      function showApp() {
-        screenAuth.classList.add('hide');
-        screenApp.classList.remove('hide');
-      }
-      function switchTab(toAdmin) {
-        if (toAdmin) {
-          tabAdmin.classList.add('active'); tabAdmin.setAttribute('aria-selected', 'true');
-          tabGuest.classList.remove('active'); tabGuest.setAttribute('aria-selected', 'false');
-          panelAdmin.classList.remove('hide'); panelGuest.classList.add('hide');
-          adminEmail.focus();
-        } else {
-          tabGuest.classList.add('active'); tabGuest.setAttribute('aria-selected', 'true');
-          tabAdmin.classList.remove('active'); tabAdmin.setAttribute('aria-selected', 'false');
-          panelGuest.classList.remove('hide'); panelAdmin.classList.add('hide');
-          guestPinInp.focus();
-        }
-      }
-      tabGuest.addEventListener('click', () => switchTab(false));
-      tabAdmin.addEventListener('click', () => switchTab(true));
-
-      // ---------- [7.3 RÉSZ – ADMIN MÓD ÁLLÍTÁSA] ----------
-      function setAdminMode(on) {
-        isAdmin = !!on;
-        document.documentElement.classList.toggle('admin', isAdmin);
-        catPanel?.toggleAttribute('hidden', !isAdmin);
-        renderCategories();
-      }
-      // Külső híváshoz (ha valaha kell):
-      window.setAdminMode = setAdminMode;
-
-      // ---------- [7.4 RÉSZ – ADATTÁR: Firestore ha van, különben localStorage] ----------
-      const hasFirestore = (() => {
-        try {
-          return !!(window.firebase?.firestore || window.getFirestore);
-        } catch (e) { return false; }
-      })();
-
-      const localKey = 'fan_categories_v1';
-      const storage = hasFirestore ? createFirestoreBackend() : createLocalBackend();
-
-      function createLocalBackend() {
-        const load = () => JSON.parse(localStorage.getItem(localKey) || '[]');
-        const save = (arr) => localStorage.setItem(localKey, JSON.stringify(arr));
-        return {
-          async list() { return load().sort((a,b)=> (a.order??0)-(b.order??0)); },
-          async add(name) {
-            const arr = load();
-            const id = 'loc_' + Math.random().toString(36).slice(2,9);
-            arr.push({ id, name: name.trim(), order: Date.now() });
-            save(arr); return { id, name };
-          },
-          async rename(id, newName) {
-            const arr = load(); const i = arr.findIndex(x=>x.id===id);
-            if (i>=0) { arr[i].name = newName.trim(); save(arr); }
-          },
-          async remove(id) {
-            const arr = load().filter(x=>x.id!==id); save(arr);
-          }
-        };
-      }
-
-      function createFirestoreBackend() {
-        let db = null, v8 = false;
-        try {
-          if (window.firebase?.firestore) { db = window.firebase.firestore(); v8 = true; }
-          else if (window.getFirestore)   { db = window.getFirestore(); }
-        } catch(e) {}
-        const colRef = () => v8 ? db.collection('categories') : window.collection(db,'categories');
-        const qOrdered = () => v8 ? colRef().orderBy('order','asc') : window.query(colRef(), window.orderBy('order','asc'));
-        return {
-          async list() {
-            if (v8) {
-              const snap = await qOrdered().get();
-              return snap.docs.map(d=>({ id:d.id, ...d.data() }));
-            } else {
-              const snap = await window.getDocs(qOrdered());
-              return snap.docs.map(d=>({ id:d.id, ...d.data() }));
-            }
-          },
-          async add(name) {
-            const now = Date.now();
-            if (v8) {
-              const ref = await colRef().add({ name: name.trim(), order: now }); return { id: ref.id, name };
-            } else {
-              const ref = await window.addDoc(colRef(), { name: name.trim(), order: now }); return { id: ref.id, name };
-            }
-          },
-          async rename(id, newName) {
-            if (v8) { await colRef().doc(id).update({ name: newName.trim() }); }
-            else    { await window.updateDoc(window.doc(db,'categories',id), { name: newName.trim() }); }
-          },
-          async remove(id) {
-            if (v8) { await colRef().doc(id).delete(); }
-            else    { await window.deleteDoc(window.doc(db,'categories',id)); }
-          }
-        };
-      }
-
-      // ---------- [7.5 RÉSZ – KATEGÓRIÁK RENDER + KATTINTÁSOK] ----------
-      async function renderCategories() {
-        if (!catsEl) return;
-        const list = await storage.list();
-        catsEl.innerHTML = '';
-        list.forEach(cat => {
-          const btn = document.createElement('button');
-          btn.className = 'cat';
-          btn.dataset.id = cat.id;
-          btn.textContent = cat.name;
-
-          // Admin átnevezés
-          const edit = document.createElement('button');
-          edit.className = 'edit';
-          edit.type = 'button';
-          edit.title = 'Kategória átnevezése';
-          edit.textContent = '✎';
-          edit.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!isAdmin) return;
-            const newName = prompt('Új kategórianév:', cat.name);
-            if (newName && newName.trim() && newName.trim() !== cat.name) {
-              storage.rename(cat.id, newName.trim()).then(renderCategories);
-            }
-          });
-          if (isAdmin) btn.appendChild(edit);
-
-          // Kategória megnyitás – itt kösd össze a saját listázásoddal
-          btn.addEventListener('click', () => openCategory(cat.name));
-          catsEl.appendChild(btn);
-        });
-      }
-
-      // Példa kategória megnyitás – jelenleg csak szöveg
-      function openCategory(name) {
-        contentEl.innerHTML = `<div><strong>${escapeHtml(name)}</strong> kategória tartalma ide fog kerülni…</div>`;
-      }
-      function escapeHtml(s) {
-        return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-      }
-
-      // ---------- [7.6 RÉSZ – ESEMÉNYEK: ÚJ KATEGÓRIA, AUTH, LOGOUT] ----------
-      btnAddCat?.addEventListener('click', async () => {
-        if (!isAdmin) return;
-        const name = (inputNewCat?.value || '').trim();
-        if (!name) { inputNewCat?.focus(); return; }
-        await storage.add(name);
-        inputNewCat.value = '';
-        renderCategories();
+    document.querySelectorAll('.cat[data-cat]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const key = btn.getAttribute('data-cat');
+        setView(catTexts[key] ?? '…');
       });
-      inputNewCat?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') btnAddCat?.click();
-      });
+    });
 
-      // Vendég: auto-belépés 4 szám után
-      guestPinInp.addEventListener('input', () => {
-        const v = guestPinInp.value.replace(/\D+/g,'');
-        guestPinInp.value = v.slice(0,4);
-        if (guestPinInp.value.length === 4) tryGuestEnter();
-      });
-      btnGuest.addEventListener('click', tryGuestEnter);
-
-      function tryGuestEnter() {
-        if (guestPinInp.value === GUEST_PIN) {
-          setAdminMode(false);
-          proceedToApp();
-        } else {
-          alert('Helytelen PIN. Próbáld újra.');
-          guestPinInp.select();
-        }
-      }
-
-      // Admin belépés
-      btnAdmin.addEventListener('click', () => {
-        const email = (adminEmail.value || '').trim();
-        const pass  = adminPass.value || '';
-        if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
-          setAdminMode(true);
-          proceedToApp();
-        } else {
-          alert('Hibás admin adatok.');
-          adminPass.value = '';
-          adminPass.focus();
-        }
-      });
-
-      // Kijelentkezés
-      btnLogout.addEventListener('click', () => {
-        setAdminMode(false);
-        showAuth();
-        switchTab(false);
-        guestPinInp.value = '';
-        adminEmail.value = '';
-        adminPass.value = '';
-      });
-
-      // ---------- [7.7 RÉSZ – APP INDÍTÁS + KEZDŐ KATEGÓRIÁK] ----------
-      function proceedToApp() {
-        showApp();
-        renderCategories();
-      }
-
-      // Ha üres az adattár, töltsük elő néhány kategóriával
-      (async function seedIfEmpty() {
-        const list = await storage.list();
-        if (list.length === 0) {
-          await storage.add('Akció');
-          await storage.add('Thriller');
-          await storage.add('Krimi');
-          await storage.add('Vígjáték');
-          await storage.add('Színészek');
-        }
-        renderCategories();
-      })();
-
-      // Induló nézet
-      showAuth();
-      switchTab(false);
-      // ---------- [7.8 RÉSZ – VÉGE] ----------
-    })();
+    // „ÉLŐ Mozi +TV” külön link – új lapon nyílik (már <a> elem)
+    // Biztonsági figyelmeztetés, ha popup blokkolná:
+    const eloMozi = document.getElementById('eloMoziLink');
+    eloMozi?.addEventListener('click', ()=>{
+      setView('ÉLŐ Mozi +TV megnyitása új lapon…');
+      // nincs további teendő, mivel a <a> viszi a linket
+    });
   </script>
-  <!-- ===== [7. RÉSZ – JS: ÁLLAPOT, AUTH, KATEGÓRIÁK, RENDER, ESEMÉNYEK] – END ===== -->
+  <!-- ===== [SZAKASZ 7] SCRIPT – END ===== -->
 </body>
 </html>
