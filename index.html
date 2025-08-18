@@ -3,281 +3,83 @@
 <head>
   <!-- ===== [SZAKASZ 1] HEAD + META – START ===== -->
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>Filmek Anyunak</title>
-  <meta name="description" content="Filmek Anyunak – egyszerű, gyors, szeretettel." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E">
-  <!-- ===== [SZAKASZ 1] HEAD + META – END ===== -->
-
-  <!-- ===== [SZAKASZ 2] STÍLUSOK – START ===== -->
   <style>
-    :root{
-      --bg:#0b1324; --panel:#0f172a; --txt:#e5e7eb;
-      --muted:#94a3b8; --accent:#22d3ee; --radius:20px;
+    :root {
+      --bg:#0f172a; --card:#111827; --txt:#e5e7eb; --accent:#22d3ee;
     }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    .wrap{max-width:1200px;margin:0 auto;padding:20px}
-    .sticky{position:sticky;top:0;z-index:10;background:linear-gradient(180deg, rgba(11,19,36,.95), rgba(11,19,36,.78) 70%, rgba(11,19,36,0));backdrop-filter: blur(6px);margin:-20px -20px 16px -20px;padding:16px 20px 8px 20px;border-bottom:1px solid rgba(255,255,255,.04)}
-    header{display:flex;align-items:center;gap:12px}
-    .title{font-size:clamp(22px,3vw,34px);font-weight:800;letter-spacing:.4px}
-    .btn{background:#111827;color:var(--txt);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px 14px;cursor:pointer}
-
-    /* Rács a kategóriáknak */
-    #catBar{display:flex;flex-direction:column;gap:20px;margin-top:6px}
-    .cats-row{display:grid;gap:20px;grid-template-columns:repeat(12,1fr)}
-    .cats-row>.cat,.cats-row>a.cat{grid-column:span 4}
-    .cat{display:flex;align-items:center;justify-content:center;text-align:center;background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:24px 18px;min-height:96px;color:var(--txt);font-size:clamp(20px,2.2vw,28px);font-weight:800;letter-spacing:.3px;cursor:pointer;text-decoration:none}
-    .live strong{color:var(--accent)}
-    #view{margin-top:22px}
-    .card{display:flex;gap:14px;align-items:flex-start;background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;margin:10px 0}
-    .card img{width:120px;height:72px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.08)}
-    .card .meta{display:flex;flex-direction:column;gap:6px}
-    .muted{color:var(--muted);font-size:14px}
-    footer{color:var(--muted);text-align:center;margin:28px 0 12px 0;font-size:14px}
-    @media (max-width:960px){.cats-row>.cat,.cats-row>a.cat{grid-column:span 6}}
-    @media (max-width:560px){.cats-row>.cat,.cats-row>a.cat{grid-column:span 12}.cat{min-height:84px}}
-
-    /* ===== PIN belépő ===== */
-    .gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(4,7,13,.94);backdrop-filter:blur(4px);z-index:9999}
-    .pinbox{position:relative;background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:20px;max-width:380px;width:92%}
-    .pininput{width:100%;font-size:28px;border-radius:16px;border:1px solid rgba(255,255,255,.15);background:#0b1222;color:var(--txt);padding:16px 18px;text-align:center;letter-spacing:2px}
-    .adminBtn{position:absolute;bottom:16px;right:16px;width:42px;height:42px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:#0b1222;color:var(--txt);font-weight:900;cursor:pointer}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:sans-serif}
+    .wrap{max-width:900px;margin:0 auto;padding:16px}
+    .gate{display:flex;justify-content:center;align-items:center;height:100vh}
+    .pinbox{background:var(--card);padding:40px;border-radius:20px;box-shadow:0 2px 16px rgba(0,0,0,.4)}
+    .pininput{font-size:2rem;padding:12px 20px;border-radius:12px;border:2px solid #444;background:#0f172a;color:var(--txt);text-align:center;width:220px;letter-spacing:2px}
+    header{display:flex;align-items:center;padding:16px;font-size:1.6rem;font-weight:bold}
+    .cats{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+    .cat{padding:12px 20px;background:var(--card);border:none;border-radius:12px;color:var(--txt);cursor:pointer;transition:.2s}
+    .cat:hover{background:#1f2937}
   </style>
-  <!-- ===== [SZAKASZ 2] STÍLUSOK – END ===== -->
+  <!-- ===== [SZAKASZ 1] HEAD + META – END ===== -->
 </head>
-
 <body>
-<!-- ===== [SZAKASZ 3] PIN BELÉPŐ – START ===== -->
-<div id="gate" class="gate">
-  <div class="pinbox">
-    <input id="pin" class="pininput" type="tel" inputmode="numeric" placeholder="" maxlength="6" />
-    <button id="btnAdminOpen" class="adminBtn" title="Admin belépés">A</button>
-  </div>
-</div>
-<!-- ===== [SZAKASZ 3] PIN BELÉPŐ – END ===== -->
-
-  <!-- ===== [SZAKASZ 4] ADMIN MODAL – START ===== -->
-  <div id="adminModal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:10000">
-    <div style="background:#0f172a;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px;min-width:300px;max-width:92%">
-      <div style="font-weight:800;font-size:18px;margin-bottom:8px">Admin belépés</div>
-      <input id="admEmail" type="email" placeholder="Email" class="input" style="width:100%;font-size:16px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:#0b1222;color:#e5e7eb;padding:10px 12px">
-      <input id="admPass"  type="password" placeholder="Jelszó" class="input" style="margin-top:8px;width:100%;font-size:16px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:#0b1222;color:#e5e7eb;padding:10px 12px">
-      <div style="display:flex;gap:10px;margin-top:10px">
-        <button id="btnAdminCancel" class="btn" style="flex:1" type="button">Mégse</button>
-        <button id="btnAdminLogin"  class="btn" style="flex:1" type="button">Belépés</button>
-      </div>
+  <!-- ===== [SZAKASZ 2] PIN BELÉPŐ – START ===== -->
+  <div id="gate" class="gate">
+    <div class="pinbox">
+      <input id="pin" class="pininput" type="tel" inputmode="numeric" maxlength="6" placeholder="" />
     </div>
   </div>
-  <!-- ===== [SZAKASZ 4] ADMIN MODAL – END ===== -->
+  <!-- ===== [SZAKASZ 2] PIN BELÉPŐ – END ===== -->
 
-  <!-- ===== [SZAKASZ 5] APP – START ===== -->
-  <div class="wrap" id="app" hidden>
-    <div class="sticky">
-      <header>
-        <div class="title">Filmek Anyunak</div>
-        <button id="btnAdd" class="btn" hidden>+ Új film ebbe a kategóriába</button>
-        <button id="btnLogout" class="btn" style="margin-left:auto" type="button">Kijelentkezés</button>
-      </header>
+  <!-- ===== [SZAKASZ 3] APP TARTALOM – START ===== -->
+  <div id="app" class="wrap" hidden>
+    <header>Filmek Anyunak</header>
+    <div class="cats">
+      <button class="cat">Akció</button>
+      <button class="cat">Thriller</button>
+      <button class="cat">Krimi</button>
+      <button class="cat">Vígjáték</button>
+      <button class="cat">Színészek</button>
     </div>
-
-    <div id="catBar">
-      <!-- SOR 1 -->
-      <div class="cats-row">
-        <button class="cat" data-cat="krimi"   type="button">Krimi</button>
-        <button class="cat" data-cat="thriller" type="button">Thriller</button>
-        <button class="cat" data-cat="akcio"    type="button">Akció</button>
-      </div>
-      <!-- SOR 2 -->
-      <div class="cats-row">
-        <button class="cat live" data-cat="elo-thriller" type="button"><strong>ÉLŐ</strong> Thriller TV</button>
-        <button class="cat live" data-cat="elo-akcio"    type="button"><strong>ÉLŐ</strong> Akció TV</button>
-        <button class="cat live" data-cat="elo-vigjatek" type="button"><strong>ÉLŐ</strong> vígjáték TV</button>
-      </div>
-      <!-- SOR 3 -->
-      <div class="cats-row">
-        <a class="cat live" href="https://player.telekomtvgo.hu/player/live?channelNumber=13" target="_blank" rel="noopener noreferrer"><strong>ÉLŐ</strong> Mozi +TV</a>
-        <button class="cat" data-cat="thriller-2" type="button">Thriller</button>
-        <button class="cat" data-cat="akcio-2"    type="button">Akció</button>
-      </div>
-    </div>
-
-    <div id="view"></div>
-    <footer>© Filmek Anyunak</footer>
+    <p>Itt fognak megjelenni a filmek tartalmai…</p>
   </div>
-  <!-- ===== [SZAKASZ 5] APP – END ===== -->
+  <!-- ===== [SZAKASZ 3] APP TARTALOM – END ===== -->
 
-<!-- ===== [SZAKASZ 6] SCRIPT – START ===== -->
-<script>
-(function(){
-  const PIN = "195400";               // <- vendég pin
-  const LOG_KEY = "fa_logged_in";
-  const ADMIN_KEY = "fa_admin";
+  <!-- ===== [SZAKASZ 4] SCRIPT – START ===== -->
+  <script>
+  (function(){
+    const PIN = "195400";               // vendég PIN
+    const LOG_KEY = "fa_logged_in";
 
-  const gate = document.getElementById("gate");
-  const app  = document.getElementById("app");
-  const pin  = document.getElementById("pin");
+    const gate = document.getElementById("gate");
+    const app  = document.getElementById("app");
+    const pin  = document.getElementById("pin");
 
-  // Robust mutatók
-  const showApp  = ()=>{ if(gate) gate.hidden = true;  if(app) app.hidden = false; };
-  const showGate = ()=>{ if(gate) gate.hidden = false; if(app) app.hidden = true;  };
+    const showApp  = ()=>{ gate.hidden = true;  app.hidden = false; };
+    const showGate = ()=>{ gate.hidden = false; app.hidden = true;  };
 
-  // Ha már be volt lépve ezen az eszközön
-  if (localStorage.getItem(LOG_KEY) === "true") { showApp(); }
-  else { showGate(); }
-
-  // --- PIN kezelése: láthatóan gépel, csak számok, 6 jegynél azonnali belépés
-  if (pin){
-    // Ha netán password lenne, átállítjuk tel-re
-    pin.setAttribute("type","tel");
-    pin.setAttribute("inputmode","numeric");
-    pin.setAttribute("maxlength","6");
-
-    const normalize = () => {
-      // csak számjegyek maradjanak
-      const digits = (pin.value || "").replace(/\D/g,"");
-      if (pin.value !== digits) pin.value = digits;
-      // 6 számnál ellenőrzés
-      if (digits.length === 6) {
-        if (digits === PIN) {
-          localStorage.setItem(LOG_KEY,"true");
-          showApp();
-        } else {
-          // rossz kód -> tisztítjuk, hogy újra írja
-          pin.value = "";
-        }
-      }
-    };
-
-    pin.addEventListener("input", normalize);
-    pin.addEventListener("change", normalize);
-    pin.addEventListener("paste", e=>{
-      setTimeout(normalize, 0); // paste után
-    });
-    // Enterre is engedjük
-    pin.addEventListener("keyup", e=>{
-      if (e.key === "Enter") normalize();
-    });
-
-    // fókusz
-    setTimeout(()=>{ try{ pin.focus(); }catch(e){} }, 50);
-  }
-
-  // ===== Admin (ha használod az „A” gombot és a modált, maradhat) =====
-  const btnAdminOpen  = document.getElementById("btnAdminOpen");
-  const adminModal    = document.getElementById("adminModal");
-  const admEmail      = document.getElementById("admEmail");
-  const admPass       = document.getElementById("admPass");
-  const btnAdminLogin = document.getElementById("btnAdminLogin");
-  const btnAdminCancel= document.getElementById("btnAdminCancel");
-  const btnLogout     = document.getElementById("btnLogout");
-  const btnAdd        = document.getElementById("btnAdd");
-  const view          = document.getElementById("view");
-  let selectedCat = null;
-
-  const updateAdminUI = ()=>{
-    const isAdmin = localStorage.getItem(ADMIN_KEY) === "true";
-    if (btnAdd && !isAdmin) btnAdd.hidden = true;
-  };
-
-  btnAdminOpen?.addEventListener("click", ()=>{
-    if (!adminModal) return;
-    adminModal.style.display = "flex";
-    admEmail && (admEmail.value = "");
-    admPass  && (admPass.value  = "");
-    setTimeout(()=>admEmail?.focus(), 50);
-  });
-  btnAdminCancel?.addEventListener("click", ()=>{ if (adminModal) adminModal.style.display="none"; });
-  btnAdminLogin?.addEventListener("click", ()=>{
-    const e = (admEmail?.value || "").trim();
-    const p = (admPass?.value  || "");
-    if (e === "chisnyan@gmail.com" && p === "C10201443ccc"){
-      localStorage.setItem(ADMIN_KEY,"true");
-      localStorage.setItem(LOG_KEY,"true");
-      if (adminModal) adminModal.style.display="none";
+    // ha már be volt lépve ezen az eszközön
+    if (localStorage.getItem(LOG_KEY) === "true") {
       showApp();
-      updateAdminUI();
     } else {
-      alert("Hibás admin adatok.");
+      showGate();
     }
-  });
 
-  // Kijelentkezés
-  btnLogout?.addEventListener("click", ()=>{
-    localStorage.removeItem(LOG_KEY);
-    localStorage.removeItem(ADMIN_KEY);
-    location.reload();
-  });
-
-  // Kategóriák (csak ha használod)
-  const TITLES = {
-    "krimi":"Krimi","thriller":"Thriller","akcio":"Akció",
-    "elo-thriller":"ÉLŐ Thriller TV","elo-akcio":"ÉLŐ Akció TV","elo-vigjatek":"ÉLŐ vígjáték TV",
-    "thriller-2":"Thriller","akcio-2":"Akció"
-  };
-  document.querySelectorAll(".cat[data-cat]").forEach(el=>{
-    el.addEventListener("click", ()=>{
-      selectedCat = el.dataset.cat;
-      const isAdmin = localStorage.getItem(ADMIN_KEY) === "true";
-      const allowed = !selectedCat.startsWith("elo-");
-      if (btnAdd) btnAdd.hidden = !(isAdmin && allowed);
-      renderCategory(selectedCat);
-    });
-  });
-
-  // Helyi mentéses lista (maradhat változatlanul)
-  async function tryFetchMeta(u){
-    try{
-      const res = await fetch(u,{mode:"cors"});
-      const html = await res.text();
-      const doc = new DOMParser().parseFromString(html, "text/html");
-      const title = doc.querySelector('meta[property="og:title"]')?.content || doc.querySelector("title")?.textContent || "";
-      const image = doc.querySelector('meta[property="og:image"]')?.content || "";
-      if (title || image) return { title: title || "Ismeretlen cím", image };
-      return null;
-    }catch{ return null; }
-  }
-  function loadItems(cat){ const all = JSON.parse(localStorage.getItem("fa_items")||"{}"); return all[cat]||[]; }
-  function saveItem(cat,item){ const all = JSON.parse(localStorage.getItem("fa_items")||"{}"); (all[cat]=all[cat]||[]).unshift(item); localStorage.setItem("fa_items", JSON.stringify(all)); }
-  btnAdd?.addEventListener("click", async ()=>{
-    if (!selectedCat) return;
-    const url = prompt("Illeszd be a film/link URL-jét:"); if(!url) return;
-    let meta = await tryFetchMeta(url);
-    if (!meta){
-      const title = prompt("Film címe:") || "Ismeretlen cím";
-      const image = prompt("Borítókép URL (opcionális):") || "";
-      meta = { title, image };
+    if (pin){
+      pin.addEventListener("input", ()=>{
+        const digits = (pin.value || "").replace(/\D/g,"");
+        pin.value = digits;
+        if (digits.length === 6){
+          if (digits === PIN){
+            localStorage.setItem(LOG_KEY,"true");
+            showApp();
+          } else {
+            pin.value = "";
+          }
+        }
+      });
     }
-    saveItem(selectedCat, { url, ...meta, created: Date.now() });
-    renderCategory(selectedCat);
-    alert("Mentve ezen az eszközön.");
-  });
-  function renderCategory(cat){
-    if (!view) return;
-    const items = loadItems(cat);
-    const title = TITLES[cat] || "Kategória";
-    let html = `<div class="muted" style="margin-bottom:8px">Kategória: <strong>${title}</strong> — elemek: ${items.length}</div>`;
-    for (const it of items){
-      html += `
-        <div class="card">
-          ${it.image ? `<img src="${it.image}" alt="">` : `<div style="width:120px;height:72px;border:1px solid rgba(255,255,255,.08);border-radius:10px;display:flex;align-items:center;justify-content:center" class="muted">Nincs kép</div>`}
-          <div class="meta">
-            <div style="font-weight:700">${escapeHTML(it.title || "Ismeretlen cím")}</div>
-            <a href="${it.url}" target="_blank" rel="noopener noreferrer" class="muted">${it.url}</a>
-          </div>
-        </div>`;
-    }
-    if (items.length===0) html += `<div class="muted">Még nincs feltöltés ebben a kategóriában.</div>`;
-    view.innerHTML = html;
-  }
-  function escapeHTML(s){ return (s||"").replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
-
-  // első admin UI beállítás
-  updateAdminUI();
-})();
-</script>
-<!-- ===== [SZAKASZ 6] SCRIPT – END ===== -->
-
-
+  })();
+  </script>
+  <!-- ===== [SZAKASZ 4] SCRIPT – END ===== -->
 </body>
 </html>
