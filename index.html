@@ -8,11 +8,16 @@
   <style>
     :root{ --bg:#0b1324; --panel:#0f172a; --txt:#e5e7eb; --muted:#94a3b8; }
     html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    /* PIN kapu */
-    .gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(4,7,13,.94)}
-    .pinbox{background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:24px;max-width:420px;width:92%}
-    .pininput{width:100%;font-size:32px;border-radius:18px;border:2px solid rgba(255,255,255,.22);background:#0b1222;color:var(--txt);padding:16px 18px;text-align:center;letter-spacing:2px;outline:none}
-    .pininput:focus{border-color:rgba(255,255,255,.45)}
+    /* Kapu */
+    .gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(4,7,13,.94);z-index:99}
+    .box{background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:24px;max-width:420px;width:92%;margin-bottom:16px}
+    .label{font-size:14px;margin-bottom:6px;color:var(--muted)}
+    .input{width:100%;font-size:18px;border-radius:12px;border:2px solid rgba(255,255,255,.22);background:#0b1222;color:var(--txt);padding:12px;outline:none}
+    .input:focus{border-color:rgba(255,255,255,.45)}
+    .pin{font-size:28px;letter-spacing:2px;text-align:center}
+    button{margin-top:12px;width:100%;padding:12px;border-radius:12px;border:none;font-weight:600;font-size:16px;cursor:pointer}
+    .btnAdmin{background:#2563eb;color:white}
+    .btnGuest{background:#22c55e;color:white}
     /* App */
     .wrap{max-width:1100px;margin:0 auto;padding:18px}
     header{font-weight:800;font-size:28px;margin:6px 0 14px}
@@ -20,23 +25,34 @@
     .tile{grid-column:span 4;background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:18px;min-height:96px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px}
     @media (max-width:960px){.tile{grid-column:span 6}}
     @media (max-width:560px){.tile{grid-column:span 12}}
-    .muted{color:var(--muted);font-size:14px;margin-top:20px}
   </style>
   <!-- ===== [SZAKASZ 1] HEAD + META – END ===== -->
 </head>
 <body>
-  <!-- ===== [SZAKASZ 2] PIN BELÉPŐ – START ===== -->
-  <div id="gate" class="gate" hidden>
-    <div class="pinbox">
-      <input id="pin" class="pininput" type="tel" inputmode="numeric" maxlength="6" placeholder="" autocomplete="one-time-code" />
+  <!-- ===== [SZAKASZ 2] BELÉPŐ KAPU – START ===== -->
+  <div id="gate" class="gate">
+    <div>
+      <!-- Admin belépő -->
+      <div class="box">
+        <div class="label">Admin belépés</div>
+        <input id="adminEmail" class="input" type="email" placeholder="Email" />
+        <input id="adminPass" class="input" type="password" placeholder="Jelszó" />
+        <button class="btnAdmin" onclick="loginAdmin()">Belépés Admin</button>
+      </div>
+
+      <!-- Vendég belépő -->
+      <div class="box">
+        <div class="label">Vendég PIN</div>
+        <input id="guestPin" class="input pin" type="tel" inputmode="numeric" maxlength="6" placeholder="Írd be a PIN-t" />
+        <button class="btnGuest" onclick="loginGuest()">Belépés Vendég</button>
+      </div>
     </div>
   </div>
-  <!-- ===== [SZAKASZ 2] PIN BELÉPŐ – END ===== -->
+  <!-- ===== [SZAKASZ 2] BELÉPŐ KAPU – END ===== -->
 
   <!-- ===== [SZAKASZ 3] APP – START ===== -->
   <div id="app" class="wrap" hidden>
     <header>Filmek Anyunak</header>
-
     <div class="grid">
       <div class="tile">Krimi</div>
       <div class="tile">Thriller</div>
@@ -45,60 +61,36 @@
       <div class="tile">ÉLŐ Akció TV</div>
       <div class="tile">ÉLŐ vígjáték TV</div>
       <div class="tile">ÉLŐ Mozi +TV</div>
-      <div class="tile">Thriller</div>
-      <div class="tile">Akció</div>
     </div>
-
-    <div class="muted">Beléptetve ezen a készüléken. Kijelentkezéshez töröld a böngésző helyi adatait.</div>
   </div>
   <!-- ===== [SZAKASZ 3] APP – END ===== -->
 
   <!-- ===== [SZAKASZ 4] SCRIPT – START ===== -->
   <script>
-  (function() {
-    const PIN      = "195400";
-    const LOG_KEY  = "fa_logged_in";
-    const gate     = document.getElementById("gate");
-    const app      = document.getElementById("app");
-    const pinInput = document.getElementById("pin");
+    const ADMIN_EMAIL = "chisnyan@gmail.com";
+    const ADMIN_PASS  = "C10201443ccc";
+    const GUEST_PIN   = "195400";
 
-    const showApp  = () => { gate.hidden = true;  app.hidden = false; };
-    const showGate = () => { gate.hidden = false; app.hidden = true;  };
-
-    // 1) Ha már be volt lépve ezen az eszközön, azonnal app
-    if (localStorage.getItem(LOG_KEY) === "true") {
-      showApp();
-    } else {
-      showGate();
-    }
-
-    // 2) Erős ellenőrző függvény – minden esetre hívjuk
-    function checkPinAndLogin() {
-      if (!pinInput) return;
-      const value = (pinInput.value || "").replace(/\D/g, "");
-      // csak számokat hagyunk, és vissza is írjuk
-      if (pinInput.value !== value) pinInput.value = value;
-
-      if (value === PIN) {
-        localStorage.setItem(LOG_KEY, "true");
-        showApp();
+    function loginAdmin(){
+      const e = document.getElementById("adminEmail").value.trim();
+      const p = document.getElementById("adminPass").value.trim();
+      if(e === ADMIN_EMAIL && p === ADMIN_PASS){
+        document.getElementById("gate").hidden = true;
+        document.getElementById("app").hidden  = false;
+      } else {
+        alert("Hibás admin belépő!");
       }
     }
 
-    // 3) Események: gépelés, beillesztés, change, Enter, és egy „indító” késleltetett ellenőrzés
-    if (pinInput) {
-      pinInput.addEventListener("input",  checkPinAndLogin);
-      pinInput.addEventListener("change", checkPinAndLogin);
-      pinInput.addEventListener("paste",  () => setTimeout(checkPinAndLogin, 0));
-      pinInput.addEventListener("keyup",  (e) => { if (e.key === "Enter") checkPinAndLogin(); });
-
-      // Autofill / visszaemlékezett érték esetére: fókusznál és az oldal betöltése után is ellenőriz
-      pinInput.addEventListener("focus", checkPinAndLogin);
-      window.addEventListener("load",  () => setTimeout(checkPinAndLogin, 0));
-      // biztos, ami biztos: 300ms után még egyszer
-      setTimeout(checkPinAndLogin, 300);
+    function loginGuest(){
+      const pin = document.getElementById("guestPin").value.trim();
+      if(pin === GUEST_PIN){
+        document.getElementById("gate").hidden = true;
+        document.getElementById("app").hidden  = false;
+      } else {
+        alert("Hibás PIN!");
+      }
     }
-  })();
   </script>
   <!-- ===== [SZAKASZ 4] SCRIPT – END ===== -->
 </body>
