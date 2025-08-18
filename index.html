@@ -29,23 +29,19 @@
     .cats-row>.cat,.cats-row>a.cat{grid-column:span 4}
     .cat{display:flex;align-items:center;justify-content:center;text-align:center;background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:24px 18px;min-height:96px;color:var(--txt);font-size:clamp(20px,2.2vw,28px);font-weight:800;letter-spacing:.3px;cursor:pointer;text-decoration:none}
     .live strong{color:var(--accent)}
-
-    /* Tartalom és filmkártyák */
     #view{margin-top:22px}
     .card{display:flex;gap:14px;align-items:flex-start;background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;margin:10px 0}
     .card img{width:120px;height:72px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.08)}
     .card .meta{display:flex;flex-direction:column;gap:6px}
     .muted{color:var(--muted);font-size:14px}
-
     footer{color:var(--muted);text-align:center;margin:28px 0 12px 0;font-size:14px}
     @media (max-width:960px){.cats-row>.cat,.cats-row>a.cat{grid-column:span 6}}
     @media (max-width:560px){.cats-row>.cat,.cats-row>a.cat{grid-column:span 12}.cat{min-height:84px}}
 
-    /* ===== PIN belépő (csak mező, rejtett karakterek) ===== */
+    /* ===== PIN belépő ===== */
     .gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(4,7,13,.94);backdrop-filter:blur(4px);z-index:9999}
     .pinbox{position:relative;background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:20px;max-width:380px;width:92%}
     .pininput{width:100%;font-size:28px;border-radius:16px;border:1px solid rgba(255,255,255,.15);background:#0b1222;color:var(--txt);padding:16px 18px;text-align:center;letter-spacing:2px}
-    .pininput::-ms-reveal{display:none} /* Edge jelszó szem ikon tiltása */
     .adminBtn{position:absolute;bottom:16px;right:16px;width:42px;height:42px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:#0b1222;color:var(--txt);font-weight:900;cursor:pointer}
   </style>
   <!-- ===== [SZAKASZ 2] STÍLUSOK – END ===== -->
@@ -55,7 +51,7 @@
   <!-- ===== [SZAKASZ 3] PIN BELÉPŐ – START ===== -->
   <div id="gate" class="gate">
     <div class="pinbox">
-      <input id="pin" class="pininput" type="password" inputmode="numeric" autocomplete="one-time-code" placeholder="" maxlength="6" />
+      <input id="pin" class="pininput" type="tel" inputmode="numeric" autocomplete="one-time-code" placeholder="" maxlength="6" />
       <button id="btnAdminOpen" class="adminBtn" title="Admin belépés">A</button>
     </div>
   </div>
@@ -68,8 +64,8 @@
       <input id="admEmail" type="email" placeholder="Email" class="input" style="width:100%;font-size:16px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:#0b1222;color:#e5e7eb;padding:10px 12px">
       <input id="admPass"  type="password" placeholder="Jelszó" class="input" style="margin-top:8px;width:100%;font-size:16px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:#0b1222;color:#e5e7eb;padding:10px 12px">
       <div style="display:flex;gap:10px;margin-top:10px">
-        <button id="btnAdminCancel" class="btn" style="flex:1">Mégse</button>
-        <button id="btnAdminLogin"  class="btn" style="flex:1">Belépés</button>
+        <button id="btnAdminCancel" class="btn" style="flex:1" type="button">Mégse</button>
+        <button id="btnAdminLogin"  class="btn" style="flex:1" type="button">Belépés</button>
       </div>
     </div>
   </div>
@@ -81,28 +77,28 @@
       <header>
         <div class="title">Filmek Anyunak</div>
         <button id="btnAdd" class="btn" hidden>+ Új film ebbe a kategóriába</button>
-        <button id="btnLogout" class="btn" style="margin-left:auto">Kijelentkezés</button>
+        <button id="btnLogout" class="btn" style="margin-left:auto" type="button">Kijelentkezés</button>
       </header>
     </div>
 
     <div id="catBar">
       <!-- SOR 1 -->
       <div class="cats-row">
-        <button class="cat" data-cat="krimi">Krimi</button>
-        <button class="cat" data-cat="thriller">Thriller</button>
-        <button class="cat" data-cat="akcio">Akció</button>
+        <button class="cat" data-cat="krimi"   type="button">Krimi</button>
+        <button class="cat" data-cat="thriller" type="button">Thriller</button>
+        <button class="cat" data-cat="akcio"    type="button">Akció</button>
       </div>
       <!-- SOR 2 -->
       <div class="cats-row">
-        <button class="cat live" data-cat="elo-thriller"><strong>ÉLŐ</strong> Thriller TV</button>
-        <button class="cat live" data-cat="elo-akcio"><strong>ÉLŐ</strong> Akció TV</button>
-        <button class="cat live" data-cat="elo-vigjatek"><strong>ÉLŐ</strong> vígjáték TV</button>
+        <button class="cat live" data-cat="elo-thriller" type="button"><strong>ÉLŐ</strong> Thriller TV</button>
+        <button class="cat live" data-cat="elo-akcio"    type="button"><strong>ÉLŐ</strong> Akció TV</button>
+        <button class="cat live" data-cat="elo-vigjatek" type="button"><strong>ÉLŐ</strong> vígjáték TV</button>
       </div>
       <!-- SOR 3 -->
       <div class="cats-row">
-        <a class="cat live" href="https://player.telekomtvgo.hu/player/live?channelNumber=13" target="_blank"><strong>ÉLŐ</strong> Mozi +TV</a>
-        <button class="cat" data-cat="thriller-2">Thriller</button>
-        <button class="cat" data-cat="akcio-2">Akció</button>
+        <a class="cat live" href="https://player.telekomtvgo.hu/player/live?channelNumber=13" target="_blank" rel="noopener noreferrer"><strong>ÉLŐ</strong> Mozi +TV</a>
+        <button class="cat" data-cat="thriller-2" type="button">Thriller</button>
+        <button class="cat" data-cat="akcio-2"    type="button">Akció</button>
       </div>
     </div>
 
@@ -140,14 +136,18 @@
     // Ha korábban belépett, azonnal app
     if (localStorage.getItem(LOG_KEY) === 'true') { showApp(); }
 
-    // PIN: azonnali nyitás – rejtett karakterekkel (password input)
+    // PIN: látható gépelés, 6 számnál ellenőrzés + automatikus nyitás
     pin?.addEventListener('input', () => {
-      const v = (pin.value || '').replace(/\D/g,'');
-      // opcionális: csak számokat hagyunk
+      let v = (pin.value || '').replace(/\D/g,'');   // csak szám
       if (pin.value !== v) pin.value = v;
-      if (v.length === 6 && v === CORRECT_PIN) {
-        localStorage.setItem(LOG_KEY, 'true');
-        showApp();
+      if (v.length === 6) {
+        if (v === CORRECT_PIN) {
+          localStorage.setItem(LOG_KEY, 'true');
+          showApp();
+        } else {
+          // rossz PIN: ürítjük, hogy ne maradjon bent
+          pin.value = '';
+        }
       }
     });
 
@@ -209,7 +209,7 @@
       }
       saveItem(selectedCat, { url, ...meta, created: Date.now() });
       renderCategory(selectedCat);
-      alert('Feltöltve (helyi mentés). Firebase szinkron jön külön.');
+      alert('Feltöltve (helyi mentés). Firebase szinkron külön jön).');
     });
 
     // Meta kiolvasás (best-effort)
