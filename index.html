@@ -41,17 +41,12 @@
     @media (max-width:960px){.cats-row>.cat,.cats-row>a.cat{grid-column:span 6}}
     @media (max-width:560px){.cats-row>.cat,.cats-row>a.cat{grid-column:span 12}.cat{min-height:84px}}
 
-    /* ===== PIN belépő (csak egy mező) ===== */
+    /* ===== PIN belépő (csak mező, rejtett karakterek) ===== */
     .gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(4,7,13,.94);backdrop-filter:blur(4px);z-index:9999}
-    .pinbox{background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:20px;max-width:380px;width:92%}
+    .pinbox{position:relative;background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:20px;max-width:380px;width:92%}
     .pininput{width:100%;font-size:28px;border-radius:16px;border:1px solid rgba(255,255,255,.15);background:#0b1222;color:var(--txt);padding:16px 18px;text-align:center;letter-spacing:2px}
+    .pininput::-ms-reveal{display:none} /* Edge jelszó szem ikon tiltása */
     .adminBtn{position:absolute;bottom:16px;right:16px;width:42px;height:42px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:#0b1222;color:var(--txt);font-weight:900;cursor:pointer}
-
-    /* ===== Admin modal ===== */
-    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:10000}
-    .modal .box{background:#0f172a;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px;min-width:300px;max-width:92%}
-    .row{display:flex;gap:10px;margin-top:10px}
-    .input{width:100%;font-size:16px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:#0b1222;color:var(--txt);padding:10px 12px}
   </style>
   <!-- ===== [SZAKASZ 2] STÍLUSOK – END ===== -->
 </head>
@@ -60,21 +55,21 @@
   <!-- ===== [SZAKASZ 3] PIN BELÉPŐ – START ===== -->
   <div id="gate" class="gate">
     <div class="pinbox">
-      <input id="pin" class="pininput" type="tel" inputmode="numeric" autocomplete="one-time-code" placeholder="Írd be: 195400" />
+      <input id="pin" class="pininput" type="password" inputmode="numeric" autocomplete="one-time-code" placeholder="" maxlength="6" />
       <button id="btnAdminOpen" class="adminBtn" title="Admin belépés">A</button>
     </div>
   </div>
   <!-- ===== [SZAKASZ 3] PIN BELÉPŐ – END ===== -->
 
   <!-- ===== [SZAKASZ 4] ADMIN MODAL – START ===== -->
-  <div id="adminModal" class="modal" aria-hidden="true">
-    <div class="box">
+  <div id="adminModal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:10000">
+    <div style="background:#0f172a;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px;min-width:300px;max-width:92%">
       <div style="font-weight:800;font-size:18px;margin-bottom:8px">Admin belépés</div>
-      <input id="admEmail" class="input" type="email" placeholder="Email (írd be)">
-      <input id="admPass" class="input" type="password" placeholder="Jelszó (írd be)" style="margin-top:8px">
-      <div class="row">
+      <input id="admEmail" type="email" placeholder="Email" class="input" style="width:100%;font-size:16px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:#0b1222;color:#e5e7eb;padding:10px 12px">
+      <input id="admPass"  type="password" placeholder="Jelszó" class="input" style="margin-top:8px;width:100%;font-size:16px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:#0b1222;color:#e5e7eb;padding:10px 12px">
+      <div style="display:flex;gap:10px;margin-top:10px">
         <button id="btnAdminCancel" class="btn" style="flex:1">Mégse</button>
-        <button id="btnAdminLogin" class="btn" style="flex:1">Belépés</button>
+        <button id="btnAdminLogin"  class="btn" style="flex:1">Belépés</button>
       </div>
     </div>
   </div>
@@ -139,23 +134,24 @@
     const ADMIN_KEY = 'fa_admin';
     let selectedCat = null;
 
-    // --- Mutatók
     function showApp(){ gate.hidden = true; app.hidden = false; }
     function showGate(){ gate.hidden = false; app.hidden = true; }
 
-    // --- Belépés vendégként: ha már be volt lépve, egyből app
-    if (localStorage.getItem(LOG_KEY) === 'true') showApp();
+    // Ha korábban belépett, azonnal app
+    if (localStorage.getItem(LOG_KEY) === 'true') { showApp(); }
 
-    // --- PIN: azonnali nyitás gépelés közben
+    // PIN: azonnali nyitás – rejtett karakterekkel (password input)
     pin?.addEventListener('input', () => {
-      const v = (pin.value || '').trim();
-      if (v === CORRECT_PIN) {
+      const v = (pin.value || '').replace(/\D/g,'');
+      // opcionális: csak számokat hagyunk
+      if (pin.value !== v) pin.value = v;
+      if (v.length === 6 && v === CORRECT_PIN) {
         localStorage.setItem(LOG_KEY, 'true');
         showApp();
       }
     });
 
-    // --- Admin modal nyit/zár
+    // Admin modal
     btnAdminOpen?.addEventListener('click', () => {
       adminModal.style.display = 'flex';
       admEmail.value = ''; admPass.value = '';
@@ -164,15 +160,13 @@
     btnAdminCancel?.addEventListener('click', () => {
       adminModal.style.display = 'none';
     });
-
-    // --- Admin belépés
     btnAdminLogin?.addEventListener('click', () => {
       const e = admEmail.value.trim();
       const p = admPass.value;
       if (e === 'chisnyan@gmail.com' && p === 'C10201443ccc') {
         localStorage.setItem(ADMIN_KEY, 'true');
+        localStorage.setItem(LOG_KEY, 'true');
         adminModal.style.display = 'none';
-        localStorage.setItem(LOG_KEY, 'true'); // legyen belépve is
         showApp();
         updateAdminUI();
       } else {
@@ -180,35 +174,29 @@
       }
     });
 
-    // --- Kijelentkezés (mindkettő törlése)
+    // Kijelentkezés
     btnLogout?.addEventListener('click', () => {
       localStorage.removeItem(LOG_KEY);
       localStorage.removeItem(ADMIN_KEY);
       location.reload();
     });
 
-    // --- Kategóriára kattintás
+    // Kategória kezelése
     const catTexts = {
-      'krimi':'Krimi',
-      'thriller':'Thriller',
-      'akcio':'Akció',
-      'elo-thriller':'ÉLŐ Thriller TV',
-      'elo-akcio':'ÉLŐ Akció TV',
-      'elo-vigjatek':'ÉLŐ vígjáték TV',
-      'thriller-2':'Thriller',
-      'akcio-2':'Akció'
+      'krimi':'Krimi','thriller':'Thriller','akcio':'Akció',
+      'elo-thriller':'ÉLŐ Thriller TV','elo-akcio':'ÉLŐ Akció TV','elo-vigjatek':'ÉLŐ vígjáték TV',
+      'thriller-2':'Thriller','akcio-2':'Akció'
     };
 
     document.querySelectorAll('.cat[data-cat]')?.forEach(b => b.addEventListener('click', () => {
       selectedCat = b.dataset.cat;
-      // Adminnak mutassuk az "Új film" gombot csak a "nem-ÉLŐ" kategóriákban
       const admin = localStorage.getItem(ADMIN_KEY) === 'true';
       const allowed = !selectedCat?.startsWith('elo-');
       btnAdd.hidden = !(admin && allowed);
       renderCategory(selectedCat);
     }));
 
-    // --- „Új film” – link beillesztés és meta kiolvasás
+    // Új film felvitele (helyi mentés)
     btnAdd?.addEventListener('click', async () => {
       if (!selectedCat) return;
       const url = prompt('Illeszd be a film/link URL-jét:');
@@ -221,10 +209,10 @@
       }
       saveItem(selectedCat, { url, ...meta, created: Date.now() });
       renderCategory(selectedCat);
-      alert('Feltöltve (helyi mentés). Firebase-hez külön összekötést adok majd.');
+      alert('Feltöltve (helyi mentés). Firebase szinkron jön külön.');
     });
 
-    // --- Meta kiolvasás (Open Graph) – best-effort, CORS esetén fallback
+    // Meta kiolvasás (best-effort)
     async function tryFetchMeta(url){
       try{
         const res = await fetch(url, {mode:'cors'});
@@ -234,12 +222,10 @@
         const ogi = doc.querySelector('meta[property="og:image"]')?.content || '';
         if (ogt || ogi) return { title: ogt || 'Ismeretlen cím', image: ogi };
         return null;
-      }catch(e){
-        return null;
-      }
+      }catch(e){ return null; }
     }
 
-    // --- Helyi tárolás kategóriánként
+    // Helyi tárolás
     function loadItems(cat){
       const all = JSON.parse(localStorage.getItem('fa_items') || '{}');
       return all[cat] || [];
@@ -251,7 +237,6 @@
       localStorage.setItem('fa_items', JSON.stringify(all));
     }
 
-    // --- Kategória nézet kirajzolása
     function renderCategory(cat){
       const items = loadItems(cat);
       const title = catTexts[cat] || 'Kategória';
@@ -271,13 +256,7 @@
     }
 
     function escapeHTML(s){return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
-
-    // --- Admin UI frissítése induláskor (ha admin)
-    function updateAdminUI(){
-      const admin = localStorage.getItem(ADMIN_KEY) === 'true';
-      // csak kategóriaválasztás után lesz látható a + Új film
-      if (!admin) btnAdd.hidden = true;
-    }
+    function updateAdminUI(){ const admin = localStorage.getItem(ADMIN_KEY) === 'true'; if (!admin) btnAdd.hidden = true; }
     updateAdminUI();
   </script>
   <!-- ===== [SZAKASZ 6] SCRIPT – END ===== -->
