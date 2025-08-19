@@ -156,11 +156,16 @@
 <!-- ===== [SZAKASZ 3] FEJLÉC + KATEGÓRIÁK + NÉZETEK – START ===== -->
 <div id="app" class="wrap">
   <div class="sticky">
-    <header>
-      <!-- A nagy címet rejtjük; marad csak a kicsi középen, ha van -->
-      <div class="title" style="display:none">Filmek Anyunak</div>
-      <button class="btn" id="btnRefreshAll" style="margin-left:auto">Frissítés</button>
-    </header>
+   <header>
+  <div class="title" style="display:none">Filmek Anyunak</div>
+
+  <div style="margin-left:auto; display:flex; gap:8px;">
+    <button id="btnLogoutAll" class="btn btn-danger" title="Kijelentkezés és vissza a PIN-hez">
+      Kilépés mindenből
+    </button>
+    <button class="btn" id="btnRefreshAll">Frissítés</button>
+  </div>
+</header>
 
     <!-- Egyetlen gombsor -->
     <div id="catBar">
@@ -189,6 +194,12 @@
   .cat .now  { font-size: 15px; opacity: .95; white-space: normal; }
   .cat .now .label { opacity:.9; margin-right:6px; }
   .cat .now .title { font-weight: 800; }
+      .btn-danger{
+    background:#dc2626; /* piros */
+    border:1px solid #b91c1c;
+    color:#fff;
+  }
+  .btn-danger:hover{ filter:brightness(1.05); }
 </style>
 <!-- ===== [SZAKASZ 4] STÍLUS – END ===== -->
 
@@ -466,6 +477,40 @@ function normalizeKey(s) {
     .replace(/\s+/g," ").trim();
 }
 /* ========== [5.4] CÍM-KINYERÉS – END ========== */
+     <script>
+  // === Kilépés mindenből → vissza a PIN kapuhoz ===
+  (function setupGlobalLogout(){
+    const BTN_ID = "btnLogoutAll";
+    const LS_KEY_GUEST = "filmek_anyunak_guest_ok";
+    const ADMIN_KEYS = ["filmek_anyunak_admin_ok","admin_session","admin_email"];
+
+    function showPinGateNow() {
+      try {
+        // töröljük a vendég és (ha volt) admin státuszt
+        localStorage.removeItem(LS_KEY_GUEST);
+        ADMIN_KEYS.forEach(k => localStorage.removeItem(k));
+        sessionStorage.clear();
+      } catch {}
+
+      // PIN kapu megjelenítése (ha a [SZAKASZ 2] már betöltve van)
+      const gate = document.getElementById("gateOverlay");
+      if (gate) {
+        gate.removeAttribute("hidden");
+        const pin = document.getElementById("guestPinInput");
+        if (pin) { pin.value = ""; pin.focus(); }
+        // opcionális: görgessünk tetejére
+        window.scrollTo({top:0, behavior:"instant"});
+      } else {
+        // biztos, ami biztos: teljes újratöltés, hogy a kapu garantáltan feljöjjön
+        location.replace(location.origin + location.pathname);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById(BTN_ID)?.addEventListener("click", showPinGateNow);
+    });
+  })();
+
 </script>
 <!-- ===== [SZAKASZ 5] LOGIKA – GOMBOK + CÍM-KINYERÉS – END ===== -->
 
