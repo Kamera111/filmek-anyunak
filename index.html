@@ -104,139 +104,292 @@
 ========================== -->
 
 
-<!-- =========================
-     3. rész eleje – RESPONSIVE + GOMBSTÍLUS
-========================== -->
+<!-- ===== [SZAKASZ 3] FEJLÉC + KATEGÓRIÁK + NÉZETEK – START ===== -->
+<div id="app" class="wrap">
+  <div class="sticky">
+    <header>
+      <div class="title">Filmek Anyunak</div>
+      <button class="btn" id="btnRefreshAll" style="margin-left:auto">Frissítés</button>
+    </header>
+
+    <!-- EGYETLEN gombsor (az alsó KÉT sor törölve) -->
+    <div id="catBar">
+      <div class="cats-row" id="catsLive"></div>
+    </div>
+  </div>
+
+  <!-- Tartalom / lejátszó nézet (ha van, maradhat változatlanul) -->
+  <main id="view" class="view"></main>
+</div>
+<!-- ===== [SZAKASZ 3] FEJLÉC + KATEGÓRIÁK + NÉZETEK – END ===== -->
+
+<!-- ===== [SZAKASZ 4] STÍLUS – START ===== -->
 <style>
-  .catsFull{
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(180px,1fr));
-    gap:14px;
-    margin:6px 0 10px;
+  #catBar { padding: 12px; }
+  .cats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; }
+  .cat {
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+    padding: 14px 16px; border-radius: 14px; background: #1f2937; color: #fff; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,.18); transition: transform .08s ease, box-shadow .12s ease;
+    min-height: 84px; text-align: left;
   }
-  .catsFull .cat.block{
-    display:flex;align-items:center;justify-content:center;
-    padding:18px 20px;border-radius:28px;
-    border:1px solid #2b3648;background:#111827;
-    color:#e5e7eb;font-weight:800;letter-spacing:.2px;
-    font-size:clamp(16px,3.8vw,20px);
-    transition:transform .08s ease, box-shadow .12s ease, background .12s ease;
-    text-decoration:none; /* a <a> link is gombnak néz ki */
-  }
-  .catsFull .cat.block:hover{background:#0f172a;box-shadow:0 0 0 2px #233147 inset}
-  .catsFull .cat.block:active{transform:scale(.98)}
-  .catsFull .external{cursor:pointer}
-
-  .movie img{width:100%;height:auto;border-radius:10px}
-  .movie .title{font-size:16px}
-  @media (min-width:420px){.movie .title{font-size:17px}}
-
-  /* Belépő UI (vendég PIN + Admin gomb) */
-  #pinView{display:flex;flex-direction:column;align-items:center;gap:10px;margin:28px auto}
-  #guestPin{
-    width:22ch;max-width:90vw;padding:10px 14px;border-radius:12px;
-    border:1px solid #334155;background:#0b1220;color:#e5e7eb;
-    font-size:1rem;text-align:center;outline:none;
-  }
-  #guestPin::placeholder{color:#94a3b8}
-  #btnShowAdmin{
-    padding:6px 10px;font-size:12px;border-radius:999px;background:#1f2937;
-    color:#fff;border:1px solid #334155;cursor:pointer
-  }
-  #pinError{color:#fda4af;font-size:.9rem;text-align:center;min-height:1.2em}
-  #adminLoginForm{display:none;width:22ch;max-width:90vw;gap:8px}
-  #adminLoginForm.show{display:grid}
-  #adminLoginForm input{
-    padding:10px 12px;border-radius:12px;border:1px solid #334155;background:#0b1220;color:#e5e7eb
-  }
-  #adminLoginForm button{
-    padding:10px 12px;border-radius:12px;background:#1f2937;color:#fff;border:1px solid #334155;cursor:pointer
-  }
+  .cat:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(0,0,0,.22); }
+  .cat .name { font-weight: 700; font-size: 18px; line-height: 1.2; margin-bottom: 6px; }
+  .cat .now  { font-size: 14px; opacity: .9; }
+  .cat .now .label { opacity:.75; margin-right:6px; }
+  .cat.loading .now { opacity:.6 }
+  .cat.error   .now { color: #fecaca; }   /* halvány piros hiba */
+  .cat.ok      .now { color: #bbf7d0; }   /* halvány zöld siker */
 </style>
-<!-- =========================
-     3. rész vége
-========================== -->
+<!-- ===== [SZAKASZ 4] STÍLUS – END ===== -->
 
+<!-- ===== [SZAKASZ 5] „MOST MEGY” LOGIKA – START ===== -->
+<script>
+/**
+ * Összefoglaló:
+ * - Csatorna: { id, name, url, parser? }
+ * - Gomb alatt: "Most megy: <cím>" automatikusan frissítve.
+ * - Sweet.tv specifikus minták + általános fallback (title / og:title / og:description).
+ * - CORS-barát olvasás: https://r.jina.ai/ + eredeti URL.
+ * - Auto-frissítés: 5 perc, manuális: „Frissítés” gomb.
+ */
 
-<!-- =========================
-     4. rész eleje – FIREBASE INIT (10.12.4)
-========================== -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js";
-  import {
-    getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot,
-    serverTimestamp, query, orderBy
-  } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+const channels = [];
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBDSI-z3a4IFAIoKCVZVcUyue7GMoO5acY",
-    authDomain: "filmek-fe035.firebaseapp.com",
-    projectId: "filmek-fe035",
-    storageBucket: "filmek-fe035.appspot.com",
-    messagingSenderId: "302167835367",
-    appId: "1:302167835367:web:6e0fd4304c4496612c1842",
-    measurementId: "G-QBG7LG0ZQH"
-  };
+/* ========== [5.1] CSATORNÁK HOZZÁADÁSA – START ========== */
+function addChannel({ id, name, url, parser }) {
+  channels.push({ id, name, url, parser });
+}
 
-  const app = initializeApp(firebaseConfig);
-  try { getAnalytics(app); } catch(_) {}
+/* >>> A TE 4 CSATORNÁD <<< */
+addChannel({
+  id: "live-vigjatek",
+  name: "ÉLŐ Vígjáték TV",
+  url: "https://sweet.tv/hu/free_tv/2014-comedy-universe-hd",
+  parser: sweetTvParser
+});
 
-  const db = getFirestore(app);
-  const auth = getAuth(app);
+addChannel({
+  id: "live-akcio",
+  name: "ÉLŐ Akció TV",
+  url: "https://sweet.tv/hu/free_tv/2010-action-zone-hd",
+  parser: sweetTvParser
+});
 
-  // Globális
-  window.fb = {
-    app, auth, db,
-    fs: { collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy }
-  };
+addChannel({
+  id: "live-thriller",
+  name: "ÉLŐ Thriller TV",
+  url: "https://sweet.tv/hu/free_tv/2016-thriller-time-hd",
+  parser: sweetTvParser
+});
 
-  console.log("[FB] init ok");
-</script>
-<!-- =========================
-     4. rész vége
-========================== -->
+addChannel({
+  id: "live-top",
+  name: "ÉLŐ TOP Filmek",
+  url: "https://sweet.tv/hu/free_tv/2967-top-movies-hd",
+  parser: sweetTvParser
+});
 
+/* >>> ELŐKÉSZÍTETT HELY TOVÁBBI 10 GOMBNAK <<< 
+   Csak másold alá, és majd megadjuk a nevet+linket:
+   addChannel({ id: "live-005", name: "ÚJ gomb 1", url: "https://...", parser: sweetTvParser });
+   addChannel({ id: "live-006", name: "ÚJ gomb 2", url: "https://...", parser: sweetTvParser });
+   ... stb. összesen még 10-ig.
+*/
+/* ========== [5.1] CSATORNÁK HOZZÁADÁSA – END ========== */
 
-<!-- =========================
-     5. rész eleje – KATEGÓRIÁK + LISTÁK FELRAJZOLÁSA
-========================== -->
-<script type="module">
-  // A Firestore-ban használt kategóriák kulcsai és címkéi:
-  const CATEGORIES = [
-    { key:'krimi',        name:'Krimi' },
-    { key:'thriller',     name:'Thriller' },
-    { key:'akcio',        name:'Akció' },
-    { key:'elo_vigjatek', name:'ÉLŐ vígjáték TV' },
-    { key:'elo_thriller', name:'ÉLŐ Thriller TV' },
-    { key:'elo_akcio',    name:'ÉLŐ Akció TV' }
-  ];
+/* ========== [5.2] UI RAJZOLÁS + ESEMÉNYEK – START ========== */
+const catsLiveEl = document.getElementById("catsLive");
+const btnRefreshAll = document.getElementById("btnRefreshAll");
+const REFRESH_MS = 5 * 60 * 1000; // 5 perc
 
-  const lists     = document.getElementById('lists');
-  const catSelect = document.getElementById('catSelect');
+function renderButtons() {
+  catsLiveEl.innerHTML = "";
+  for (const ch of channels) {
+    const btn = document.createElement("button");
+    btn.className = "cat";
+    btn.dataset.channel = ch.id;
+    btn.innerHTML = `
+      <div class="name">${escapeHtml(ch.name)}</div>
+      <div class="now"><span class="label">Most megy:</span><span class="title" id="now-${ch.id}">— frissítés...</span></div>
+    `;
+    btn.addEventListener("click", () => openChannel(ch));
+    catsLiveEl.appendChild(btn);
+  }
+}
 
-  // Kártyák legenerálása a listákhoz
-  lists.innerHTML = CATEGORIES
-    .map(c => `<div class="card"><h3>${c.name}</h3><div data-cat-list="${c.key}"></div></div>`)
-    .join('');
+function openChannel(ch) {
+  // Jelenleg új lapon nyitja; ha saját beágyazott lejátszót használsz, itt cseréljük.
+  window.open(ch.url, "_blank");
+}
+/* ========== [5.2] UI RAJZOLÁS + ESEMÉNYEK – END ========== */
 
-  // Admin űrlap – legördülő
-  if (catSelect) {
-    catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}">${c.name}</option>`).join('');
+/* ========== [5.3] FRISSÍTÉS MECHANIKA – START ========== */
+btnRefreshAll?.addEventListener("click", () => updateAll());
+renderButtons();
+updateAll(); // első frissítés
+setInterval(updateAll, REFRESH_MS); // periódikus frissítés
+
+async function updateAll() {
+  for (const ch of channels) {
+    await updateOne(ch);
+  }
+}
+
+async function updateOne(ch) {
+  const titleEl = document.getElementById(`now-${ch.id}`);
+  const btnEl = document.querySelector(`.cat[data-channel="${ch.id}"]`);
+  if (!titleEl || !btnEl) return;
+
+  try {
+    btnEl.classList.add("loading");
+    btnEl.classList.remove("ok","error");
+    titleEl.textContent = "— frissítés…";
+
+    const nowTitle = await fetchNowTitle(ch);
+    if (nowTitle) {
+      titleEl.textContent = nowTitle.trim();
+      btnEl.classList.add("ok");
+    } else {
+      titleEl.textContent = "— nem sikerült kiolvasni a címet";
+      btnEl.classList.add("error");
+    }
+  } catch (e) {
+    titleEl.textContent = "— hiba történt";
+    btnEl.classList.add("error");
+  } finally {
+    btnEl.classList.remove("loading");
+  }
+}
+/* ========== [5.3] FRISSÍTÉS MECHANIKA – END ========== */
+
+/* ========== [5.4] TARTALOM LEKÉRÉS + PARSEREK – START ========== */
+async function fetchNowTitle(ch) {
+  // Egyedi parser előnyben
+  if (typeof ch.parser === "function") {
+    const t = await ch.parser(ch);
+    if (t) return t;
+  }
+  // Általános fallback: <title> vagy og:title / og:description
+  const text = await fetchRawHtml(ch.url);
+  const tTitle = matchTitle(text);
+  if (tTitle) return cleanTitle(tTitle);
+
+  const tOgTitle = matchOg(text, 'og:title');
+  if (tOgTitle) return cleanTitle(tOgTitle);
+
+  const tOgDesc = matchOg(text, 'og:description');
+  if (tOgDesc) return cleanTitle(tOgDesc);
+
+  return null;
+}
+
+/* ---- Sweet.tv-specifikus parser ----
+   Többféle minta:
+   1) „Most megy” környéki szöveg
+   2) JSON-részletek: "now" / "title"
+   3) Egyéb jól látható címfragmensek
+*/
+async function sweetTvParser(ch) {
+  const html = await fetchRawHtml(ch.url);
+
+  // 1) „Most megy” blokk környékéről cím kiemelése
+  const mostIdx = html.search(/Most\s*megy/i);
+  if (mostIdx >= 0) {
+    const slice = html.slice(Math.max(0, mostIdx - 1200), mostIdx + 2000);
+    const inTags = slice.match(/>([^<>]{2,120})</g);
+    if (inTags) {
+      const candidates = inTags
+        .map(s => s.replace(/[<>]/g, "").trim())
+        .filter(s => s && !/^Most\s*megy/i.test(s) && s.length >= 2 && s.length <= 120);
+      const best = pickBestCandidate(candidates);
+      if (best) return cleanTitle(best);
+    }
   }
 
-  // Nagy gombok görgetése a megfelelő kártyára
-  document.getElementById('cats')?.addEventListener('click', e=>{
-    const btn=e.target.closest('[data-cat]'); if(!btn) return;
-    document.querySelector(`[data-cat-list="${btn.dataset.cat}"]`)?.parentElement
-      .scrollIntoView({behavior:"smooth", block:"start"});
-  });
-</script>
-<!-- =========================
-     5. rész vége
-========================== -->
+  // 2) JSON: "now" ... "title": "..."
+  const jsonNowTitle = matchJsonNowTitle(html);
+  if (jsonNowTitle) return cleanTitle(jsonNowTitle);
 
+  // 3) Egyéb meta: og:description
+  const ogDesc = matchOg(html, 'og:description');
+  if (ogDesc) return cleanTitle(ogDesc);
+
+  // 4) Fallback: <title>
+  const t = matchTitle(html);
+  if (t) return cleanTitle(t);
+
+  return null;
+}
+
+/* ---- Közös segédek ---- */
+async function fetchRawHtml(url) {
+  const proxied = url.startsWith("https://")
+      ? `https://r.jina.ai/${url}`
+      : `https://r.jina.ai/http://${url.replace(/^https?:\/\//,'')}`;
+  const res = await fetch(proxied, { method: "GET" });
+  if (!res.ok) return "";
+  return await res.text();
+}
+
+function matchTitle(text) {
+  const m = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  return m && m[1] ? m[1] : null;
+}
+
+function matchOg(text, prop) {
+  const re = new RegExp(`property=["']${prop}["'][^>]*content=["']([^"']+)["']`, "i");
+  const m = text.match(re);
+  return m && m[1] ? m[1] : null;
+}
+
+function matchJsonNowTitle(text) {
+  // lazább keresés: ..."now"...{..."title":"VALAMI"...}
+  const re = /"now"[^{}]*\{[^{}]*"title"\s*:\s*"([^"]{2,120})"/i;
+  const m = text.match(re);
+  if (m && m[1]) return m[1];
+  // alternatíva: current|program|epg kulcsszavak
+  const re2 = /"(current|program|epg)"[^{}]*\{[^{}]*"title"\s*:\s*"([^"]{2,120})"/i;
+  const m2 = text.match(re2);
+  return (m2 && m2[2]) ? m2[2] : null;
+}
+
+function pickBestCandidate(list) {
+  // kiszűrjük az általános, nem-filmcímnek tűnő darabokat
+  const bad = /^(Sweet\.?TV|TV|Live|Új|HD|FullHD|Profil|Bejelentkezés|Regisztráció)$/i;
+  const cleaned = list
+    .map(s => s.replace(/\s+/g, " ").trim())
+    .filter(s => s && !bad.test(s))
+    .filter(s => !/Sweet\.?TV/i.test(s))
+    .filter(s => !/^Most\s*megy/i.test(s));
+
+  // válasszuk a leghosszabb épkézláb jelöltet
+  cleaned.sort((a,b) => b.length - a.length);
+  return cleaned[0] || null;
+}
+
+function cleanTitle(t) {
+  return t
+    .replace(/\s+\|\s*Sweet\.?TV.*$/i, "")
+    .replace(/ - Sweet\.?TV.*$/i, "")
+    .replace(/\s+\|\s*Live.*$/i, "")
+    .replace(/\s+—\s+.*$/,"")
+    .replace(/\s*\|\s*HD\s*$/i,"")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#39;");
+}
+/* ========== [5.4] TARTALOM LEKÉRÉS + PARSEREK – END ========== */
+</script>
+<!-- ===== [SZAKASZ 5] „MOST MEGY” LOGIKA – END ===== -->
 
 <!-- =========================
      6. rész eleje – AUTH (vendég + admin)
