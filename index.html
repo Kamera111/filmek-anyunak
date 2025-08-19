@@ -35,123 +35,86 @@
      1. rész vége
 ========================== -->
 
-<!-- ===== [SZAKASZ 2] VENDÉG PIN KAPU – START ===== -->
+<!-- ===== [SZAKASZ 2] VENDÉG PIN KAPU – START (failsafe) ===== -->
 <style>
-  /* CSAK a PIN kapu látszik: mindent elrejtünk, kivéve az overlayt */
-  body.locked > :not(#gateOverlay) { display: none !important; }
-
-  /* Teljes képernyős kapu */
-  #gateOverlay{
-    position: fixed; inset: 0;
-    z-index: 2147483647;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(6,12,20,0.92);
-    backdrop-filter: blur(2px);
+  /* A kapu mindig mindent lefed, amíg nincs feloldva */
+  #gateOverlay {
+    position: fixed; inset: 0; z-index: 2147483647;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(6,12,20,0.94); backdrop-filter: blur(2px);
   }
-  #gateOverlay[hidden]{ display:none !important; }
+  #gateOverlay.active { display: flex; }
 
-  #gateBox{
-    width: min(520px, 92vw);
-    display: flex; flex-direction: column; gap: 14px;
-    background: #111827; border-radius: 16px; padding: 22px 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  #gateBox {
+    width: min(520px, 92vw); background:#111827; color:#e5e7eb;
+    border-radius:16px; padding:22px 20px; box-shadow:0 10px 30px rgba(0,0,0,.35);
+    display:flex; flex-direction:column; gap:14px;
   }
-  #gateTitle{ color:#e5e7eb; font-size:18px; font-weight:700; letter-spacing:.3px; }
-
-  #guestPinInput{
-    width:100%; font-size:22px; line-height:1; padding:14px 16px;
-    border-radius:12px; border:1px solid #374151;
-    background:#0f172a; color:#f9fafb; outline:none;
+  #gateTitle { font-size:18px; font-weight:700; }
+  #guestPinInput {
+    width:100%; font-size:22px; padding:14px 16px; outline:none;
+    border-radius:12px; border:1px solid #374151; background:#0f172a; color:#f9fafb;
   }
-  #guestPinInput::placeholder{ color:#9ca3af; }
-
-  #gateHint{ color:#9ca3af; font-size:13px; }
-
-  #adminTinyBtn{
-    align-self:flex-start; margin-top:6px;
-    font-size:13px; font-weight:700; letter-spacing:.2px;
-    padding:6px 10px; border-radius:999px; border:1px solid #334155;
-    background:#0b1220; color:#e5e7eb; cursor:pointer;
+  #guestPinInput::placeholder { color:#9ca3af; }
+  #gateHint { color:#9ca3af; font-size:13px; }
+  #adminTinyBtn {
+    align-self:flex-start; font-size:13px; font-weight:700; letter-spacing:.2px;
+    padding:6px 10px; border-radius:999px; border:1px solid #334155; background:#0b1220; color:#e5e7eb;
+    cursor:pointer;
   }
-  #adminTinyBtn:hover{ filter:brightness(1.08); }
 </style>
 
 <div id="gateOverlay" role="dialog" aria-modal="true">
   <div id="gateBox">
     <div id="gateTitle">Vendég PIN</div>
-    <input id="guestPinInput"
-           type="tel" inputmode="numeric" autocomplete="one-time-code"
-           placeholder="katt ide a kódot" maxlength="6" />
+    <input id="guestPinInput" type="tel" inputmode="numeric" maxlength="6"
+           autocomplete="one-time-code" placeholder="katt ide a kódot" />
     <div id="gateHint">Írd be a 6 számjegyet – <strong>automatikus belépés</strong>.</div>
     <button id="adminTinyBtn" type="button" aria-label="Admin belépés">A</button>
   </div>
 </div>
 
 <script>
-  // ==== Beállítások
-  const GUEST_PIN = "195400";
-  const LS_KEY = "filmek_anyunak_guest_ok";
-
-  // kívülről is hívható (pl. „Kilépés mindenből” gomb)
-  function setLocked(on){
-    try {
-      if(on) document.body.classList.add("locked");
-      else document.body.classList.remove("locked");
-    } catch {}
-  }
-  window.setLocked = setLocked;
-
-  function unlockGuest(){
-    try { localStorage.setItem(LS_KEY, "1"); } catch {}
-    document.getElementById("gateOverlay")?.setAttribute("hidden","hidden");
-    setLocked(false);
-  }
-
-  function showGateIfNeeded(){
-    const ok = (()=>{ try { return localStorage.getItem(LS_KEY) === "1"; } catch { return false; } })();
+  (function(){
+    const PIN = "195400";
+    const LS_KEY = "filmek_anyunak_guest_ok";
     const overlay = document.getElementById("gateOverlay");
-    if(!overlay) return;
-    if(ok){
-      overlay.setAttribute("hidden","hidden");
-      setLocked(false);
-    }else{
-      overlay.removeAttribute("hidden");
-      setLocked(true);
-      setTimeout(()=>document.getElementById("guestPinInput")?.focus(), 10);
+    const input   = document.getElementById("guestPinInput");
+
+    function showGate(){
+      try { localStorage.removeItem(LS_KEY); } catch {}
+      overlay.classList.add("active");
+      setTimeout(()=> input?.focus(), 10);
     }
-  }
+    function hideGate(){
+      try { localStorage.setItem(LS_KEY, "1"); } catch {}
+      overlay.classList.remove("active");
+    }
+    function handle(val){
+      const norm = String(val||"").replace(/\D+/g,"").slice(0,6);
+      if (input && input.value !== norm) input.value = norm;
+      if (norm.length === 6 && norm === PIN) hideGate();
+    }
 
-  function handlePinInput(valueRaw){
-    const norm = String(valueRaw || "").replace(/\D+/g,"").slice(0,6);
-    const input = document.getElementById("guestPinInput");
-    if (input && input.value !== norm) input.value = norm;
-    if (norm.length === 6 && norm === GUEST_PIN) unlockGuest();
-  }
+    // publikus, hogy a "Kilépés mindenből" is ezt hívja
+    window.showPinGate = showGate;
 
-  function openAdmin(){
-    if (typeof openAdminModal === "function") return openAdminModal();
-    alert("Admin belépés hamarosan elérhető.");
-  }
+    document.addEventListener("DOMContentLoaded", () => {
+      // ha nincs feloldva, jelenjen meg a kapu
+      const ok = (()=>{ try { return localStorage.getItem(LS_KEY) === "1"; } catch { return false; } })();
+      if (!ok) showGate();
 
-  (function initGate(){
-    document.addEventListener("DOMContentLoaded", ()=>{
-      showGateIfNeeded();
-
-      const pin = document.getElementById("guestPinInput");
-      // Azonnali belépés: input/keyup/paste eseményekre is figyelünk
-      pin?.addEventListener("input",   e => handlePinInput(e.target.value));
-      pin?.addEventListener("keyup",   e => handlePinInput(e.target.value));
-      pin?.addEventListener("paste",   e => {
+      input?.addEventListener("input", e => handle(e.target.value));
+      input?.addEventListener("keyup", e => handle(e.target.value));
+      input?.addEventListener("paste", e => {
         e.preventDefault();
-        const text = (e.clipboardData || window.clipboardData).getData("text") || "";
-        handlePinInput(text);
+        const t = (e.clipboardData || window.clipboardData).getData("text") || "";
+        handle(t);
       });
 
-      document.getElementById("adminTinyBtn")?.addEventListener("click", openAdmin);
-
-      // Másik fülön feloldtad? Szinkronizáljuk.
-      window.addEventListener("storage", (e)=>{
-        if (e.key === LS_KEY && e.newValue === "1") showGateIfNeeded();
+      document.getElementById("adminTinyBtn")?.addEventListener("click", () => {
+        if (typeof openAdminModal === "function") return openAdminModal();
+        alert("Admin belépés hamarosan elérhető.");
       });
     });
   })();
