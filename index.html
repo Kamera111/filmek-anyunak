@@ -35,72 +35,123 @@
      1. rész vége
 ========================== -->
 
-<!-- =========================
-     2. rész eleje – APP SHELL (fejléc, nagy gombok, listák, admin panel)
-========================== -->
-<body>
-  <div class="wrap">
-    <div class="sticky">
-      <header>
-        <div class="title">Filmek Anyunak</div>
-        <div style="flex:1"></div>
-        <button id="btnAddGlobal" class="btn hidden">+ Új film</button>
-        <button id="btnAdminLogout" class="btn hidden">Kijelentkezés</button>
-      </header>
-    </div>
+<!-- ===== [SZAKASZ 2] VENDÉG PIN KAPU – START ===== -->
+<style>
+  /* Teljes képernyős, sötétített kapu */
+  #gateOverlay {
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(6,12,20,0.92);
+    backdrop-filter: blur(2px);
+  }
+  #gateBox {
+    width: min(520px, 92vw);
+    display: flex; flex-direction: column; gap: 14px;
+    background: #111827; border-radius: 16px; padding: 22px 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  }
+  #gateTitle {
+    color: #e5e7eb; font-size: 18px; font-weight: 700; letter-spacing:.3px;
+  }
+  #guestPinInput {
+    width: 100%;
+    font-size: 22px; line-height: 1; padding: 14px 16px;
+    border-radius: 12px; border: 1px solid #374151;
+    background: #0f172a; color: #f9fafb;
+    outline: none;
+  }
+  #guestPinInput::placeholder { color: #9ca3af; }
+  #gateHint {
+    color:#9ca3af; font-size: 13px;
+  }
+  #adminTinyBtn {
+    align-self: flex-start;
+    margin-top: 6px;
+    font-size: 13px; font-weight: 700; letter-spacing:.2px;
+    padding: 6px 10px; border-radius: 999px; border: 1px solid #334155;
+    background:#0b1220; color:#e5e7eb; cursor:pointer;
+  }
+  #adminTinyBtn:hover { filter: brightness(1.08); }
+  /* Ha feloldva: a kapu rejtve */
+  #gateOverlay[hidden] { display: none !important; }
+</style>
 
-    <!-- App nézet (bejelentkezés után) -->
-    <div id="app" class="card hidden">
-
-      <!-- NAGY KATEGÓRIA-GOMBOK (csak a nagy, „kártya” gombok) -->
-      <div class="catsFull" id="cats">
-        <button class="cat block" data-cat="krimi">Krimi</button>
-        <button class="cat block" data-cat="thriller">Thriller</button>
-        <button class="cat block" data-cat="akcio">Akció</button>
-        <button class="cat block" data-cat="elo_vigjatek">ÉLŐ vígjáték TV</button>
-        <button class="cat block" data-cat="elo_thriller">ÉLŐ Thriller TV</button>
-        <button class="cat block" data-cat="elo_akcio">ÉLŐ Akció TV</button>
-
-        <!-- ÚJ: MOZI +TV – külső link, 3. sor bal oldala (a rács 3 oszlopos) -->
-        <a class="cat block external"
-           href="https://player.telekomtvgo.hu/player/live?channelNumber=13"
-           target="_blank" rel="noopener noreferrer">MOZI +TV</a>
-      </div>
-
-      <!-- A kategóriákhoz tartozó film-listák kártyái -->
-      <div id="lists" class="grid"></div>
-
-      <!-- Admin panel: új film hozzáadás -->
-      <div id="adminPanel" class="card hidden" style="margin-top:16px">
-        <h3>Új film hozzáadása</h3>
-        <form id="addMovieForm">
-          <div class="row">
-            <div>
-              <label for="catSelect">Kategória</label>
-              <select id="catSelect" name="cat" required></select>
-            </div>
-            <div>
-              <label for="title">Cím</label>
-              <input id="title" name="title" placeholder="Film címe" required />
-            </div>
-          </div>
-          <label for="url">Link</label>
-          <input id="url" name="url" type="url" placeholder="https://…" required />
-          <label for="cover">Borítókép URL (opcionális)</label>
-          <input id="cover" name="cover" type="url" placeholder="https://…" />
-          <label for="desc">Leírás (opcionális)</label>
-          <textarea id="desc" name="desc" rows="3" placeholder="Rövid leírás…"></textarea>
-          <div style="height:10px"></div>
-          <button class="btn" type="submit">Hozzáadás</button>
-        </form>
-      </div>
-    </div>
-
-    <div class="footer">© FilmeK Anyunak</div>
+<div id="gateOverlay" role="dialog" aria-modal="true">
+  <div id="gateBox">
+    <div id="gateTitle">Vendég PIN</div>
+    <input id="guestPinInput"
+           type="tel" inputmode="numeric" autocomplete="one-time-code"
+           placeholder="katt ide a kódot" maxlength="6" />
+    <div id="gateHint">Írd be a 6 számjegyet, és <strong>automatikusan belépsz</strong>.</div>
+    <button id="adminTinyBtn" type="button" aria-label="Admin belépés">A</button>
   </div>
-<!-- =========================
-     2. rész vége
-========================== -->
+</div>
+
+<script>
+  // ===== Beállítások
+  const GUEST_PIN = "195400";
+  const LS_KEY = "filmek_anyunak_guest_ok";
+
+  // Feloldás
+  function unlockGuest() {
+    try { localStorage.setItem(LS_KEY, "1"); } catch {}
+    // csak elrejtjük az overlayt; az app már alatta fut
+    document.getElementById("gateOverlay")?.setAttribute("hidden","hidden");
+  }
+
+  // Első betöltéskor mutassuk-e a kaput?
+  function showGateIfNeeded() {
+    const ok = (()=>{
+      try { return localStorage.getItem(LS_KEY) === "1"; } catch { return false; }
+    })();
+    const overlay = document.getElementById("gateOverlay");
+    if (!overlay) return;
+    if (ok) {
+      overlay.setAttribute("hidden","hidden");
+    } else {
+      overlay.removeAttribute("hidden");
+      // fókusz a mezőre
+      setTimeout(()=> document.getElementById("guestPinInput")?.focus(), 10);
+    }
+  }
+
+  // PIN ellenőrzés – gomb NÉLKÜL, azonnali belépés
+  function handlePinInput(ev) {
+    const raw = (ev.target.value || "");
+    // csak számjegyek
+    const norm = raw.replace(/\D+/g,"").slice(0, 6);
+    if (norm !== raw) ev.target.value = norm;
+    if (norm.length === 6 && norm === GUEST_PIN) {
+      unlockGuest();
+    }
+  }
+
+  // Admin gomb – később kötjük be az admin modalt
+  function openAdmin() {
+    // Ha már van külön admin modalod, itt hívd meg:
+    if (typeof openAdminModal === "function") return openAdminModal();
+    alert("Admin belépés hamarosan elérhető.");
+  }
+
+  // Init
+  (function initGate(){
+    document.addEventListener("DOMContentLoaded", () => {
+      showGateIfNeeded();
+      const pin = document.getElementById("guestPinInput");
+      pin?.addEventListener("input", handlePinInput);
+      document.getElementById("adminTinyBtn")?.addEventListener("click", openAdmin);
+      // Ha rákattint a háttérre, fókusz a mezőre
+      document.getElementById("gateOverlay")?.addEventListener("click", (e)=>{
+        if (e.target && e.target.id === "gateOverlay") pin?.focus();
+      });
+      // Másik fülön is feloldtad? Szinkronizáljuk.
+      window.addEventListener("storage", (e)=>{
+        if (e.key === LS_KEY && e.newValue === "1") showGateIfNeeded();
+      });
+    });
+  })();
+</script>
+<!-- ===== [SZAKASZ 2] VENDÉG PIN KAPU – END ===== -->
 
 <!-- ===== [SZAKASZ 3] FEJLÉC + KATEGÓRIÁK + NÉZETEK – START ===== -->
 <div id="app" class="wrap">
