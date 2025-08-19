@@ -35,9 +35,9 @@
      1. rész vége
 ========================== -->
 
-<!-- ===== [SZAKASZ 2] VENDÉG PIN KAPU – START (failsafe) ===== -->
+<!-- ===== [SZAKASZ 2] VENDÉG PIN KAPU – CLEAN ===== -->
 <style>
-  /* A kapu mindig mindent lefed, amíg nincs feloldva */
+  /* A kapu aktív állapotban mindent eltakar */
   #gateOverlay {
     position: fixed; inset: 0; z-index: 2147483647;
     display: none; align-items: center; justify-content: center;
@@ -45,22 +45,28 @@
   }
   #gateOverlay.active { display: flex; }
 
+  /* Biztos ami biztos: amíg a kapu aktív, rejtsünk el MINDENT a body-ban */
+  body.gate-active > :not(#gateOverlay) { display: none !important; }
+
+  /* Doboz + elemek */
   #gateBox {
-    width: min(520px, 92vw); background:#111827; color:#e5e7eb;
-    border-radius:16px; padding:22px 20px; box-shadow:0 10px 30px rgba(0,0,0,.35);
+    width: min(520px, 92vw);
+    background:#111827; color:#e5e7eb;
+    border-radius:16px; padding:22px 20px;
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
     display:flex; flex-direction:column; gap:14px;
   }
   #gateTitle { font-size:18px; font-weight:700; }
-  #guestPinInput {
+  #guestPinInput{
     width:100%; font-size:22px; padding:14px 16px; outline:none;
     border-radius:12px; border:1px solid #374151; background:#0f172a; color:#f9fafb;
   }
   #guestPinInput::placeholder { color:#9ca3af; }
   #gateHint { color:#9ca3af; font-size:13px; }
-  #adminTinyBtn {
+  #adminTinyBtn{
     align-self:flex-start; font-size:13px; font-weight:700; letter-spacing:.2px;
-    padding:6px 10px; border-radius:999px; border:1px solid #334155; background:#0b1220; color:#e5e7eb;
-    cursor:pointer;
+    padding:6px 10px; border-radius:999px; border:1px solid #334155;
+    background:#0b1220; color:#e5e7eb; cursor:pointer;
   }
 </style>
 
@@ -83,12 +89,14 @@
 
     function showGate(){
       try { localStorage.removeItem(LS_KEY); } catch {}
+      document.body.classList.add("gate-active");
       overlay.classList.add("active");
       setTimeout(()=> input?.focus(), 10);
     }
     function hideGate(){
       try { localStorage.setItem(LS_KEY, "1"); } catch {}
       overlay.classList.remove("active");
+      document.body.classList.remove("gate-active");
     }
     function handle(val){
       const norm = String(val||"").replace(/\D+/g,"").slice(0,6);
@@ -96,11 +104,10 @@
       if (norm.length === 6 && norm === PIN) hideGate();
     }
 
-    // publikus, hogy a "Kilépés mindenből" is ezt hívja
+    // Publikus a „Kilépés mindenből” gombnak
     window.showPinGate = showGate;
 
     document.addEventListener("DOMContentLoaded", () => {
-      // ha nincs feloldva, jelenjen meg a kapu
       const ok = (()=>{ try { return localStorage.getItem(LS_KEY) === "1"; } catch { return false; } })();
       if (!ok) showGate();
 
@@ -116,10 +123,15 @@
         if (typeof openAdminModal === "function") return openAdminModal();
         alert("Admin belépés hamarosan elérhető.");
       });
+
+      // Ha másik fülön feloldtad
+      window.addEventListener("storage", (e)=>{
+        if (e.key === LS_KEY && e.newValue === "1") hideGate();
+      });
     });
   })();
 </script>
-<!-- ===== [SZAKASZ 2] VENDÉG PIN KAPU – END ===== -->
+<!-- ===== [SZAKASZ 2] VÉGE ===== -->
 
 <!-- ===== [SZAKASZ 3] FEJLÉC + KATEGÓRIÁK + NÉZETEK – START ===== -->
 <div id="app" class="wrap">
@@ -171,316 +183,228 @@
 </style>
 <!-- ===== [SZAKASZ 4] STÍLUS – END ===== -->
 
-<!-- ===== [SZAKASZ 5] LOGIKA – GOMBOK + CÍM-KINYERÉS – START ===== -->
+<!-- ===== [SZAKASZ 5] LOGIKA – GOMBOK + CÍM-KINYERÉS – CLEAN ===== -->
 <script>
-/**
- * Röviden:
- * - Gombfelirat: "Most megy: Kattints" -> siker esetén filmcím.
- * - Sweet.tv: a konkrét csatorna-oldal bal listájából, majd fallback a /free_tv főlistából.
- * - Telekom TV GO: megpróbáljuk a player oldal (<title>, og:description), + pár lehetséges JSON-részlet.
- *   (Sok Telekom oldal bejelentkezést igényel; ha nem olvasható, marad "Kattints".)
- * - Dupla nagy cím + vendég/admin űrlap rejtve a főoldalon.
- * - Frissítés: első betöltés + gomb + 5 percenként automatikus kör.
- */
+(function(){
+  /*** Beállítások ***/
+  const REFRESH_MS = 5 * 60 * 1000; // 5 perc
+  const catsLiveEl = document.getElementById("catsLive");
+  const btnRefreshAll = document.getElementById("btnRefreshAll");
 
-const channels = [];
-
-/* ========== [5.1] CSATORNÁK – START ========== */
-function addChannel({ id, name, url, sweetName, provider }) {
-  channels.push({ id, name, url, sweetName, provider });
-}
-
-/* SWEET.TV – 4 gomb */
-addChannel({
-  id: "live-vigjatek",
-  name: "ÉLŐ Vígjáték TV",
-  url: "https://sweet.tv/hu/free_tv/2014-comedy-universe-hd",
-  sweetName: "Vígjáték univerzum HD",
-  provider: "sweet"
-});
-addChannel({
-  id: "live-akcio",
-  name: "ÉLŐ Akció TV",
-  url: "https://sweet.tv/hu/free_tv/2010-action-zone-hd",
-  sweetName: "Akció zóna HD",
-  provider: "sweet"
-});
-addChannel({
-  id: "live-thriller",
-  name: "ÉLŐ Thriller TV",
-  url: "https://sweet.tv/hu/free_tv/2016-thriller-time-hd",
-  sweetName: "Thriller idő HD",
-  provider: "sweet"
-});
-addChannel({
-  id: "live-top",
-  name: "ÉLŐ TOP Filmek",
-  url: "https://sweet.tv/hu/free_tv/2967-top-movies-hd",
-  sweetName: "Top Filmek HD",
-  provider: "sweet"
-});
-
-/* TELEKOM TV GO – 12 gomb */
-addChannel({ id:"tgo-13",  name:"Mozi+ tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=13",  provider:"telekom" });
-addChannel({ id:"tgo-15",  name:"Film + tv",       url:"https://player.telekomtvgo.hu/player/live?channelNumber=15",  provider:"telekom" });
-addChannel({ id:"tgo-21",  name:"Prime tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=21",  provider:"telekom" });
-addChannel({ id:"tgo-24",  name:"RTL 2 tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=24",  provider:"telekom" });
-addChannel({ id:"tgo-28",  name:"FilmCafe tv",     url:"https://player.telekomtvgo.hu/player/live?channelNumber=28",  provider:"telekom" });
-addChannel({ id:"tgo-30",  name:"ozone tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=30",  provider:"telekom" });
-addChannel({ id:"tgo-60",  name:"Cool tv",         url:"https://player.telekomtvgo.hu/player/live?channelNumber=60",  provider:"telekom" });
-addChannel({ id:"tgo-61",  name:"AXN tv",          url:"https://player.telekomtvgo.hu/player/live?channelNumber=61",  provider:"telekom" });
-addChannel({ id:"tgo-62",  name:"AMC tv",          url:"https://player.telekomtvgo.hu/player/live?channelNumber=62",  provider:"telekom" });
-addChannel({ id:"tgo-66",  name:"Paramount tv",    url:"https://player.telekomtvgo.hu/player/live?channelNumber=66",  provider:"telekom" });
-addChannel({ id:"tgo-163", name:"FilmMánia tv",    url:"https://player.telekomtvgo.hu/player/live?channelNumber=163", provider:"telekom" });
-addChannel({ id:"tgo-169", name:"Moziverzum tv",   url:"https://player.telekomtvgo.hu/player/live?channelNumber=169", provider:"telekom" });
-
-/* Ide jöhet még +10 gomb a jövőben:
-   addChannel({ id:"...", name:"...", url:"https://...", provider:"sweet|telekom", sweetName:"(ha sweet)" });
-*/
-/* ========== [5.1] CSATORNÁK – END ========== */
-
-/* ========== [5.2] DUPLA CÍM + BELÉPÉSEK ELREJTÉSE – START ========== */
-document.addEventListener("DOMContentLoaded", () => {
-  const heads = document.querySelectorAll("h1, h2, .title");
-  heads.forEach(el => {
-    if (/^\s*Filmek Anyunak\s*$/i.test(el.textContent || "")) el.style.display = "none";
-  });
-  const suspects = [
-    "#guestPinWrap","#guestGate","#guestLogin",".guest-login",
-    "#adminWrap","#adminLogin",".admin-login",".auth",".loginWrap",".login-wrap","#auth"
-  ];
-  suspects.forEach(sel => document.querySelectorAll(sel).forEach(el => el.setAttribute("hidden","hidden")));
-  document.querySelectorAll("form, .card, .row, div").forEach(el => {
-    const txt = (el.textContent || "").toLowerCase();
-    if (txt.includes("admin belépés") || txt.includes("admin email") || txt.includes("jelszó") || txt.includes("katt ide! add a kódot")) {
-      if (!el.contains(document.getElementById("catsLive"))) el.hidden = true;
-    }
-  });
-});
-/* ========== [5.2] DUPLA CÍM + BELÉPÉSEK ELREJTÉSE – END ========== */
-
-/* ========== [5.3] UI + FRISSÍTÉS – START ========== */
-const catsLiveEl = document.getElementById("catsLive");
-const btnRefreshAll = document.getElementById("btnRefreshAll");
-const REFRESH_MS = 5 * 60 * 1000; // 5 perc
-
-function renderButtons() {
-  catsLiveEl.innerHTML = "";
-  for (const ch of channels) {
-    const btn = document.createElement("button");
-    btn.className = "cat";
-    btn.dataset.channel = ch.id;
-    btn.innerHTML = `
-      <div class="name">${escapeHtml(ch.name)}</div>
-      <div class="now"><span class="label">Most megy:</span><span class="title" id="now-${ch.id}">Kattints</span></div>
-    `;
-    btn.addEventListener("click", () => window.open(ch.url, "_blank"));
-    catsLiveEl.appendChild(btn);
+  /*** Csatornák ***/
+  const channels = [];
+  function addChannel({ id, name, url, provider, sweetName }) {
+    channels.push({ id, name, url, provider, sweetName });
   }
-}
-renderButtons();
 
-btnRefreshAll?.addEventListener("click", () => refreshAll(true));
-refreshAll(false);
-setInterval(() => refreshAll(false), REFRESH_MS);
-/* ========== [5.3] UI + FRISSÍTÉS – END ========== */
+  // SWEET.TV – 4 csatorna
+  addChannel({ id:"live-vigjatek", name:"ÉLŐ Vígjáték TV",
+    url:"https://sweet.tv/hu/free_tv/2014-comedy-universe-hd",
+    provider:"sweet", sweetName:"Vígjáték univerzum HD" });
+  addChannel({ id:"live-akcio", name:"ÉLŐ Akció TV",
+    url:"https://sweet.tv/hu/free_tv/2010-action-zone-hd",
+    provider:"sweet", sweetName:"Akció zóna HD" });
+  addChannel({ id:"live-thriller", name:"ÉLŐ Thriller TV",
+    url:"https://sweet.tv/hu/free_tv/2016-thriller-time-hd",
+    provider:"sweet", sweetName:"Thriller idő HD" });
+  addChannel({ id:"live-top", name:"ÉLŐ TOP Filmek",
+    url:"https://sweet.tv/hu/free_tv/2967-top-movies-hd",
+    provider:"sweet", sweetName:"Top Filmek HD" });
 
-/* ========== [5.4] CÍM-KINYERÉS – START ========== */
-async function refreshAll(force) {
-  await Promise.all(channels.map(ch => updateOne(ch, force)));
-}
+  // TELEKOM TV GO – 12 csatorna
+  addChannel({ id:"tgo-13",  name:"Mozi+ tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=13",  provider:"telekom" });
+  addChannel({ id:"tgo-15",  name:"Film + tv",     url:"https://player.telekomtvgo.hu/player/live?channelNumber=15",  provider:"telekom" });
+  addChannel({ id:"tgo-21",  name:"Prime tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=21",  provider:"telekom" });
+  addChannel({ id:"tgo-24",  name:"RTL 2 tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=24",  provider:"telekom" });
+  addChannel({ id:"tgo-28",  name:"FilmCafe tv",   url:"https://player.telekomtvgo.hu/player/live?channelNumber=28",  provider:"telekom" });
+  addChannel({ id:"tgo-30",  name:"ozone tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=30",  provider:"telekom" });
+  addChannel({ id:"tgo-60",  name:"Cool tv",       url:"https://player.telekomtvgo.hu/player/live?channelNumber=60",  provider:"telekom" });
+  addChannel({ id:"tgo-61",  name:"AXN tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=61",  provider:"telekom" });
+  addChannel({ id:"tgo-62",  name:"AMC tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=62",  provider:"telekom" });
+  addChannel({ id:"tgo-66",  name:"Paramount tv",  url:"https://player.telekomtvgo.hu/player/live?channelNumber=66",  provider:"telekom" });
+  addChannel({ id:"tgo-163", name:"FilmMánia tv",  url:"https://player.telekomtvgo.hu/player/live?channelNumber=163", provider:"telekom" });
+  addChannel({ id:"tgo-169", name:"Moziverzum tv", url:"https://player.telekomtvgo.hu/player/live?channelNumber=169", provider:"telekom" });
 
-async function updateOne(ch, force) {
-  const out = document.getElementById(`now-${ch.id}`);
-  if (!out) return;
+  /*** UI rajzolás ***/
+  function renderButtons() {
+    if (!catsLiveEl) return;
+    catsLiveEl.innerHTML = "";
+    for (const ch of channels) {
+      const btn = document.createElement("button");
+      btn.className = "cat";
+      btn.dataset.channel = ch.id;
+      btn.innerHTML = `
+        <div class="name">${escapeHtml(ch.name)}</div>
+        <div class="now"><span class="label">Most megy:</span>
+          <span class="title" id="now-${ch.id}">Kattints</span>
+        </div>`;
+      btn.addEventListener("click", () => openChannel(ch));
+      catsLiveEl.appendChild(btn);
+    }
+  }
 
-  try {
-    let title = null;
-
+  function openChannel(ch) {
     if (ch.provider === "sweet") {
-      // 1) konkrét csatorna-oldal
-      title = await sweetFromChannel(ch.url, ch.sweetName);
-      // 2) fallback: főlista
-      if (!title) {
-        const html = await fetchHtml("https://sweet.tv/hu/free_tv");
-        title = findNear(html, ch.sweetName);
-      }
-    } else if (ch.provider === "telekom") {
-      title = await telekomFromPlayer(ch.url);
+      const next = encodeURIComponent(ch.url);
+      window.open(`https://sweet.tv/hu/login?next=${next}`, "_blank");
+    } else {
+      window.open(ch.url, "_blank");
     }
-
-    // végső fallback: marad a "Kattints"
-    out.textContent = title ? cleanTitle(title) : "Kattints";
-  } catch {
-    out.textContent = "Kattints";
-  }
-}
-
-/* ---- SWEET.TV PARSING ---- */
-async function sweetFromChannel(url, sweetName) {
-  const html = await fetchHtml(url);
-  // név környékéről próbálunk címet kiolvasni
-  let t = sweetName ? findNear(html, sweetName) : null;
-  if (t) return t;
-
-  // JSON nyomok
-  t = matchJsonNowTitle(html);
-  if (t) return t;
-
-  // meta / title
-  t = matchTitle(html) || matchOg(html, 'og:description') || matchOg(html, 'og:title');
-  return t || null;
-}
-
-/* ---- TELEKOM TV GO PARSING (best-effort) ----
-   - player oldal <title>, og:description
-   - esetleges "currentProgram"/"now"/"title" JSON darabok
-*/
-async function telekomFromPlayer(url) {
-  const html = await fetchHtml(url);
-
-  // 1) <title>
-  let t = matchTitle(html);
-  if (t && looksLikeTitle(t)) return t;
-
-  // 2) OpenGraph
-  t = matchOg(html, 'og:description') || matchOg(html, 'og:title');
-  if (t && looksLikeTitle(t)) return t;
-
-  // 3) JSON minták
-  const m1 = html.match(/"currentProgram"[^{}]*\{[^{}]*"title"\s*:\s*"([^"]{2,120})"/i);
-  if (m1 && m1[1]) return m1[1];
-  const m2 = html.match(/"(now|program|epg)"[^{}]*\{[^{}]*"title"\s*:\s*"([^"]{2,120})"/i);
-  if (m2 && m2[2]) return m2[2];
-
-  // 4) Bizonyos oldalakon a csatorna neve után közvetlenül szerepelhet a cím – első értelmes sor
-  const texts = (html.match(/>([^<>]{1,160})</g) || [])
-    .map(s => s.replace(/^>|<$/g,"").replace(/[<>]/g,"").trim())
-    .map(s => s.replace(/\s+/g," ").trim())
-    .filter(Boolean);
-  for (const x of texts) {
-    if (looksLikeTitle(x)) return x;
   }
 
-  return null;
-}
-
-/* ---- Közös segédek ---- */
-async function fetchHtml(url) {
-  const proxied = url.startsWith("https://")
-    ? `https://r.jina.ai/${url}`
-    : `https://r.jina.ai/http://${url.replace(/^https?:\/\//,'')}`;
-  const res = await fetch(proxied, { method: "GET" });
-  if (!res.ok) throw new Error("fetch failed");
-  return await res.text();
-}
-
-function matchTitle(text) {
-  const m = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  return m && m[1] ? m[1] : null;
-}
-function matchOg(text, prop) {
-  const re = new RegExp(`property=["']${prop}["'][^>]*content=["']([^"']+)["']`, "i");
-  const m = text.match(re);
-  return m && m[1] ? m[1] : null;
-}
-function matchJsonNowTitle(text) {
-  const m1 = text.match(/"now"[^{}]*\{[^{}]*"title"\s*:\s*"([^"]{2,120})"/i);
-  if (m1 && m1[1]) return m1[1];
-  const m2 = text.match(/"(current|program|epg)"[^{}]*\{[^{}]*"title"\s*:\s*"([^"]{2,120})"/i);
-  return (m2 && m2[2]) ? m2[2] : null;
-}
-
-function findNear(html, sweetName) {
-  if (!sweetName) return null;
-  const idx = html.search(new RegExp(escapeRegex(sweetName), "i"));
-  if (idx < 0) return null;
-  const slice = html.slice(idx, Math.min(html.length, idx + 2600));
-  const texts = (slice.match(/>([^<>]{1,160})</g) || [])
-    .map(s => s.replace(/^>|<$/g,"").replace(/[<>]/g,"").trim())
-    .map(s => s.replace(/\s+/g," ").trim())
-    .filter(Boolean);
-
-  const nameNorm = normalizeKey(sweetName);
-  const badRe = /^(HD|Full\s*HD|TV|Live|Új|Összes|Bejelentkezés|Regisztráció|Profil|Kategóriák)$/i;
-
-  const candidates = texts
-    .filter(t => normalizeKey(t) !== nameNorm)
-    .filter(t => !badRe.test(t))
-    .filter(t => t.length >= 2 && t.length <= 120);
-
-  for (const t of candidates) {
-    if (looksLikeTitle(t)) return t;
+  /*** Frissítés ***/
+  async function refreshAll() {
+    await Promise.all(channels.map(ch => updateOne(ch)));
   }
-  return null;
-}
 
-function looksLikeTitle(t) {
-  if (!t) return false;
-  if (t.length < 3) return false;
-  if (/^\d{1,2}:\d{2}$/.test(t)) return false; // csak időpont
-  if (/^HD$/i.test(t)) return false;
-  if (/^\w{1,3}$/.test(t)) return false;
-  return true;
-}
+  async function updateOne(ch) {
+    const out = document.getElementById(`now-${ch.id}`);
+    if (!out) return;
+    try {
+      let title = null;
+      if (ch.provider === "sweet") {
+        title = await sweetFromChannel(ch.url, ch.sweetName);
+        if (!title) {
+          const html = await fetchHtml("https://sweet.tv/hu/free_tv");
+          title = findNear(html, ch.sweetName);
+        }
+      } else if (ch.provider === "telekom") {
+        title = await telekomFromPlayer(ch.url);
+      }
+      out.textContent = title ? cleanTitle(title) : "Kattints";
+    } catch {
+      out.textContent = "Kattints";
+    }
+  }
 
-function cleanTitle(t) {
-  return String(t)
-    .replace(/\s+\|\s*Sweet\.?TV.*$/i, "")
-    .replace(/ - Sweet\.?TV.*$/i, "")
-    .replace(/\s+—\s+.*$/,"")
-    .replace(/\s*\|\s*HD\s*$/i,"")
-    .replace(/\s+/g," ")
-    .trim();
-}
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;").replaceAll("'","&#39;");
-}
-function escapeRegex(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
-function normalizeKey(s) {
-  return String(s).toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g," ").trim();
-}
-/* ========== [5.4] CÍM-KINYERÉS – END ========== */
-     <script>
-  // === Kilépés mindenből → vissza a PIN kapuhoz ===
+  /*** SWEET.TV ***/
+  async function sweetFromChannel(url, sweetName) {
+    const html = await fetchHtml(url);
+    let t = sweetName ? findNear(html, sweetName) : null;
+    if (t) return t;
+    t = matchJsonNowTitle(html);
+    if (t) return t;
+    t = matchTitle(html) || matchOg(html, "og:description") || matchOg(html, "og:title");
+    return t || null;
+  }
+
+  /*** TELEKOM TV GO (best-effort) ***/
+  async function telekomFromPlayer(url) {
+    const html = await fetchHtml(url);
+    let t = matchTitle(html);
+    if (t && looksLikeTitle(t)) return t;
+    t = matchOg(html, "og:description") || matchOg(html, "og:title");
+    if (t && looksLikeTitle(t)) return t;
+    const m1 = html.match(/"currentProgram"[^{}]*\{[^{}]*"title"\s*:\s*"([^"]{2,120})"/i);
+    if (m1 && m1[1]) return m1[1];
+    const m2 = html.match(/"(now|program|epg)"[^{}]*\{[^{}]*"title"\s*:\s*"([^"]{2,120})"/i);
+    if (m2 && m2[2]) return m2[2];
+    const texts = (html.match(/>([^<>]{1,160})</g) || [])
+      .map(s => s.replace(/[<>]/g,"").trim())
+      .map(s => s.replace(/\s+/g," ").trim()).filter(Boolean);
+    for (const x of texts) { if (looksLikeTitle(x)) return x; }
+    return null;
+  }
+
+  /*** Közös segédek ***/
+  async function fetchHtml(url) {
+    const proxied = url.startsWith("https://")
+      ? `https://r.jina.ai/${url}` : `https://r.jina.ai/http://${url.replace(/^https?:\/\//,'')}`;
+    const res = await fetch(proxied, { method: "GET" });
+    if (!res.ok) throw new Error("fetch failed");
+    return await res.text();
+  }
+  function matchTitle(text) {
+    const m = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    return m && m[1] ? m[1] : null;
+  }
+  function matchOg(text, prop) {
+    const re = new RegExp(`property=["']${prop}["'][^>]*content=["']([^"']+)["']`,"i");
+    const m = text.match(re); return m && m[1] ? m[1] : null;
+  }
+  function matchJsonNowTitle(text) {
+    const m1 = text.match(/"now"[^{}]*\{[^{}]*"title"\s*:\s*"([^"]{2,120})"/i);
+    if (m1 && m1[1]) return m1[1];
+    const m2 = text.match(/"(current|program|epg)"[^{}]*\{[^{}]*"title"\s*:\s*"([^"]{2,120})"/i);
+    return (m2 && m2[2]) ? m2[2] : null;
+  }
+  function findNear(html, sweetName) {
+    if (!sweetName) return null;
+    const idx = html.search(new RegExp(escapeRegex(sweetName), "i"));
+    if (idx < 0) return null;
+    const slice = html.slice(idx, Math.min(html.length, idx + 2600));
+    const texts = (slice.match(/>([^<>]{1,160})</g) || [])
+      .map(s => s.replace(/[<>]/g,"").trim())
+      .map(s => s.replace(/\s+/g," ").trim())
+      .filter(Boolean);
+    const nameNorm = normalizeKey(sweetName);
+    const badRe = /^(HD|Full\s*HD|TV|Live|Új|Összes|Bejelentkezés|Regisztráció|Profil|Kategóriák)$/i;
+    const candidates = texts
+      .filter(t => normalizeKey(t) !== nameNorm)
+      .filter(t => !badRe.test(t))
+      .filter(t => t.length >= 2 && t.length <= 120);
+    for (const t of candidates) { if (looksLikeTitle(t)) return t; }
+    return null;
+  }
+  function looksLikeTitle(t) {
+    if (!t) return false;
+    if (t.length < 3) return false;
+    if (/^\d{1,2}:\d{2}$/.test(t)) return false;
+    if (/^HD$/i.test(t)) return false;
+    if (/^\w{1,3}$/.test(t)) return false;
+    return true;
+  }
+  function cleanTitle(t) {
+    return String(t)
+      .replace(/\s+\|\s*Sweet\.?TV.*$/i, "")
+      .replace(/ - Sweet\.?TV.*$/i, "")
+      .replace(/\s+—\s+.*$/,"")
+      .replace(/\s*\|\s*HD\s*$/i,"")
+      .replace(/\s+/g," ").trim();
+  }
+  function escapeHtml(str) {
+    return String(str)
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  }
+  function escapeRegex(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); }
+  function normalizeKey(s){
+    return String(s).toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .replace(/\s+/g," ").trim();
+  }
+
+  /*** Init ***/
+  document.addEventListener("DOMContentLoaded", () => {
+    renderButtons();
+    refreshAll();
+    btnRefreshAll?.addEventListener("click", refreshAll);
+    setInterval(refreshAll, REFRESH_MS);
+  });
+})();
+</script>
+
+<!-- ===== [SZAKASZ 5] KILÉPÉS MINDENBŐL – HANDLER ===== -->
+<script>
   (function setupGlobalLogout(){
     const BTN_ID = "btnLogoutAll";
-    const LS_KEY_GUEST = "filmek_anyunak_guest_ok";
-    const ADMIN_KEYS = ["filmek_anyunak_admin_ok","admin_session","admin_email"];
-
-    function showPinGateNow() {
-      try {
-        // töröljük a vendég és (ha volt) admin státuszt
-        localStorage.removeItem(LS_KEY_GUEST);
-        ADMIN_KEYS.forEach(k => localStorage.removeItem(k));
-        sessionStorage.clear();
-      } catch {}
-
-      // PIN kapu megjelenítése (ha a [SZAKASZ 2] már betöltve van)
-      const gate = document.getElementById("gateOverlay");
-      if (gate) {
-        gate.removeAttribute("hidden");
-        const pin = document.getElementById("guestPinInput");
-        if (pin) { pin.value = ""; pin.focus(); }
-        // opcionális: görgessünk tetejére
-        window.scrollTo({top:0, behavior:"instant"});
-      } else {
-        // biztos, ami biztos: teljes újratöltés, hogy a kapu garantáltan feljöjjön
-        location.replace(location.origin + location.pathname);
-      }
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById(BTN_ID)?.addEventListener("click", showPinGateNow);
+      document.getElementById(BTN_ID)?.addEventListener("click", () => {
+        try {
+          localStorage.removeItem("filmek_anyunak_guest_ok");
+          ["filmek_anyunak_admin_ok","admin_session","admin_email"].forEach(k=>localStorage.removeItem(k));
+          sessionStorage.clear();
+        } catch {}
+        if (typeof window.showPinGate === "function") {
+          window.showPinGate();
+        } else {
+          location.replace(location.origin + location.pathname);
+        }
+      });
     });
   })();
-
 </script>
-<!-- ===== [SZAKASZ 5] LOGIKA – GOMBOK + CÍM-KINYERÉS – END ===== -->
+<!-- ===== [SZAKASZ 5] VÉGE ===== -->
 
 <!-- =========================
      6. rész eleje – AUTH (vendég + admin)
