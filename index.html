@@ -35,7 +35,7 @@
      1. rész vége
 ========================== -->
 
-<!-- ===== [SZAKASZ 2] VENDÉG PIN KAPU + MINI ADMIN ŰRLAP (TELJES CSERE) ===== -->
+<!-- ===== [SZAKASZ 2] VENDÉG PIN KAPU + „A” ADMIN GOMB (TELJES CSERE) ===== -->
 <style>
   #gateOverlay{
     position:fixed; inset:0; z-index:2147483647;
@@ -43,33 +43,34 @@
     background:rgba(6,12,20,.94); backdrop-filter:blur(2px);
   }
   #gateOverlay.active{ display:flex; }
+  /* amikor kapu aktív, csak a kapu látszik */
   body.gate-active > :not(#gateOverlay){ display:none !important; }
 
   #gateBox{
-    width:min(560px,92vw);
+    width:min(720px,92vw);
     background:#111827; color:#e5e7eb;
     border-radius:16px; padding:22px 20px;
     box-shadow:0 10px 30px rgba(0,0,0,.35);
     display:flex; flex-direction:column; gap:14px;
   }
-  #gateTitle{ font-size:18px; font-weight:800; letter-spacing:.2px; }
+  #gateTitle{ font-size:28px; font-weight:800; letter-spacing:.2px; }
+
   #guestPinInput{
-    width:100%; font-size:22px; padding:14px 16px; outline:none;
+    width:100%; font-size:32px; padding:18px 20px; outline:none;
     border-radius:12px; border:1px solid #374151; background:#0f172a; color:#f9fafb;
   }
   #guestPinInput::placeholder{ color:#9ca3af; }
-  #gateHint{ color:#9ca3af; font-size:13px; }
+  #gateHint{ color:#9ca3af; font-size:18px; }
 
   #adminTinyBtn{
-    align-self:flex-start; font-size:13px; font-weight:800; letter-spacing:.2px;
-    padding:6px 10px; border-radius:999px; border:1px solid #334155;
+    align-self:flex-start; font-size:22px; font-weight:800; letter-spacing:.2px;
+    padding:8px 14px; border-radius:999px; border:2px solid #e5e7eb;
     background:#0b1220; color:#e5e7eb; cursor:pointer;
   }
 
-  /* Mini admin űrlap */
-  #adminMini[hidden]{ display:none!important; }
+  /* Mini admin űrlap a kapun belül */
   #adminMini{
-    display:flex; flex-direction:column; gap:10px; margin-top:6px;
+    display:none; flex-direction:column; gap:10px; margin-top:16px;
     padding:12px; border:1px solid #334155; border-radius:12px; background:#0b1220;
   }
   #adminMini label{ font-size:12px; color:#9ca3af; }
@@ -96,25 +97,11 @@
 
     <div id="gateHint">Írd be a 6 számjegyet – <strong>automatikus belépés</strong>.</div>
 
+    <!-- „A” – admin mini-űrlap megnyitása -->
     <button id="adminTinyBtn" type="button" aria-label="Admin belépés">A</button>
 
-    <!-- BEÉPÍTETT MINI ADMIN ŰRLAP -->
-    <div id="adminMini" hidden>
-      <div class="err" id="adminMiniErr"></div>
-      <div>
-        <label for="adminMiniEmail">Admin email</label>
-        <input id="adminMiniEmail" type="email" inputmode="email"
-               autocomplete="off" autocapitalize="none" spellcheck="false" />
-      </div>
-      <div>
-        <label for="adminMiniPass">Jelszó</label>
-        <input id="adminMiniPass" type="password" autocomplete="current-password" />
-      </div>
-      <div class="row">
-        <button class="btn" id="adminMiniCancel" type="button">Mégse</button>
-        <button class="btn primary" id="adminMiniLogin" type="button">Belépés</button>
-      </div>
-    </div>
+    <!-- ide épül be az admin űrlap (dinamikusan) -->
+    <div id="adminMini"></div>
   </div>
 </div>
 
@@ -125,12 +112,12 @@
   const overlay = document.getElementById("gateOverlay");
   const input   = document.getElementById("guestPinInput");
 
-  /* ========== PIN kapu ========== */
+  /* ===== Kapu megjelenítés/elrejtés ===== */
   function showGate(){
     try{ localStorage.removeItem(LS_KEY); }catch{}
     document.body.classList.add("gate-active");
     overlay.classList.add("active");
-    setTimeout(()=>input?.focus(), 20);
+    setTimeout(()=> input?.focus(), 20);
     window.scrollTo({top:0, behavior:"instant"});
   }
   function hideGate(){
@@ -138,105 +125,136 @@
     overlay.classList.remove("active");
     document.body.classList.remove("gate-active");
   }
+
+  /* ===== PIN kezelése ===== */
   function handle(val){
     const norm = String(val||"").replace(/\D+/g,"").slice(0,6);
     if (input && input.value !== norm) input.value = norm;
     if (norm.length === 6 && norm === PIN) hideGate();
   }
-  window.showPinGate = showGate;
 
-  /* ========== MINI ADMIN – megjelenítés ========== */
-  const adminBtn    = document.getElementById("adminTinyBtn");
-  const adminMini   = document.getElementById("adminMini");
-  const adminErr    = document.getElementById("adminMiniErr");
-  const adminEmail  = document.getElementById("adminMiniEmail");
-  const adminPass   = document.getElementById("adminMiniPass");
+  /* ===== Mini admin űrlap ===== */
+  function buildAdminMiniOnce(){
+    const host = document.getElementById("adminMini");
+    if (!host || host.dataset.ready === "1") return;
 
-  function wireAdminButton(){
-    if (!adminBtn) return;
-    // minden régi handler eltávolítása
-    adminBtn.onclick = null;
-    const clone = adminBtn.cloneNode(true);
-    adminBtn.replaceWith(clone);
+    host.dataset.ready = "1";
+    host.innerHTML = `
+      <div class="err" id="adminMiniErr"></div>
+      <div>
+        <label for="adminMiniEmail">Admin email</label>
+        <input id="adminMiniEmail" type="email" inputmode="email" autocomplete="off"
+               autocapitalize="none" spellcheck="false" />
+      </div>
+      <div>
+        <label for="adminMiniPass">Jelszó</label>
+        <input id="adminMiniPass" type="password" autocomplete="current-password" />
+      </div>
+      <div class="row">
+        <button class="btn" id="adminMiniCancel" type="button">Mégse</button>
+        <button class="btn primary" id="adminMiniLogin" type="button">Belépés</button>
+      </div>
+    `;
 
-    clone.addEventListener("click", (ev)=>{
-      ev.preventDefault();
-      ev.stopPropagation();
-      ev.stopImmediatePropagation?.();
-      if (adminMini.hasAttribute("hidden")){
-        try{
-          const saved = localStorage.getItem("admin_email") || "";
-          if (saved && adminEmail && !adminEmail.value) adminEmail.value = saved;
-        }catch{}
-        adminMini.removeAttribute("hidden");
-        adminErr.textContent = "";
-        adminEmail?.focus();
-      } else {
-        adminMini.setAttribute("hidden", "");
-      }
-    }, true);
+    document.getElementById("adminMiniCancel")?.addEventListener("click", hideAdminMini);
+    document.getElementById("adminMiniLogin")?.addEventListener("click", doAdminLogin);
+    document.getElementById("adminMiniPass")?.addEventListener("keyup",(e)=>{
+      if (e.key === "Enter") doAdminLogin();
+    });
   }
+  function showAdminMini(){
+    buildAdminMiniOnce();
+    const box = document.getElementById("adminMini");
+    if (!box) return;
+    box.style.display = "flex";
 
-  /* ========== MINI ADMIN – műveletek ========== */
-  function hideAdminMini(){ adminMini.setAttribute("hidden",""); }
-
-  async function tryAdminLogin(){
-    const email = (adminEmail?.value||"").trim();
-    const pass  = adminPass?.value||"";
-    if (!email || !pass){ adminErr.textContent = "Töltsd ki az emailt és a jelszót."; return; }
-
-    // Ha valahol meg van írva a tényleges beléptetés (pl. SZAKASZ 6),
-    // meghívjuk: window.__adminLogin(email, pass, onOk, onErr)
-    if (typeof window.__adminLogin === "function"){
-      return window.__adminLogin(email, pass,
-        () => { try{ localStorage.setItem("admin_email", email); }catch{} hideAdminMini(); hideGate(); },
-        (msg) => { adminErr.textContent = msg || "Sikertelen belépés."; }
-      );
+    const email = document.getElementById("adminMiniEmail");
+    const err = document.getElementById("adminMiniErr");
+    if (err) err.textContent = "";
+    if (email && !email.value){
+      try{ const saved = localStorage.getItem("admin_email")||""; if(saved) email.value = saved; }catch{}
     }
-
-    // Alap fallback: csak elmentjük az emailt és bezárjuk a kaput (később bekötjük az Authot)
-    try{ localStorage.setItem("admin_email", email); }catch{}
-    hideAdminMini(); hideGate();
+    email?.focus();
+  }
+  function hideAdminMini(){
+    const box = document.getElementById("adminMini");
+    if (box) box.style.display = "none";
   }
 
-  /* ========== INIT ========== */
+  async function doAdminLogin(){
+    const email = document.getElementById("adminMiniEmail")?.value.trim();
+    const pass  = document.getElementById("adminMiniPass")?.value || "";
+    const errEl = document.getElementById("adminMiniErr");
+    if (!email || !pass){ if(errEl) errEl.textContent = "Töltsd ki az emailt és a jelszót."; return; }
+
+    // opcionális Firebase (ha elérhető). Ha nem, akkor csak elmentjük és zárjuk a kaput.
+    let ok = false;
+    try{
+      if (window.fb && window.fb.auth){
+        const auth = window.fb.auth;
+        const { signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js");
+        await signInWithEmailAndPassword(auth, email, pass);
+        ok = true;
+      }else{
+        // fallback: sikeresnek vesszük (eltávolítható, ha kötelező a Firebase)
+        ok = true;
+      }
+    }catch(e){ ok = false; }
+
+    if (ok){
+      try{
+        localStorage.setItem("filmek_anyunak_guest_ok","1");
+        localStorage.setItem("filmek_anyunak_admin_ok","1");
+        localStorage.setItem("admin_email", email);
+      }catch{}
+      hideAdminMini();
+      hideGate();
+    }else{
+      if(errEl) errEl.textContent = "Sikertelen belépés. Ellenőrizd az adatokat.";
+    }
+  }
+
+  /* ===== Események ===== */
   document.addEventListener("DOMContentLoaded", () => {
-    // PIN kapu indulás
     const ok = (()=>{ try { return localStorage.getItem(LS_KEY) === "1"; } catch { return false; } })();
     if (!ok) showGate();
 
     input?.addEventListener("input", e => handle(e.target.value));
-    input?.addEventListener("keyup", e => handle(e.target.value));
-    input?.addEventListener("paste", e => {
+    input?.addEventListener("keyup",  e => handle(e.target.value));
+    input?.addEventListener("paste",  e => {
       e.preventDefault();
-      const t=(e.clipboardData||window.clipboardData).getData("text")||"";
+      const t = (e.clipboardData || window.clipboardData).getData("text") || "";
       handle(t);
     });
 
-    // „Kilépés mindenből” -> vissza a kapura
+    // „A” gomb – egyszerű, ütközésmentes click handler
+    document.getElementById("adminTinyBtn")?.addEventListener("click",(ev)=>{
+      ev.preventDefault(); ev.stopPropagation(); showAdminMini();
+    });
+
+    // Kilépés mindenből → vissza a PIN kapura
     document.getElementById("btnLogoutAll")?.addEventListener("click", () => {
       try{
         localStorage.removeItem(LS_KEY);
-        ["filmek_anyunak_admin_ok","admin_session","admin_email"]
-          .forEach(k=>localStorage.removeItem(k));
+        ["filmek_anyunak_admin_ok","admin_session","admin_email"].forEach(k=>localStorage.removeItem(k));
         sessionStorage.clear();
       }catch{}
       showGate();
     });
 
-    wireAdminButton();
-    document.getElementById("adminMiniCancel")?.addEventListener("click", hideAdminMini);
-    document.getElementById("adminMiniLogin")?.addEventListener("click", tryAdminLogin);
-    adminPass?.addEventListener("keyup", (e)=>{ if (e.key==="Enter") tryAdminLogin(); });
+    // ha másik fülben kiléptünk/beléptünk
+    window.addEventListener("storage",(e)=>{
+      if (e.key === LS_KEY && e.newValue === "1") hideGate();
+    });
   });
 
-  // ha másik fülön beléptek, itt is zárjuk a kaput
-  window.addEventListener("storage", (e)=>{
-    if (e.key === LS_KEY && e.newValue === "1") hideGate();
-  });
+  // Kívülről is elérhető
+  window.showPinGate   = showGate;
+  window.showAdminMini = showAdminMini;
 })();
 </script>
 <!-- ===== [SZAKASZ 2] VÉGE ===== -->
+
 
 
 <!-- ===== [SZAKASZ 3] FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET – START ===== -->
