@@ -136,23 +136,49 @@
 <!-- ===== [SZAKASZ 3] FEJLÉC + KATEGÓRIÁK + NÉZETEK – START ===== -->
 <div id="app" class="wrap">
   <div class="sticky">
-   <header>
-  <div class="title" style="display:none">Filmek Anyunak</div>
+    <header>
+      <div class="title" style="display:none">Filmek Anyunak</div>
+      <div style="margin-left:auto; display:flex; gap:8px;">
+        <button id="btnLogoutAll" class="btn btn-danger" title="Kijelentkezés és vissza a PIN-hez">
+          Kilépés mindenből
+        </button>
+        <button class="btn" id="btnRefreshAll">Frissítés</button>
+      </div>
+    </header>
 
-  <div style="margin-left:auto; display:flex; gap:8px;">
-    <button id="btnLogoutAll" class="btn btn-danger" title="Kijelentkezés és vissza a PIN-hez">
-      Kilépés mindenből
-    </button>
-    <button class="btn" id="btnRefreshAll">Frissítés</button>
-  </div>
-</header>
+    <!-- Felső színes gombsor -->
+    <div id="topFilters" class="top-filters">
+      <button class="chip chip-krimi" data-goto="krimi">
+        <div class="chip-title">KRIMI</div>
+        <div class="chip-sub"><span class="tag">Új:</span><span id="badge-new-krimi">0</span> ·
+          <span class="tag">Összes:</span><span id="badge-all-krimi">0</span></div>
+      </button>
 
-    <!-- Egyetlen gombsor -->
+      <button class="chip chip-akcio" data-goto="akcio">
+        <div class="chip-title">AKCIÓ</div>
+        <div class="chip-sub"><span class="tag">Új:</span><span id="badge-new-akcio">0</span> ·
+          <span class="tag">Összes:</span><span id="badge-all-akcio">0</span></div>
+      </button>
+
+      <button class="chip chip-thriller" data-goto="thriller">
+        <div class="chip-title">THRILLER</div>
+        <div class="chip-sub"><span class="tag">Új:</span><span id="badge-new-thriller">0</span> ·
+          <span class="tag">Összes:</span><span id="badge-all-thriller">0</span></div>
+      </button>
+
+      <button class="chip chip-actors" data-goto="actors">
+        <div class="chip-title">SZÍNÉSZEK</div>
+        <div class="chip-sub">20 név (hamarosan)</div>
+      </button>
+    </div>
+
+    <!-- Élő csatornák rácsa -->
     <div id="catBar">
       <div class="cats-row" id="catsLive"></div>
     </div>
   </div>
 
+  <!-- Dinamikus nézetek ide kerülnek -->
   <main id="view" class="view"></main>
 </div>
 <!-- ===== [SZAKASZ 3] FEJLÉC + KATEGÓRIÁK + NÉZETEK – END ===== -->
