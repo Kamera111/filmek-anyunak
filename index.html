@@ -669,7 +669,7 @@
 })();
 </script>
 <!-- ===== [SZAKASZ 5] VÉGE ===== -->
-<!-- ===== [SZAKASZ 6] ADMIN BELÉPŐ – „A” GOMB (javított, csak email+jelszó üresen) ===== -->
+<!-- ===== [SZAKASZ 6] ADMIN BELÉPŐ – „A” GOMB (email+jelszó üresen, látható) ===== -->
 <style>
   #adminMini{
     display:none; flex-direction:column; gap:12px; margin-top:10px;
@@ -730,9 +730,10 @@
     const box = document.getElementById("adminMini");
     if (box) {
       box.style.display = "flex";
-      const err = document.getElementById("adminMiniErr");
-      if (err) err.textContent = "";
+      document.getElementById("adminMiniEmail").value = "";
+      document.getElementById("adminMiniPass").value = "";
       document.getElementById("adminMiniEmail")?.focus();
+      document.getElementById("adminMiniErr").textContent = "";
     }
   }
 
@@ -760,7 +761,6 @@
       try {
         localStorage.setItem("filmek_anyunak_guest_ok", "1");
         localStorage.setItem("filmek_anyunak_admin_ok", "1");
-        localStorage.setItem("admin_email", email);
       } catch {}
       document.getElementById("gateOverlay")?.classList.remove("active");
       document.body.classList.remove("gate-active");
@@ -787,6 +787,7 @@
   }
 </script>
 <!-- ===== [SZAKASZ 6] VÉGE ===== -->
+
      
 <!-- =========================
      7. rész eleje – BELÉPŐ (vendég PIN + admin gomb/űrlap)
