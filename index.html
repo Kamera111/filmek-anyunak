@@ -319,30 +319,20 @@
 <!-- ===== [SZAKASZ 5] LOGIKA – GOMBOK + CÍM-KINYERÉS – CLEAN ===== -->
 <script>
 (function(){
-  /*** Beállítások ***/
   const REFRESH_MS = 5 * 60 * 1000; // 5 perc
   const catsLiveEl = document.getElementById("catsLive");
   const btnRefreshAll = document.getElementById("btnRefreshAll");
 
-  /*** Csatornák ***/
+  /* ========== Csatornák ========== */
   const channels = [];
   function addChannel({ id, name, url, provider, sweetName }) {
     channels.push({ id, name, url, provider, sweetName });
   }
-
   // SWEET.TV – 4 csatorna
-  addChannel({ id:"live-vigjatek", name:"ÉLŐ Vígjáték TV",
-    url:"https://sweet.tv/hu/free_tv/2014-comedy-universe-hd",
-    provider:"sweet", sweetName:"Vígjáték univerzum HD" });
-  addChannel({ id:"live-akcio", name:"ÉLŐ Akció TV",
-    url:"https://sweet.tv/hu/free_tv/2010-action-zone-hd",
-    provider:"sweet", sweetName:"Akció zóna HD" });
-  addChannel({ id:"live-thriller", name:"ÉLŐ Thriller TV",
-    url:"https://sweet.tv/hu/free_tv/2016-thriller-time-hd",
-    provider:"sweet", sweetName:"Thriller idő HD" });
-  addChannel({ id:"live-top", name:"ÉLŐ TOP Filmek",
-    url:"https://sweet.tv/hu/free_tv/2967-top-movies-hd",
-    provider:"sweet", sweetName:"Top Filmek HD" });
+  addChannel({ id:"live-vigjatek",  name:"ÉLŐ Vígjáték TV", url:"https://sweet.tv/hu/free_tv/2014-comedy-universe-hd", provider:"sweet", sweetName:"Vígjáték univerzum HD" });
+  addChannel({ id:"live-akcio",     name:"ÉLŐ Akció TV",    url:"https://sweet.tv/hu/free_tv/2010-action-zone-hd",     provider:"sweet", sweetName:"Akció zóna HD" });
+  addChannel({ id:"live-thriller",  name:"ÉLŐ Thriller TV", url:"https://sweet.tv/hu/free_tv/2016-thriller-time-hd",    provider:"sweet", sweetName:"Thriller idő HD" });
+  addChannel({ id:"live-top",       name:"ÉLŐ TOP Filmek",  url:"https://sweet.tv/hu/free_tv/2967-top-movies-hd",       provider:"sweet", sweetName:"Top Filmek HD" });
 
   // TELEKOM TV GO – 12 csatorna
   addChannel({ id:"tgo-13",  name:"Mozi+ tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=13",  provider:"telekom" });
@@ -351,14 +341,14 @@
   addChannel({ id:"tgo-24",  name:"RTL 2 tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=24",  provider:"telekom" });
   addChannel({ id:"tgo-28",  name:"FilmCafe tv",   url:"https://player.telekomtvgo.hu/player/live?channelNumber=28",  provider:"telekom" });
   addChannel({ id:"tgo-30",  name:"ozone tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=30",  provider:"telekom" });
-  addChannel({ id:"tgo-60", name:"Cool tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=60",  provider:"telekom" });
+  addChannel({ id:"tgo-60",  name:"Cool tv",       url:"https://player.telekomtvgo.hu/player/live?channelNumber=60",  provider:"telekom" });
   addChannel({ id:"tgo-61",  name:"AXN tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=61",  provider:"telekom" });
   addChannel({ id:"tgo-62",  name:"AMC tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=62",  provider:"telekom" });
   addChannel({ id:"tgo-66",  name:"Paramount tv",  url:"https://player.telekomtvgo.hu/player/live?channelNumber=66",  provider:"telekom" });
   addChannel({ id:"tgo-163", name:"FilmMánia tv",  url:"https://player.telekomtvgo.hu/player/live?channelNumber=163", provider:"telekom" });
   addChannel({ id:"tgo-169", name:"Moziverzum tv", url:"https://player.telekomtvgo.hu/player/live?channelNumber=169", provider:"telekom" });
 
-  /*** UI rajzolás ***/
+  /* ========== UI rajzolás ========== */
   function renderButtons() {
     if (!catsLiveEl) return;
     catsLiveEl.innerHTML = "";
@@ -366,10 +356,18 @@
       const btn = document.createElement("button");
       btn.className = "cat";
       btn.dataset.channel = ch.id;
+
+      // „ÉLŐ ” szó piros kiemelése (név elején)
+      const safeName = escapeHtml(ch.name);
+      const nameHtml = safeName.replace(
+        /^ÉLŐ(\s+)/,
+        '<span style="color:#ef4444;font-weight:900;margin-right:4px">ÉLŐ</span>$1'
+      );
+
       btn.innerHTML = `
-        <div class="name">${escapeHtml(ch.name)}</div>
+        <div class="name">${nameHtml}</div>
         <div class="now"><span class="label">Most megy:</span>
-          <span class="title" id="now-${ch.id}">Kattints</span>
+          <span class="title" id="now-${ch.id}" style="font-size:18px;font-weight:800">Kattints</span>
         </div>`;
       btn.addEventListener("click", () => openChannel(ch));
       catsLiveEl.appendChild(btn);
@@ -379,19 +377,17 @@
   function openChannel(ch) {
     if (ch.provider === "sweet") {
       const next = encodeURIComponent(ch.url);
-      window.open(`https://sweet.tv/hu/login?next=${next}`, "_blank");
+      window.open(\`https://sweet.tv/hu/login?next=\${next}\`, "_blank");
     } else {
       window.open(ch.url, "_blank");
     }
   }
 
-  /*** Frissítés ***/
-  async function refreshAll() {
-    await Promise.all(channels.map(ch => updateOne(ch)));
-  }
+  /* ========== Frissítés ========== */
+  async function refreshAll() { await Promise.all(channels.map(ch => updateOne(ch))); }
 
   async function updateOne(ch) {
-    const out = document.getElementById(`now-${ch.id}`);
+    const out = document.getElementById(\`now-\${ch.id}\`);
     if (!out) return;
     try {
       let title = null;
@@ -410,7 +406,7 @@
     }
   }
 
-  /*** SWEET.TV ***/
+  /* ========== SWEET.TV ========== */
   async function sweetFromChannel(url, sweetName) {
     const html = await fetchHtml(url);
     let t = sweetName ? findNear(html, sweetName) : null;
@@ -421,7 +417,7 @@
     return t || null;
   }
 
-  /*** TELEKOM TV GO (best-effort) ***/
+  /* ========== TELEKOM TV GO (best-effort) ========== */
   async function telekomFromPlayer(url) {
     const html = await fetchHtml(url);
     let t = matchTitle(html);
@@ -439,10 +435,11 @@
     return null;
   }
 
-  /*** Közös segédek ***/
+  /* ========== Segédek ========== */
   async function fetchHtml(url) {
     const proxied = url.startsWith("https://")
-      ? `https://r.jina.ai/${url}` : `https://r.jina.ai/http://${url.replace(/^https?:\/\//,'')}`;
+      ? \`https://r.jina.ai/\${url}\`
+      : \`https://r.jina.ai/http://\${url.replace(/^https?:\\/\\//,'')}\`;
     const res = await fetch(proxied, { method: "GET" });
     if (!res.ok) throw new Error("fetch failed");
     return await res.text();
@@ -452,7 +449,7 @@
     return m && m[1] ? m[1] : null;
   }
   function matchOg(text, prop) {
-    const re = new RegExp(`property=["']${prop}["'][^>]*content=["']([^"']+)["']`,"i");
+    const re = new RegExp(\`property=["']\${prop}["'][^>]*content=["']([^"']+)["']\`,"i");
     const m = text.match(re); return m && m[1] ? m[1] : null;
   }
   function matchJsonNowTitle(text) {
@@ -507,7 +504,7 @@
       .replace(/\s+/g," ").trim();
   }
 
-  /*** Init ***/
+  /* ========== Init ========== */
   document.addEventListener("DOMContentLoaded", () => {
     renderButtons();
     refreshAll();
@@ -515,27 +512,6 @@
     setInterval(refreshAll, REFRESH_MS);
   });
 })();
-</script>
-
-<!-- ===== [SZAKASZ 5] KILÉPÉS MINDENBŐL – HANDLER ===== -->
-<script>
-  (function setupGlobalLogout(){
-    const BTN_ID = "btnLogoutAll";
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById(BTN_ID)?.addEventListener("click", () => {
-        try {
-          localStorage.removeItem("filmek_anyunak_guest_ok");
-          ["filmek_anyunak_admin_ok","admin_session","admin_email"].forEach(k=>localStorage.removeItem(k));
-          sessionStorage.clear();
-        } catch {}
-        if (typeof window.showPinGate === "function") {
-          window.showPinGate();
-        } else {
-          location.replace(location.origin + location.pathname);
-        }
-      });
-    });
-  })();
 </script>
 <!-- ===== [SZAKASZ 5] VÉGE ===== -->
 
