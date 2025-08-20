@@ -34,75 +34,108 @@
 <!-- =========================
      1. rész vége
 ========================== -->
-
-<!-- ===== [SZAKASZ 2] VENDÉG PIN KAPU + „A” ADMIN GOMB (TELJES CSERE + HOTFIX) ===== -->
+<!-- ===== [SZAKASZ 2] VENDÉG PIN + „A” gomb (MINIMAL + HOTFIX, helyesen lezárva) ===== -->
 <style>
-  #gateOverlay{
-    position:fixed; inset:0; z-index:2147483647;
-    display:none; align-items:center; justify-content:center;
-    background:rgba(6,12,20,.94); backdrop-filter:blur(2px);
-  }
-  #gateOverlay.active{ display:flex; }
-  body.gate-active > :not(#gateOverlay){ display:none !important; }
-
-  #gateBox{
-    width:min(720px,92vw);
-    background:#111827; color:#e5e7eb;
-    border-radius:16px; padding:22px 20px;
-    box-shadow:0 10px 30px rgba(0,0,0,.35);
-    display:flex; flex-direction:column; gap:14px;
-  }
-  #gateTitle{ font-size:28px; font-weight:800; letter-spacing:.2px; }
-
-  #guestPinInput{
-    width:100%; font-size:32px; padding:18px 20px; outline:none;
-    border-radius:12px; border:1px solid #374151; background:#0f172a; color:#f9fafb;
-  }
-  #guestPinInput::placeholder{ color:#9ca3af; }
-  #gateHint{ color:#9ca3af; font-size:18px; }
-
-  #adminTinyBtn{
-    align-self:flex-start; font-size:22px; font-weight:800; letter-spacing:.2px;
-    padding:8px 14px; border-radius:999px; border:2px solid #e5e7eb;
-    background:#0b1220; color:#e5e7eb; cursor:pointer;
-  }
-
-  /* ÜRES KONTÉNER — a 6. szakasz fogja feltölteni az email+jelszó űrlappal */
-  #adminMini{
-    display:none; flex-direction:column; gap:12px; margin-top:10px;
-    padding:12px; border:1px solid #334155; border-radius:12px; background:#0b1220;
-  }
+  #gateOverlay{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;background:rgba(6,12,20,.94);backdrop-filter:blur(2px)}
+  #gateOverlay.active{display:flex}
+  body.gate-active > :not(#gateOverlay){display:none!important}
+  #gateBox{width:min(720px,92vw);background:#111827;color:#e5e7eb;border-radius:16px;padding:22px 20px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:14px}
+  #guestPinInput{width:100%;font-size:32px;padding:18px 20px;border-radius:12px;border:1px solid #374151;background:#0f172a;color:#f9fafb}
+  #adminTinyBtn{align-self:flex-start;font-size:22px;font-weight:800;padding:8px 14px;border-radius:999px;border:2px solid #e5e7eb;background:#0b1220;color:#e5e7eb;cursor:pointer}
+  #adminMini{display:none;flex-direction:column;gap:12px;margin-top:10px;padding:12px;border:1px solid #334155;border-radius:12px;background:#0b1220}
 </style>
 
 <div id="gateOverlay" role="dialog" aria-modal="true">
   <div id="gateBox">
-    <div id="gateTitle">Vendég PIN</div>
-
-    <input id="guestPinInput" type="tel" inputmode="numeric" maxlength="6"
-           autocomplete="one-time-code" placeholder="KATT IDE! ÍRD A KÓDOT" />
-
-    <div id="gateHint">Írd be a 6 számjegyet – <strong>automatikus belépés</strong>.</div>
-
+    <div id="gateTitle" style="font-size:28px;font-weight:800">Vendég PIN</div>
+    <input id="guestPinInput" type="tel" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="KATT IDE! ÍRD A KÓDOT" />
+    <div id="gateHint" style="color:#9ca3af;font-size:18px">Írd be a 6 számjegyet – <strong>automatikus belépés</strong>.</div>
     <button id="adminTinyBtn" type="button" aria-label="Admin belépés">A</button>
-
-    <!-- ÜRES! A 6. szakasz tölti fel (email + jelszó, ÜRESEN, látható jelszóval) -->
-    <div id="adminMini"></div>
+    <div id="adminMini"></div><!-- ÜRES: a 6. szakasz tölti fel email+jelszóval -->
   </div>
 </div>
 
 <script>
 (function(){
-  /* ===== Beállítások ===== */
-  const PIN = "195400";                      // VENDÉG PIN (6 jegy)
-  const LS_KEY = "filmek_anyunak_guest_ok";  // vendégkapu állapot
+  const PIN="195400", LS_KEY="filmek_anyunak_guest_ok";
+  const overlay=document.getElementById("gateOverlay");
+  const input=document.getElementById("guestPinInput");
 
-  const overlay = document.getElementById("gateOverlay");
-  const input   = document.getElementById("guestPinInput");
-
-  /* ===== HOTFIX: tüntesd el a régi admin űrlapot (PIN mező, előtöltött email, pöttyös jelszó) ===== */
+  /* ===== HOTFIX: régi admin űrlap törlése (PIN mező, előtöltött email, pöttyös jelszó) ===== */
   function nukeOldAdmin(){
-    const host = document.getElementById('a
+    const host=document.getElementById('adminMini');
+    if(!host) return;
+    host.replaceChildren();
+    host.removeAttribute('data-ready');
+    try{ localStorage.removeItem('admin_email'); }catch{}
+  }
+  nukeOldAdmin();
+  const obs=new MutationObserver(()=>nukeOldAdmin());
+  obs.observe(document.documentElement,{subtree:true,childList:true});
+  setTimeout(()=>obs.disconnect(),4000);
 
+  /* ===== Vendégkapu ===== */
+  function showGate(){
+    try{ localStorage.removeItem(LS_KEY);}catch{}
+    document.body.classList.add("gate-active");
+    overlay.classList.add("active");
+    if(input){ input.value=""; setTimeout(()=>input.focus(),50); }
+  }
+  function hideGate(){
+    try{ localStorage.setItem(LS_KEY,"1"); }catch{}
+    overlay.classList.remove("active");
+    document.body.classList.remove("gate-active");
+  }
+  function handle(v){
+    const norm=String(v||"").replace(/\D+/g,"").slice(0,6);
+    if(input && input.value!==norm) input.value=norm;
+    if(norm.length===6 && norm===PIN) hideGate();
+  }
+
+  /* ===== „A” gomb → 6. szakasz showAdminMini() ===== */
+  function wireAGomb(){
+    const btn=document.getElementById("adminTinyBtn");
+    if(!btn) return;
+    const clone=btn.cloneNode(true); btn.replaceWith(clone);
+    clone.addEventListener("click",(e)=>{
+      e.preventDefault(); e.stopPropagation();
+      if(typeof window.showAdminMini==="function"){ window.showAdminMini(); return; }
+      const watch=new MutationObserver(()=>{
+        if(typeof window.showAdminMini==="function"){ window.showAdminMini(); watch.disconnect(); }
+      });
+      watch.observe(document.documentElement,{subtree:true,childList:true});
+      setTimeout(()=>watch.disconnect(),5000);
+    },true);
+  }
+
+  document.addEventListener("DOMContentLoaded", ()=>{
+    const ok=(()=>{try{return localStorage.getItem(LS_KEY)==="1"}catch{return false}})();
+    if(!ok) showGate();
+
+    input?.addEventListener("input",e=>handle(e.target.value));
+    input?.addEventListener("keyup",e=>handle(e.target.value));
+    input?.addEventListener("paste",e=>{e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData("text")||""; handle(t);});
+
+    wireAGomb();
+
+    document.getElementById("btnLogoutAll")?.addEventListener("click",()=>{
+      try{
+        localStorage.removeItem(LS_KEY);
+        ["filmek_anyunak_admin_ok","admin_session","admin_email"].forEach(k=>localStorage.removeItem(k));
+        sessionStorage.clear();
+      }catch{}
+      showGate();
+    });
+
+    window.addEventListener("storage",(e)=>{
+      if(e.key===LS_KEY && e.newValue==="1") hideGate();
+    });
+  });
+
+  window.showPinGate=showGate;
+})();
+</script>
+<!-- ===== [SZAKASZ 2 VÉGE] ===== -->
 
 <!-- ===== [SZAKASZ 3] FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET – START ===== -->
 <div id="app" class="wrap">
