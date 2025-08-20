@@ -523,7 +523,7 @@
 })();
 </script>
 <!-- ===== [SZAKASZ 5] VÉGE ===== -->
-<!-- ===== [SZAKASZ 6] ADMIN BELÉPŐ – „A” GOMB (email+jelszó üresen, látható) ===== -->
+<!-- ===== [SZAKASZ 6] ADMIN BELÉPŐ – „A” GOMB (email + jelszó, üresen; Firebase opcionális) ===== -->
 <style>
   #adminMini{
     display:none; flex-direction:column; gap:12px; margin-top:10px;
@@ -544,11 +544,8 @@
   #adminMini .err{ color:#fca5a5; font-size:12px; min-height:16px; }
 </style>
 
-<script type="module">
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-
-  const auth = (window.fb && window.fb.auth) ? window.fb.auth : getAuth();
-
+<script>
+(function(){
   function buildAdminMiniOnce(){
     const host = document.getElementById("adminMini");
     if (!host || host.dataset.ready === "1") return;
@@ -582,27 +579,29 @@
   function showAdminMini(){
     buildAdminMiniOnce();
     const box = document.getElementById("adminMini");
-    if (box) {
-      box.style.display = "flex";
-      document.getElementById("adminMiniEmail").value = "";
-      document.getElementById("adminMiniPass").value = "";
-      document.getElementById("adminMiniEmail")?.focus();
-      document.getElementById("adminMiniErr").textContent = "";
-    }
+    if (!box) return;
+    box.style.display = "flex";
+    const err = document.getElementById("adminMiniErr");
+    if (err) err.textContent = "";
+    const email = document.getElementById("adminMiniEmail");
+    const pass  = document.getElementById("adminMiniPass");
+    if (email) email.value = "";
+    if (pass)  pass.value = "";
+    email?.focus();
   }
 
   function hideAdminMini(){
-    const box = document.getElementById("adminMini");
-    if (box) {
-      document.getElementById("adminMiniEmail").value = "";
-      document.getElementById("adminMiniPass").value = "";
-      box.style.display = "none";
-    }
+    const box  = document.getElementById("adminMini");
+    const email= document.getElementById("adminMiniEmail");
+    const pass = document.getElementById("adminMiniPass");
+    if (email) email.value = "";
+    if (pass)  pass.value = "";
+    if (box)   box.style.display = "none";
   }
 
   async function doAdminLogin(){
-    const email = document.getElementById("adminMiniEmail")?.value.trim();
-    const pass  = document.getElementById("adminMiniPass")?.value.trim();
+    const email = (document.getElementById("adminMiniEmail")?.value || "").trim();
+    const pass  = (document.getElementById("adminMiniPass") ?.value || "").trim();
     const errEl = document.getElementById("adminMiniErr");
 
     if (!email || !pass){
@@ -610,37 +609,72 @@
       return;
     }
 
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
-      try {
-        localStorage.setItem("filmek_anyunak_guest_ok", "1");
-        localStorage.setItem("filmek_anyunak_admin_ok", "1");
-      } catch {}
+    // ===== Firebase-belépés (opcionális) =====
+    let ok = false;
+    try{
+      let auth = null;
+
+      // 1) Ha a projekt már inicializálta a Firebase-t, használd azt
+      if (window.fb && window.fb.auth) {
+        auth = window.fb.auth;
+      } else {
+        // 2) Próbálj dinamikusan betölteni mindent. Ha nincs firebaseConfig, akkor demó mód.
+        const appMod  = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js");
+        const authMod = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js");
+
+        if (appMod && appMod.getApps && appMod.getApps().length === 0 && window.firebaseConfig) {
+          appMod.initializeApp(window.firebaseConfig);
+        }
+        try { auth = authMod.getAuth(); } catch { auth = null; }
+
+        if (auth) {
+          await authMod.signInWithEmailAndPassword(auth, email, pass);
+        }
+      }
+
+      // Ha idáig eljutottunk: vagy sikeres Firebase login, vagy nincs Firebase -> demó OK
+      ok = true;
+    }catch(e){
+      // Ha konkrét Firebase hiba volt és tényleg kellene Firebase, ezt ide írhatod ki:
+      ok = false;
+      if (errEl) errEl.textContent = "Sikertelen belépés. Hibás adatok, vagy nincs Firebase beállítva.";
+    }
+
+    if (ok){
+      try{
+        localStorage.setItem("filmek_anyunak_guest_ok","1");
+        localStorage.setItem("filmek_anyunak_admin_ok","1");
+        localStorage.setItem("admin_email", email);
+      }catch{}
+
       document.getElementById("gateOverlay")?.classList.remove("active");
       document.body.classList.remove("gate-active");
       hideAdminMini();
-    } catch(e){
-      if (errEl) errEl.textContent = "Sikertelen belépés. Hibás adatok.";
     }
   }
 
   function wireAGomb(){
     const btn = document.getElementById("adminTinyBtn");
     if (!btn) return;
-    btn.addEventListener("click",(ev)=>{
-      ev.preventDefault();
-      ev.stopPropagation();
+    const clone = btn.cloneNode(true); btn.replaceWith(clone);
+    clone.addEventListener("click",(ev)=>{
+      ev.preventDefault(); ev.stopPropagation();
       showAdminMini();
-    });
+    }, true);
   }
+
+  // publikus, hogy a 2. szakasz hívhassa
+  window.showAdminMini = showAdminMini;
 
   if (document.readyState === "loading"){
     document.addEventListener("DOMContentLoaded", wireAGomb, { once:true });
   } else {
     wireAGomb();
   }
+})();
 </script>
 <!-- ===== [SZAKASZ 6] VÉGE ===== -->
+
 
      
 <!-- =========================
