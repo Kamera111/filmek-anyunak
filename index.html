@@ -563,7 +563,7 @@
 </script>
 <!-- ===== [SZAKASZ 5] VÉGE ===== -->
 
-<!-- ===== [SZAKASZ 6] ADMIN BELÉPŐ – „A” GOMB ===== -->
+<!-- ===== [SZAKASZ 6] ADMIN BELÉPŐ – „A” GOMB (TELJES CSERE) ===== -->
 <style>
   #adminMini{
     display:none; flex-direction:column; gap:10px; margin-top:8px;
@@ -586,8 +586,9 @@
 
 <script type="module">
   import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-  const auth = getAuth();
+  const auth = getAuth(); // a már inicializált Firebase App auth-ja
 
+  /* --- mini admin űrlap a PIN dobozban --- */
   function buildAdminMiniOnce(){
     if (document.getElementById("adminMini")) return;
     const gateBox = document.getElementById("gateBox");
@@ -619,7 +620,6 @@
       if (e.key === "Enter") doAdminLogin();
     });
   }
-
   function showAdminMini(){
     buildAdminMiniOnce();
     const box = document.getElementById("adminMini");
@@ -659,36 +659,39 @@
     }
   }
 
-  // --- A gomb drót: azonnal is, és DOMContentLoaded-re is, hogy biztos felülírjuk a régi alertet
+  /* --- A gomb teljes felülírása (minden korábbi listener törlése) --- */
   function wireAGomb(){
     const btn = document.getElementById("adminTinyBtn");
     if (!btn) return;
-    // 1) töröljük az esetleges inline onclick-et
+
+    // töröljük az inline onclick-et, ha lenne
     btn.onclick = null;
-    // 2) klónozás: minden korábbi listener lekerül
+
+    // klónozzuk, hogy MINDEN korábbi event listener lekerüljön (pl. az alert)
     const clone = btn.cloneNode(true);
     btn.replaceWith(clone);
-    // 3) saját handler (capture + stopImmediatePropagation a biztonság kedvéért)
+
+    // saját handler – a régi alert NEM fog lefutni
     clone.addEventListener("click", (ev)=>{
       ev.preventDefault();
       ev.stopPropagation();
       ev.stopImmediatePropagation?.();
       showAdminMini();
     }, true);
-    // elérhető globálisan is
+
+    // elérhető globálisan is, ha máshonnan hívnád
     window.showAdminMini = showAdminMini;
   }
 
+  // futtasd most is, és DOM készre is – plusz figyeljük, ha később kerül be a gomb
   if (document.readyState === "loading"){
     document.addEventListener("DOMContentLoaded", wireAGomb, {once:true});
   } else {
     wireAGomb();
   }
-
-  // ha a kapu csak később kerül a DOM-ba: figyeljük röviden
-  const obs = new MutationObserver(()=>{ wireAGomb(); });
+  const obs = new MutationObserver(()=>wireAGomb());
   obs.observe(document.documentElement, {subtree:true, childList:true});
-  setTimeout(()=>obs.disconnect(), 3000); // 3 mp után leállítjuk
+  setTimeout(()=>obs.disconnect(), 4000); // 4 mp figyelés elég
 </script>
 <!-- ===== [SZAKASZ 6] VÉGE ===== -->
      
