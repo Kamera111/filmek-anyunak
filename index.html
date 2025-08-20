@@ -146,7 +146,7 @@
       </div>
     </header>
 
-    <!-- Felső színes kategória-gombok (vendégnek is látszik) -->
+    <!-- Felső színes kategória-gombok (látszik vendégnek is) -->
     <div id="topFilters" class="top-filters">
       <button class="chip chip-krimi" data-goto="krimi">
         <div class="chip-title">KRIMI</div>
@@ -209,32 +209,12 @@
   .chip-thriller{ background:linear-gradient(180deg,#e11d48,#be123c); }
   .chip-actors{   background:linear-gradient(180deg,#f59e0b,#b45309); }
 
-  /* Rács + kártyák */
-  #catBar { padding: 12px; }
-  .cats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; }
-
-  .cat{
-    display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
-    padding:14px 16px; border-radius:14px; background:#1f2937; color:#fff; cursor:pointer;
-    box-shadow:0 4px 14px rgba(0,0,0,.18); transition:transform .08s ease, box-shadow .12s ease;
-    min-height:84px; text-align:left; border:1px solid #0f2437;
-  }
-  .cat:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.22); }
-
-  :root{ --name-green:#22c55e; }
-  .cat .name{ color:var(--name-green); font-weight:700; font-size:18px; line-height:1.2; margin-bottom:6px; }
-  .cat .name .live{ color:#ef4444 !important; font-weight:900; margin-right:4px; } /* ÉLŐ piros */
-
-  .cat .now{ font-size:15px; opacity:.95; white-space:normal; }
-  .cat .now .label{ opacity:.9; margin-right:6px; }
-  .cat .now .title{ font-size:16px; font-weight:800; } /* Kattints kisebb */
-  .btn-danger{ background:#dc2626; border:1px solid #b91c1c; color:#fff; }
-  .btn-danger:hover{ filter:brightness(1.05); }
+  /* Vissza gomb a nézetekben */
   .btn-back{ margin-bottom:12px; }
 </style>
 
 <script>
-/* Minimál navigáció a 4 kategóriához – helyőrző nézetekkel */
+/* Minimál navigáció a 4 kategóriához – adat nélkül, helyőrző nézetekkel */
 (function(){
   const viewEl = document.getElementById("view");
   const catBar = document.getElementById("catBar");
@@ -285,6 +265,7 @@
 })();
 </script>
 <!-- ===== [SZAKASZ 3] FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET – END ===== -->
+
 
 
 <!-- ===== [SZAKASZ 4] STÍLUS – START ===== -->
