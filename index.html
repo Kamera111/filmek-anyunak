@@ -288,6 +288,249 @@
   });
 })();
 </script>
+     <!-- ===== [SZAKASZ 3.5] ADMIN FELTÖLTŐ ŰRLAP – auto kitöltés (YouTube/Videa) ===== -->
+<style>
+  .admin-uploader{margin:12px;padding:14px;border-radius:14px;background:#0e1729;border:1px solid #334155}
+  .admin-uploader h3{margin:0 0 8px;font-size:18px}
+  .admin-uploader .row{display:grid;grid-template-columns:1fr;gap:8px}
+  .admin-uploader label{font-size:12px;color:#9ca3af}
+  .admin-uploader input,.admin-uploader textarea{
+    width:100%;padding:10px;border-radius:10px;border:1px solid #374151;background:#0f172a;color:#e5e7eb
+  }
+  .admin-uploader textarea{min-height:110px;resize:vertical}
+  .admin-uploader .actions{display:flex;gap:8px;margin-top:8px}
+  .admin-uploader .btn{background:#1f2937;border:1px solid #334155;color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer}
+  .admin-uploader .btn.primary{background:#2563eb;border-color:#1d4ed8}
+  .admin-uploader .muted{color:#9ca3af;font-size:12px}
+  .admin-uploader .preview{display:flex;gap:10px;align-items:flex-start}
+  .admin-uploader .preview img{width:140px;height:auto;border-radius:8px;border:1px solid #1f2937}
+</style>
+
+<script>
+(function(){
+  const ADMIN_OK_KEY = "filmek_anyunak_admin_ok";
+
+  // ===== Segédek
+  const isAdmin = ()=> { try{ return localStorage.getItem(ADMIN_OK_KEY)==="1"; }catch{ return false; } };
+  const q = (sel,root=document)=> root.querySelector(sel);
+
+  // proxys HTML letöltés (CORS-biztos)
+  async function fetchHtml(url){
+    const u = url.startsWith("https://") ? `https://r.jina.ai/${url}` : `https://r.jina.ai/http://${url.replace(/^https?:\/\//,'')}`;
+    const r = await fetch(u); if(!r.ok) throw new Error("fetch fail"); return await r.text();
+  }
+  function meta(text, prop){
+    const re = new RegExp(`property=["']${prop}["'][^>]*content=["']([^"']+)["']`,"i");
+    const m = text.match(re); return m && m[1] ? m[1] : "";
+  }
+  function norm(s){ return String(s||"").replace(/\s+/g," ").trim(); }
+
+  // oEmbed (YouTube) – ha elérhető
+  async function ytOembed(url){
+    try{
+      const r = await fetch(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(url)}`);
+      if(!r.ok) return null;
+      const j = await r.json();
+      return { title: j.title||"", cover: j.thumbnail_url||"", content: "" };
+    }catch{ return null; }
+  }
+
+  // Általános meta kinyerés (YouTube, Videa, bármi): og:title / og:image / og:description
+  async function genericMeta(url){
+    const html = await fetchHtml(url);
+    return {
+      title: norm(meta(html,"og:title")||""),
+      cover: norm(meta(html,"og:image")||""),
+      content: norm(meta(html,"og:description")||"")
+    };
+  }
+
+  async function extractMeta(url){
+    const u = String(url||"").trim();
+    if(!u) return { title:"", cover:"", content:"" };
+    // 1) YouTube oEmbed próba
+    if (/youtu\.be|youtube\.com/i.test(u)) {
+      const o = await ytOembed(u);
+      if (o && o.title) {
+        // próbáljuk leírást is (oEmbed nem adja)
+        try { const g = await genericMeta(u); if(g.content) o.content = g.content; } catch {}
+        return o;
+      }
+    }
+    // 2) generic (YouTube/Videa/egyéb) – OG meta alapján
+    return await genericMeta(u);
+  }
+
+  // Firestore mentés (ha van)
+  async function saveMovie(catKey, data){
+    try{
+      // ha a projekt már inicializálta: használjuk
+      if (window.fb && window.fb.db) {
+        const { db, addDoc, collection, serverTimestamp } = window.fb.db;
+        await addDoc(collection(db, "categories", catKey, "movies"), {
+          ...data,
+          createdAt: serverTimestamp ? serverTimestamp() : Date.now()
+        });
+        return true;
+      }
+      // dinamikus betöltés (ha van config)
+      const appMod  = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js");
+      const fsMod   = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js");
+      let app = null;
+      if (appMod.getApps && appMod.getApps().length === 0 && window.firebaseConfig) {
+        app = appMod.initializeApp(window.firebaseConfig);
+      }
+      const db = fsMod.getFirestore(app || (appMod.getApps ? appMod.getApps()[0] : undefined));
+      await fsMod.addDoc(fsMod.collection(db, "categories", catKey, "movies"), {
+        ...data,
+        createdAt: fsMod.serverTimestamp ? fsMod.serverTimestamp() : Date.now()
+      });
+      return true;
+    }catch(e){
+      console.warn("Mentés kihagyva (nincs Firestore):", e && e.message ? e.message : e);
+      return false;
+    }
+  }
+
+  // Űrlap létrehozása és bekötése
+  function mountUploader(catKey, mountBeforeEl){
+    if (!isAdmin()) return;
+    if (q(`#admin-uploader-${catKey}`)) return;
+
+    const box = document.createElement("div");
+    box.className = "admin-uploader card";
+    box.id = `admin-uploader-${catKey}`;
+    box.innerHTML = `
+      <h3>Új film hozzáadása – ${catKey.toUpperCase()}</h3>
+      <div class="row">
+        <div>
+          <label for="au-link-${catKey}">Link</label>
+          <input id="au-link-${catKey}" type="url" placeholder="Illeszd be a YouTube vagy Videa linket" />
+          <div class="muted">Beillesztés után automatikusan kitöltjük a mezőket.</div>
+        </div>
+
+        <div>
+          <label for="au-title-${catKey}">Cím</label>
+          <input id="au-title-${catKey}" type="text" placeholder="Automatikusan töltjük…" />
+        </div>
+
+        <div>
+          <label for="au-cover-${catKey}">Borítókép (URL)</label>
+          <input id="au-cover-${catKey}" type="url" placeholder="Automatikusan töltjük…" />
+        </div>
+
+        <div>
+          <label for="au-content-${catKey}">Tartalom / leírás</label>
+          <textarea id="au-content-${catKey}" placeholder="Automatikusan töltjük…"></textarea>
+        </div>
+
+        <div class="preview">
+          <img id="au-preview-${catKey}" alt="Borító előnézet" src="" onerror="this.style.display='none'">
+          <div class="muted">Előnézet: ha van borítókép URL, itt megjelenik.</div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="au-autofill-${catKey}" type="button">Auto kitöltés</button>
+          <button class="btn primary" id="au-save-${catKey}" type="button">Mentés</button>
+          <button class="btn" id="au-clear-${catKey}" type="button">Mezők törlése</button>
+        </div>
+
+        <div class="muted" id="au-msg-${catKey}"></div>
+      </div>
+    `;
+
+    mountBeforeEl.parentNode.insertBefore(box, mountBeforeEl);
+
+    const el = {
+      link:    q(`#au-link-${catKey}`),
+      title:   q(`#au-title-${catKey}`),
+      cover:   q(`#au-cover-${catKey}`),
+      content: q(`#au-content-${catKey}`),
+      prev:    q(`#au-preview-${catKey}`),
+      msg:     q(`#au-msg-${catKey}`),
+      btnAuto: q(`#au-autofill-${catKey}`),
+      btnSave: q(`#au-save-${catKey}`),
+      btnClr:  q(`#au-clear-${catKey}`)
+    };
+
+    function showMsg(t){ if(el.msg) el.msg.textContent = t; }
+    function refreshPrev(){
+      const url = (el.cover?.value||"").trim();
+      if (!el.prev) return;
+      if (url){ el.prev.src = url; el.prev.style.display = ""; }
+      else { el.prev.removeAttribute("src"); el.prev.style.display = "none"; }
+    }
+
+    async function doAutofill(){
+      const url = (el.link?.value||"").trim();
+      if (!url){ showMsg("Előbb illeszd be a linket."); return; }
+      showMsg("Meta adatok töltése…");
+      try{
+        const meta = await extractMeta(url);
+        if (meta.title && el.title)   el.title.value   = meta.title;
+        if (meta.cover && el.cover)   el.cover.value   = meta.cover;
+        if (el.content && meta.content) el.content.value = meta.content;
+        refreshPrev();
+        showMsg("Kész. Ellenőrizd és mentsd el.");
+      }catch(e){
+        showMsg("Nem sikerült a meta adatok kinyerése.");
+      }
+    }
+
+    async function doSave(){
+      const data = {
+        title:   (el.title?.value||"").trim(),
+        link:    (el.link?.value||"").trim(),
+        cover:   (el.cover?.value||"").trim(),
+        content: (el.content?.value||"").trim()
+      };
+      if (!data.link){ showMsg("Adj meg linket."); return; }
+      if (!data.title){ showMsg("Adj meg címet (vagy katt az Auto kitöltésre)."); return; }
+
+      showMsg("Mentés…");
+      const ok = await saveMovie(catKey, data);
+      if (ok){
+        showMsg("Elmentve.");
+        // ürítés
+        ["title","link","cover","content"].forEach(k=> el[k] && (el[k].value=""));
+        refreshPrev();
+      }else{
+        showMsg("Mentés kihagyva (nincs Firestore beállítva). A bejegyzést a konzolba írtuk.");
+        console.log("DEMO mentés:", catKey, data);
+      }
+    }
+
+    // események
+    el.btnAuto?.addEventListener("click", doAutofill);
+    el.link?.addEventListener("paste", ()=> setTimeout(doAutofill, 50));
+    el.link?.addEventListener("change", doAutofill);
+    el.cover?.addEventListener("input", refreshPrev);
+    el.btnClr?.addEventListener("click", ()=>{
+      ["title","link","cover","content"].forEach(k=> el[k] && (el[k].value=""));
+      refreshPrev(); showMsg("");
+    });
+    el.btnSave?.addEventListener("click", doSave);
+  }
+
+  // Figyeljük, mikor nyílik meg bármelyik kategória-nézet (list-<catKey>)
+  function tryMount(){
+    if (!isAdmin()) return;
+    const list = q('#view [id^="list-"]');
+    if (!list) return;
+    const id = list.id;            // pl. list-krimi
+    const catKey = id.replace(/^list-/,''); // krimi
+    if (!catKey) return;
+    // űrlap a list kártyája ELÉ
+    mountUploader(catKey, list);
+  }
+
+  const mo = new MutationObserver(()=> tryMount());
+  mo.observe(document.getElementById("view"), { childList:true, subtree:true });
+  document.addEventListener("DOMContentLoaded", tryMount);
+})();
+</script>
+<!-- ===== [SZAKASZ 3.5 VÉGE] ===== -->
+
 <!-- ===== [SZAKASZ 3] FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET – END ===== -->
 
 <!-- ===== [SZAKASZ 4] STÍLUS – START ===== -->
