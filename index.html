@@ -561,80 +561,142 @@
 </script>
 <!-- ===== [SZAKASZ 5] VÉGE ===== -->
 
-<!-- =========================
-     6. rész eleje – AUTH (vendég + admin)
-========================== -->
+<!-- ===== [SZAKASZ 6] ADMIN BELÉPŐ – „A” GOMB (TELJES CSERE) ===== -->
+<style>
+  #adminMini {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+    padding: 12px;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    background: #0b1220;
+  }
+  #adminMini label { font-size: 12px; color: #9ca3af; }
+  #adminMini input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #374151;
+    background: #0f172a;
+    color: #e5e7eb;
+  }
+  #adminMini .row { display: flex; gap: 8px; }
+  #adminMini .btn {
+    background: #1f2937; border: 1px solid #334155; color: #fff;
+    padding: 8px 12px; border-radius: 10px; cursor: pointer;
+  }
+  #adminMini .btn.primary { background: #2563eb; border-color: #1d4ed8; }
+  #adminMini .btn:active { transform: scale(.98); }
+  #adminMini .err { color: #fca5a5; font-size: 12px; min-height: 16px; }
+</style>
+
+<!-- a mini admin űrlap a PIN kapu dobozába kerül dinamikusan -->
 <script type="module">
-  import { onAuthStateChanged, signInWithEmailAndPassword, signOut }
-    from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
-  const { auth } = window.fb;
+  const auth = getAuth(); // a már inicializált Firebase App auth-ja
 
-  const pinView      = document.getElementById('pinView');
-  const appView      = document.getElementById('app');
-  const guestPin     = document.getElementById('guestPin');
-  const btnShowAdmin = document.getElementById('btnShowAdmin');
-  const adminForm    = document.getElementById('adminLoginForm');
-  const btnLogout    = document.getElementById('btnAdminLogout');
-  const btnAdd       = document.getElementById('btnAddGlobal');
-  const adminPanel   = document.getElementById('adminPanel');
-  const pinError     = document.getElementById('pinError');
+  function buildAdminMiniOnce(){
+    if (document.getElementById("adminMini")) return;
+    const gateBox = document.getElementById("gateBox");
+    if (!gateBox) return;
 
-  // Vendég beléptetés automatikusan 6 szám után
-  async function guestLogin(){
-    try {
-      await signInWithEmailAndPassword(auth,"guest@filmek-anyunak.app","195400");
-    } catch(e) {
-      if(pinError){ pinError.textContent="Hibás PIN kód!"; pinError.style.display="block"; }
-      if(guestPin){ guestPin.value=""; guestPin.focus(); }
+    const box = document.createElement("div");
+    box.id = "adminMini";
+    box.innerHTML = `
+      <div class="err" id="adminMiniErr"></div>
+      <div>
+        <label for="adminMiniEmail">Admin email</label>
+        <input id="adminMiniEmail" type="email" inputmode="email" autocomplete="off" autocapitalize="none" spellcheck="false" />
+      </div>
+      <div>
+        <label for="adminMiniPass">Jelszó</label>
+        <input id="adminMiniPass" type="password" autocomplete="current-password" />
+      </div>
+      <div class="row">
+        <button class="btn" id="adminMiniCancel" type="button">Mégse</button>
+        <button class="btn primary" id="adminMiniLogin" type="button">Belépés</button>
+      </div>
+    `;
+    gateBox.appendChild(box);
+
+    // események
+    document.getElementById("adminMiniCancel")?.addEventListener("click", hideAdminMini);
+    document.getElementById("adminMiniLogin")?.addEventListener("click", doAdminLogin);
+    document.getElementById("adminMiniPass")?.addEventListener("keyup", (e)=>{
+      if (e.key === "Enter") doAdminLogin();
+    });
+  }
+
+  function showAdminMini(){
+    buildAdminMiniOnce();
+    const box = document.getElementById("adminMini");
+    if (!box) return;
+    box.style.display = "flex";
+    const email = document.getElementById("adminMiniEmail");
+    const pass  = document.getElementById("adminMiniPass");
+    const err   = document.getElementById("adminMiniErr");
+    if (err) err.textContent = "";
+    if (email) email.focus();
+    // opcionális: előtöltés
+    if (email && !email.value) {
+      try {
+        const saved = localStorage.getItem("admin_email") || "";
+        if (saved) email.value = saved;
+      } catch {}
     }
   }
-  if (guestPin){
-    guestPin.addEventListener('input',()=>{
-      if(pinError) pinError.style.display="none";
-      if(guestPin.value.replace(/\D/g,'').length===6) guestLogin();
-    });
+  function hideAdminMini(){
+    const box = document.getElementById("adminMini");
+    if (box) box.style.display = "none";
+  }
+  async function doAdminLogin(){
+    const email = document.getElementById("adminMiniEmail")?.value.trim();
+    const pass  = document.getElementById("adminMiniPass")?.value || "";
+    const errEl = document.getElementById("adminMiniErr");
+
+    if (!email || !pass){
+      if (errEl) errEl.textContent = "Töltsd ki az emailt és a jelszót.";
+      return;
+    }
+    try{
+      // Firebase Auth bejelentkezés
+      await signInWithEmailAndPassword(auth, email, pass);
+
+      // jelöljük, hogy vendégkapu nyitva + admin is ok
+      try {
+        localStorage.setItem("filmek_anyunak_guest_ok", "1");
+        localStorage.setItem("filmek_anyunak_admin_ok", "1");
+        localStorage.setItem("admin_email", email);
+      } catch {}
+
+      // PIN kapu elrejtése
+      const gate = document.getElementById("gateOverlay");
+      gate?.classList.remove("active");
+      document.body.classList.remove("gate-active");
+      hideAdminMini();
+    }catch(e){
+      const msg = (e && e.message) ? e.message : "Ismeretlen hiba.";
+      if (errEl) errEl.textContent = "Sikertelen belépés: " + msg;
+    }
   }
 
-  // Admin űrlap mutatás/elrejtés – mindig üres mezőkkel nyisson
-  if (btnShowAdmin && adminForm){
-    btnShowAdmin.addEventListener('click',()=>{
-      adminForm.classList.toggle('show');
-      if(adminForm.classList.contains('show')){
-        const e=document.getElementById('adminEmail'), p=document.getElementById('adminPass');
-        if(e) e.value=""; if(p) p.value=""; e?.focus();
-      }
-    });
-  }
-
-  // Admin belépés
-  adminForm?.addEventListener('submit',async ev=>{
-    ev.preventDefault();
-    const email=document.getElementById('adminEmail').value.trim();
-    const pass =document.getElementById('adminPass').value;
-    try{ await signInWithEmailAndPassword(auth,email,pass); }
-    catch(e){ alert("Hiba: "+(e?.message||e)); }
-    finally{ const p=document.getElementById('adminPass'); if(p) p.value=""; }
-  });
-
-  // Kijelentkezés
-  btnLogout?.addEventListener('click', async ()=>{ await signOut(auth); });
-
-  // Auth állapot váltás
-  onAuthStateChanged(auth,u=>{
-    const logged=!!u;
-    const isAdmin=logged && u.email==="chisnyan@gmail.com";
-    pinView?.classList.toggle('hidden',logged);
-    appView?.classList.toggle('hidden',!logged);
-    btnLogout?.classList.toggle('hidden',!logged);
-    btnAdd?.classList.toggle('hidden',!isAdmin);
-    adminPanel?.classList.toggle('hidden',!isAdmin);
-    if(logged && window.startRealtime) window.startRealtime();
+  // „A” gomb felülbírálása – CAPTURE fázisban, hogy a régi alert ne fusson
+  document.addEventListener("DOMContentLoaded", () => {
+    const aBtn = document.getElementById("adminTinyBtn");
+    if (!aBtn) return;
+    aBtn.addEventListener("click", (ev)=>{
+      ev.preventDefault();
+      ev.stopPropagation();
+      ev.stopImmediatePropagation?.();
+      showAdminMini();
+    }, true); // capture = true
   });
 </script>
-<!-- =========================
-     6. rész vége
-========================== -->
+<!-- ===== [SZAKASZ 6] VÉGE ===== -->
+
      
 <!-- =========================
      7. rész eleje – BELÉPŐ (vendég PIN + admin gomb/űrlap)
