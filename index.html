@@ -101,10 +101,9 @@
     if (norm.length === 6 && norm === PIN) hideGate();
   }
 
-  // publikus hívások
+  // publikus
   window.showPinGate = showGate;
 
-  // induláskor: ha nincs „ok” jel, mutasd a kaput
   document.addEventListener("DOMContentLoaded", () => {
     const ok = (()=>{ try { return localStorage.getItem(LS_KEY) === "1"; } catch { return false; } })();
     if (!ok) showGate();
@@ -115,13 +114,16 @@
       const t=(e.clipboardData||window.clipboardData).getData("text")||""; handle(t);
     });
 
-    // „A” – admin
-    document.getElementById("adminTinyBtn")?.addEventListener("click", () => {
-      if (typeof openAdminModal === "function") return openAdminModal();
-      alert("Admin belépés hamarosan elérhető.");
+    // <<< FIX: „A” gomb – a mini admin-belépőt nyitja (nincs alert)
+    document.getElementById("adminTinyBtn")?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      // a SZAKASZ 6-ban definiált showAdminMini-t hívjuk
+      if (typeof window.showAdminMini === "function") {
+        window.showAdminMini();
+      }
     });
 
-    // Működő „Kilépés mindenből”
+    // „Kilépés mindenből” visszadob a PIN kapura
     document.getElementById("btnLogoutAll")?.addEventListener("click", () => {
       try{
         localStorage.removeItem(LS_KEY);
