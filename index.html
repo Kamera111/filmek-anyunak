@@ -561,42 +561,30 @@
 </script>
 <!-- ===== [SZAKASZ 5] VÉGE ===== -->
 
-<!-- ===== [SZAKASZ 6] ADMIN BELÉPŐ – „A” GOMB (TELJES CSERE) ===== -->
+<!-- ===== [SZAKASZ 6] ADMIN BELÉPŐ – „A” GOMB ===== -->
 <style>
-  #adminMini {
-    display: none;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 6px;
-    padding: 12px;
-    border: 1px solid #334155;
-    border-radius: 12px;
-    background: #0b1220;
+  #adminMini{
+    display:none; flex-direction:column; gap:10px; margin-top:6px;
+    padding:12px; border:1px solid #334155; border-radius:12px; background:#0b1220;
   }
-  #adminMini label { font-size: 12px; color: #9ca3af; }
-  #adminMini input {
-    width: 100%;
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid #374151;
-    background: #0f172a;
-    color: #e5e7eb;
+  #adminMini label{ font-size:12px; color:#9ca3af; }
+  #adminMini input{
+    width:100%; padding:10px; border-radius:10px; border:1px solid #374151;
+    background:#0f172a; color:#e5e7eb;
   }
-  #adminMini .row { display: flex; gap: 8px; }
-  #adminMini .btn {
-    background: #1f2937; border: 1px solid #334155; color: #fff;
-    padding: 8px 12px; border-radius: 10px; cursor: pointer;
+  #adminMini .row{ display:flex; gap:8px; }
+  #adminMini .btn{
+    background:#1f2937; border:1px solid #334155; color:#fff;
+    padding:8px 12px; border-radius:10px; cursor:pointer;
   }
-  #adminMini .btn.primary { background: #2563eb; border-color: #1d4ed8; }
-  #adminMini .btn:active { transform: scale(.98); }
-  #adminMini .err { color: #fca5a5; font-size: 12px; min-height: 16px; }
+  #adminMini .btn.primary{ background:#2563eb; border-color:#1d4ed8; }
+  #adminMini .btn:active{ transform:scale(.98); }
+  #adminMini .err{ color:#fca5a5; font-size:12px; min-height:16px; }
 </style>
 
-<!-- a mini admin űrlap a PIN kapu dobozába kerül dinamikusan -->
 <script type="module">
   import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-
-  const auth = getAuth(); // a már inicializált Firebase App auth-ja
+  const auth = getAuth();
 
   function buildAdminMiniOnce(){
     if (document.getElementById("adminMini")) return;
@@ -609,7 +597,8 @@
       <div class="err" id="adminMiniErr"></div>
       <div>
         <label for="adminMiniEmail">Admin email</label>
-        <input id="adminMiniEmail" type="email" inputmode="email" autocomplete="off" autocapitalize="none" spellcheck="false" />
+        <input id="adminMiniEmail" type="email" inputmode="email" autocomplete="off"
+               autocapitalize="none" spellcheck="false" />
       </div>
       <div>
         <label for="adminMiniPass">Jelszó</label>
@@ -622,7 +611,6 @@
     `;
     gateBox.appendChild(box);
 
-    // események
     document.getElementById("adminMiniCancel")?.addEventListener("click", hideAdminMini);
     document.getElementById("adminMiniLogin")?.addEventListener("click", doAdminLogin);
     document.getElementById("adminMiniPass")?.addEventListener("keyup", (e)=>{
@@ -639,42 +627,31 @@
     const pass  = document.getElementById("adminMiniPass");
     const err   = document.getElementById("adminMiniErr");
     if (err) err.textContent = "";
-    if (email) email.focus();
-    // opcionális: előtöltés
-    if (email && !email.value) {
-      try {
-        const saved = localStorage.getItem("admin_email") || "";
-        if (saved) email.value = saved;
-      } catch {}
+    if (email && !email.value){
+      try{ const saved = localStorage.getItem("admin_email")||""; if(saved) email.value = saved; }catch{}
     }
+    email?.focus();
   }
   function hideAdminMini(){
     const box = document.getElementById("adminMini");
     if (box) box.style.display = "none";
   }
+
   async function doAdminLogin(){
     const email = document.getElementById("adminMiniEmail")?.value.trim();
     const pass  = document.getElementById("adminMiniPass")?.value || "";
     const errEl = document.getElementById("adminMiniErr");
+    if (!email || !pass){ if (errEl) errEl.textContent = "Töltsd ki az emailt és a jelszót."; return; }
 
-    if (!email || !pass){
-      if (errEl) errEl.textContent = "Töltsd ki az emailt és a jelszót.";
-      return;
-    }
     try{
-      // Firebase Auth bejelentkezés
       await signInWithEmailAndPassword(auth, email, pass);
-
-      // jelöljük, hogy vendégkapu nyitva + admin is ok
-      try {
-        localStorage.setItem("filmek_anyunak_guest_ok", "1");
-        localStorage.setItem("filmek_anyunak_admin_ok", "1");
+      try{
+        localStorage.setItem("filmek_anyunak_guest_ok","1");
+        localStorage.setItem("filmek_anyunak_admin_ok","1");
         localStorage.setItem("admin_email", email);
-      } catch {}
-
+      }catch{}
       // PIN kapu elrejtése
-      const gate = document.getElementById("gateOverlay");
-      gate?.classList.remove("active");
+      document.getElementById("gateOverlay")?.classList.remove("active");
       document.body.classList.remove("gate-active");
       hideAdminMini();
     }catch(e){
@@ -683,20 +660,21 @@
     }
   }
 
-  // „A” gomb felülbírálása – CAPTURE fázisban, hogy a régi alert ne fusson
+  // „A” gomb biztos felülírása: klónozással eltávolítjuk a régi (alertes) listenert
   document.addEventListener("DOMContentLoaded", () => {
-    const aBtn = document.getElementById("adminTinyBtn");
-    if (!aBtn) return;
-    aBtn.addEventListener("click", (ev)=>{
-      ev.preventDefault();
-      ev.stopPropagation();
-      ev.stopImmediatePropagation?.();
-      showAdminMini();
-    }, true); // capture = true
+    const oldBtn = document.getElementById("adminTinyBtn");
+    if (oldBtn){
+      const newBtn = oldBtn.cloneNode(true);
+      oldBtn.replaceWith(newBtn);
+      newBtn.id = "adminTinyBtn";
+      newBtn.addEventListener("click", (ev)=>{ ev.preventDefault(); showAdminMini(); });
+    }
   });
+
+  // opcionális: elérhetővé tesszük globálisan (ha később hívnád)
+  window.showAdminMini = showAdminMini;
 </script>
 <!-- ===== [SZAKASZ 6] VÉGE ===== -->
-
      
 <!-- =========================
      7. rész eleje – BELÉPŐ (vendég PIN + admin gomb/űrlap)
