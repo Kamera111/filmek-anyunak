@@ -658,8 +658,7 @@
 })();
 </script>
 <!-- ===== [SZAKASZ 5] VÉGE ===== -->
-
-<!-- ===== [SZAKASZ 6] ADMIN BELÉPŐ – „A” GOMB (TELJES CSERE) ===== -->
+<!-- ===== [SZAKASZ 6] ADMIN – MINI ŰRLAP + „A” GOMB (TELJES CSERE) ===== -->
 <style>
   #adminMini{
     display:none; flex-direction:column; gap:10px; margin-top:8px;
@@ -682,9 +681,8 @@
 
 <script type="module">
   import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-  const auth = getAuth(); // a már inicializált Firebase App auth-ja
 
-  /* --- mini admin űrlap a PIN dobozban --- */
+  /* ===== Mini admin űrlap felépítése egyszer ===== */
   function buildAdminMiniOnce(){
     if (document.getElementById("adminMini")) return;
     const gateBox = document.getElementById("gateBox");
@@ -712,82 +710,97 @@
 
     document.getElementById("adminMiniCancel")?.addEventListener("click", hideAdminMini);
     document.getElementById("adminMiniLogin")?.addEventListener("click", doAdminLogin);
-    document.getElementById("adminMiniPass")?.addEventListener("keyup", (e)=>{
-      if (e.key === "Enter") doAdminLogin();
+    document.getElementById("adminMiniPass")?.addEventListener("keyup",(e)=>{
+      if(e.key==="Enter") doAdminLogin();
     });
   }
+
   function showAdminMini(){
     buildAdminMiniOnce();
     const box = document.getElementById("adminMini");
     if (!box) return;
     box.style.display = "flex";
+
     const email = document.getElementById("adminMiniEmail");
-    const err   = document.getElementById("adminMiniErr");
+    const err = document.getElementById("adminMiniErr");
     if (err) err.textContent = "";
     if (email && !email.value){
       try{ const saved = localStorage.getItem("admin_email")||""; if(saved) email.value = saved; }catch{}
     }
     email?.focus();
   }
+
   function hideAdminMini(){
     const box = document.getElementById("adminMini");
     if (box) box.style.display = "none";
   }
-  async function doAdminLogin(){
-    const email = document.getElementById("adminMiniEmail")?.value.trim();
-    const pass  = document.getElementById("adminMiniPass")?.value || "";
-    const errEl = document.getElementById("adminMiniErr");
-    if (!email || !pass){ if (errEl) errEl.textContent = "Töltsd ki az emailt és a jelszót."; return; }
 
-    try{
-      await signInWithEmailAndPassword(auth, email, pass);
-      try{
-        localStorage.setItem("filmek_anyunak_guest_ok","1");
-        localStorage.setItem("filmek_anyunak_admin_ok","1");
-        localStorage.setItem("admin_email", email);
-      }catch{}
-      document.getElementById("gateOverlay")?.classList.remove("active");
-      document.body.classList.remove("gate-active");
-      hideAdminMini();
-    }catch(e){
-      const msg = (e && e.message) ? e.message : "Ismeretlen hiba.";
-      if (errEl) errEl.textContent = "Sikertelen belépés: " + msg;
-    }
-  }
-
-  /* --- A gomb teljes felülírása (minden korábbi listener törlése) --- */
+  /* ===== „A” gomb újrakötése (régi listenereket kiütjük) ===== */
   function wireAGomb(){
     const btn = document.getElementById("adminTinyBtn");
     if (!btn) return;
 
-    // töröljük az inline onclick-et, ha lenne
-    btn.onclick = null;
-
-    // klónozzuk, hogy MINDEN korábbi event listener lekerüljön (pl. az alert)
+    // minden régi handler eltávolítása
     const clone = btn.cloneNode(true);
     btn.replaceWith(clone);
 
-    // saját handler – a régi alert NEM fog lefutni
-    clone.addEventListener("click", (ev)=>{
+    clone.addEventListener("click",(ev)=>{
       ev.preventDefault();
       ev.stopPropagation();
       ev.stopImmediatePropagation?.();
       showAdminMini();
     }, true);
-
-    // elérhető globálisan is, ha máshonnan hívnád
-    window.showAdminMini = showAdminMini;
   }
 
-  // futtasd most is, és DOM készre is – plusz figyeljük, ha később kerül be a gomb
-  if (document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", wireAGomb, {once:true});
-  } else {
+  /* ===== Admin bejelentkezés (Firebase, ha elérhető; különben fallback) ===== */
+  async function doAdminLogin(){
+    const email = document.getElementById("adminMiniEmail")?.value.trim();
+    const pass  = document.getElementById("adminMiniPass")?.value || "";
+    const errEl = document.getElementById("adminMiniErr");
+    if (!email || !pass){ if(errEl) errEl.textContent = "Töltsd ki az emailt és a jelszót."; return; }
+
+    let ok = false;
+    try{
+      const auth = (window.fb && window.fb.auth) ? window.fb.auth : getAuth();
+      await signInWithEmailAndPassword(auth, email, pass);
+      ok = true;
+    }catch(e){
+      // ha nincs Firebase vagy hiba, marad fallback
+    }
+
+    try{ localStorage.setItem("admin_email", email); }catch{}
+    if (ok){
+      try{
+        localStorage.setItem("filmek_anyunak_guest_ok","1");
+        localStorage.setItem("filmek_anyunak_admin_ok","1");
+      }catch{}
+      document.getElementById("gateOverlay")?.classList.remove("active");
+      document.body.classList.remove("gate-active");
+      hideAdminMini();
+    }else{
+      if(errEl) errEl.textContent = "Sikertelen belépés. Ellenőrizd az adatokat.";
+    }
+  }
+
+  /* ===== Init ===== */
+  function initAdminGate(){
     wireAGomb();
+
+    // ha a gomb később kerül be, figyeljük egy kicsit a DOM-ot
+    const obs = new MutationObserver(()=> wireAGomb());
+    obs.observe(document.documentElement, {subtree:true, childList:true});
+    setTimeout(()=>obs.disconnect(), 6000);
   }
-  const obs = new MutationObserver(()=>wireAGomb());
-  obs.observe(document.documentElement, {subtree:true, childList:true});
-  setTimeout(()=>obs.disconnect(), 4000); // 4 mp figyelés elég
+
+  if (document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", initAdminGate, {once:true});
+  }else{
+    initAdminGate();
+  }
+
+  // Kívülről is meghívható
+  window.showAdminMini = showAdminMini;
+})();
 </script>
 <!-- ===== [SZAKASZ 6] VÉGE ===== -->
      
