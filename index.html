@@ -530,6 +530,161 @@
 })();
 </script>
 <!-- ===== [SZAKASZ 3.5 VÉGE] ===== -->
+     <!-- ===== [SZAKASZ 3.6] FILMLISTA + ADATSZINKRON (Admin: realtime, Vendég: manuális) ===== -->
+<script>
+(function(){
+  const ADMIN_OK_KEY = "filmek_anyunak_admin_ok";
+
+  const isAdmin = ()=> { try{ return localStorage.getItem(ADMIN_OK_KEY)==="1"; }catch{ return false; } };
+  const $ = (sel,root=document)=> root.querySelector(sel);
+
+  /* ---------- Firestore betöltés (opcionális) ---------- */
+  async function ensureFirestore(){
+    // Ha a projekt máshol inicializálta (window.fb.db), használjuk azt
+    if (window.fb && window.fb.db){
+      const { db, collection, getDocs, addDoc, onSnapshot, query, orderBy, limit, serverTimestamp } = window.fb.db;
+      return { db, collection, getDocs, addDoc, onSnapshot, query, orderBy, limit, serverTimestamp, from: "fb" };
+    }
+    // Dinamikus betöltés – csak ha van firebaseConfig
+    try{
+      const appMod = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js");
+      const fsMod  = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js");
+      if (appMod.getApps && appMod.getApps().length===0 && window.firebaseConfig){
+        appMod.initializeApp(window.firebaseConfig);
+      }
+      const db = fsMod.getFirestore();
+      return {
+        db,
+        collection: fsMod.collection,
+        getDocs: fsMod.getDocs,
+        addDoc: fsMod.addDoc,
+        onSnapshot: fsMod.onSnapshot,
+        query: fsMod.query,
+        orderBy: fsMod.orderBy,
+        limit: fsMod.limit,
+        serverTimestamp: fsMod.serverTimestamp,
+        from: "dyn"
+      };
+    }catch(e){
+      console.warn("Firestore nem elérhető (demo mód):", e && e.message ? e.message : e);
+      return null;
+    }
+  }
+
+  /* ---------- Render segédek ---------- */
+  function cardHtml(m){
+    const cover = m.cover ? `<img src="${escapeHtml(m.cover)}" alt="" style="width:100%;border-radius:10px;margin-bottom:8px;border:1px solid #1f2937" onerror="this.style.display='none'">` : "";
+    const title = escapeHtml(m.title || "Cím nélkül");
+    const link  = escapeHtml(m.link  || "#");
+    const content = escapeHtml(m.content || "");
+    return `
+      <div class="card">
+        ${cover}
+        <div style="font-weight:800;margin-bottom:6px">${title}</div>
+        <div class="muted" style="margin-bottom:8px">${content}</div>
+        <a href="${link}" target="_blank" rel="noopener" class="btn">Megnyitás</a>
+      </div>
+    `;
+  }
+  function escapeHtml(str){
+    return String(str||"")
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  }
+  function showInfo(listEl, msg){
+    if (!listEl) return;
+    listEl.innerHTML = `<div class="muted" style="grid-column:1/-1;padding:6px 2px">${escapeHtml(msg)}</div>`;
+  }
+
+  function updateTopBadges(catKey, total){
+    const bidTotal = document.getElementById(`badge-all-${catKey}`);
+    if (bidTotal) bidTotal.textContent = String(total||0);
+    // „Új” jelzőt most a total-lal egyenlőre 0-n hagyjuk vagy azonosra vesszük, ha akarod:
+    const bidNew   = document.getElementById(`badge-new-${catKey}`);
+    if (bidNew && typeof total==="number") bidNew.textContent = "0";
+  }
+
+  /* ---------- Lekérés/előfizetés ---------- */
+  async function loadOnce(catKey, listEl){
+    const fx = await ensureFirestore();
+    if (!fx){ showInfo(listEl, "Demo mód: nincs adatbázis, ezért nincs betöltendő film."); return; }
+    const { db, collection, getDocs, query, orderBy, limit } = fx;
+    const q = query(collection(db,"categories",catKey,"movies"), orderBy("createdAt","desc"), limit(200));
+    const snap = await getDocs(q);
+    const movies = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    renderList(listEl, catKey, movies);
+  }
+
+  async function subscribeAdmin(catKey, listEl){
+    const fx = await ensureFirestore();
+    if (!fx){ showInfo(listEl, "Demo mód: nincs adatbázis, real-time lista nem elérhető."); return ()=>{}; }
+    const { db, collection, onSnapshot, query, orderBy, limit } = fx;
+    const q = query(collection(db,"categories",catKey,"movies"), orderBy("createdAt","desc"), limit(200));
+    const unsub = onSnapshot(q, (snap)=>{
+      const movies = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+      renderList(listEl, catKey, movies);
+    }, (err)=>{
+      console.warn("Realtime hiba:", err);
+      showInfo(listEl, "Nem sikerült real-time frissíteni.");
+    });
+    return unsub;
+  }
+
+  function renderList(listEl, catKey, movies){
+    if (!listEl) return;
+    if (!movies || !movies.length){
+      listEl.innerHTML = "";
+      updateTopBadges(catKey, 0);
+      showInfo(listEl, "Még nincs film ebben a kategóriában.");
+      return;
+    }
+    listEl.innerHTML = movies.map(cardHtml).join("");
+    updateTopBadges(catKey, movies.length);
+  }
+
+  /* ---------- Integráció a meglévő nézettel ---------- */
+  let currentCat = null;
+  let currentUnsub = null;
+
+  async function attachToOpenCategory(){
+    const list = document.querySelector('#view [id^="list-"]');
+    if (!list) return;
+    const catKey = list.id.replace(/^list-/,'');
+    if (!catKey || catKey === currentCat) return;
+
+    // bontsuk a korábbi előfizetést
+    if (typeof currentUnsub === "function"){ try{ currentUnsub(); }catch{} }
+    currentUnsub = null;
+    currentCat = catKey;
+
+    if (isAdmin()){
+      // Admin: realtime
+      showInfo(list, "Valós idejű lista töltése…");
+      currentUnsub = await subscribeAdmin(catKey, list);
+    }else{
+      // Vendég: egyszeri lekérés
+      showInfo(list, "Lista betöltése…");
+      await loadOnce(catKey, list);
+    }
+  }
+
+  // Meglévő „Frissítés” gomb – vendég módban újratölt
+  document.getElementById("btnRefreshAll")?.addEventListener("click", async ()=>{
+    const list = document.querySelector('#view [id^="list-"]');
+    if (!list || !currentCat) return;
+    if (isAdmin()) return; // adminnál realtime megy
+    showInfo(list, "Frissítés…");
+    await loadOnce(currentCat, list);
+  });
+
+  // Figyeljük, mikor nyílik meg egy kategória nézet
+  const mo = new MutationObserver(()=> attachToOpenCategory());
+  mo.observe(document.getElementById("view"), { childList:true, subtree:true });
+  document.addEventListener("DOMContentLoaded", attachToOpenCategory);
+
+})();
+</script>
+<!-- ===== [SZAKASZ 3.6 VÉGE] ===== -->
 
 <!-- ===== [SZAKASZ 3] FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET – END ===== -->
 
