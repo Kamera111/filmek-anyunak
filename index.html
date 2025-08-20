@@ -133,7 +133,7 @@
 </script>
 <!-- ===== [SZAKASZ 2] VÉGE ===== -->
 
-<!-- ===== [SZAKASZ 3] FEJLÉC + KATEGÓRIÁK + NÉZETEK – START ===== -->
+<!-- ===== [SZAKASZ 3] FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET – START ===== -->
 <div id="app" class="wrap">
   <div class="sticky">
     <header>
@@ -146,7 +146,7 @@
       </div>
     </header>
 
-    <!-- Felső színes gombsor -->
+    <!-- Felső színes kategória-gombok (látszik vendégnek is) -->
     <div id="topFilters" class="top-filters">
       <button class="chip chip-krimi" data-goto="krimi">
         <div class="chip-title">KRIMI</div>
@@ -181,7 +181,90 @@
   <!-- Dinamikus nézetek ide kerülnek -->
   <main id="view" class="view"></main>
 </div>
-<!-- ===== [SZAKASZ 3] FEJLÉC + KATEGÓRIÁK + NÉZETEK – END ===== -->
+
+<style>
+  /* Felső színes gombsor */
+  .top-filters{
+    display:grid; grid-template-columns:repeat(4, minmax(140px,1fr));
+    gap:10px; padding: 6px 12px 12px;
+  }
+  @media (max-width:900px){ .top-filters{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:520px){ .top-filters{ grid-template-columns:1fr; } }
+
+  .chip{
+    display:flex; flex-direction:column; gap:4px;
+    padding:12px 14px; border-radius:14px; color:#fff;
+    border:1px solid rgba(255,255,255,.16);
+    box-shadow:0 4px 14px rgba(0,0,0,.18);
+    cursor:pointer; text-align:left;
+    transition:transform .08s ease, box-shadow .12s ease, filter .12s ease;
+  }
+  .chip:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.22); filter:brightness(1.03); }
+  .chip-title{ font-weight:800; letter-spacing:.3px; }
+  .chip-sub{ font-size:14px; opacity:.95; }
+  .chip-sub .tag{ opacity:.9; }
+
+  .chip-krimi{    background:linear-gradient(180deg,#16a34a,#15803d); }
+  .chip-akcio{    background:linear-gradient(180deg,#2563eb,#1e40af); }
+  .chip-thriller{ background:linear-gradient(180deg,#e11d48,#be123c); }
+  .chip-actors{   background:linear-gradient(180deg,#f59e0b,#b45309); }
+
+  /* Vissza gomb a nézetekben */
+  .btn-back{ margin-bottom:12px; }
+</style>
+
+<script>
+/* Minimál navigáció a 4 kategóriához – adat nélkül, helyőrző nézetekkel */
+(function(){
+  const viewEl = document.getElementById("view");
+  const catBar = document.getElementById("catBar");
+  const topBox = document.getElementById("topFilters");
+
+  function goHome(){
+    catBar.style.display = "";
+    viewEl.innerHTML = "";
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+
+  function renderCat(catKey, label){
+    catBar.style.display = "none";
+    viewEl.innerHTML = `
+      <div class="card" style="margin:12px;">
+        <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
+        <h2 style="margin:4px 0 8px">${label}</h2>
+        <div class="muted" style="margin-bottom:10px">Görgess – hamarosan ide töltjük a filmeket…</div>
+        <div id="list-${catKey}" class="grid"></div>
+      </div>`;
+    document.getElementById("btnBackHome").addEventListener("click", goHome);
+  }
+
+  function renderActors(){
+    catBar.style.display = "none";
+    viewEl.innerHTML = `
+      <div class="card" style="margin:12px;">
+        <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
+        <h2 style="margin:4px 0 8px">Színészek</h2>
+        <div class="muted" style="margin-bottom:10px">20 név lesz itt – kattintható szűréssel.</div>
+        <ul id="actorsList" style="margin:0; padding-left:18px;"></ul>
+      </div>`;
+    document.getElementById("btnBackHome").addEventListener("click", goHome);
+  }
+
+  document.addEventListener("DOMContentLoaded", ()=>{
+    topBox?.addEventListener("click", (e)=>{
+      const btn = e.target.closest(".chip");
+      if(!btn) return;
+      const dest = btn.dataset.goto;
+      if(dest === "krimi")    renderCat("krimi","KRIMI");
+      if(dest === "akcio")    renderCat("akcio","AKCIÓ");
+      if(dest === "thriller") renderCat("thriller","THRILLER");
+      if(dest === "actors")   renderActors();
+      window.scrollTo({top:0, behavior:"smooth"});
+    });
+  });
+})();
+</script>
+<!-- ===== [SZAKASZ 3] FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET – END ===== -->
 
 <!-- ===== [SZAKASZ 4] STÍLUS – START ===== -->
 <style>
