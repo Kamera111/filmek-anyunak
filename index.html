@@ -268,51 +268,66 @@
 
 <!-- ===== [SZAKASZ 4] STÍLUS – START ===== -->
 <style>
-  /* Felesleges főcímek rejtése */
+  /* alap rejtések */
   h1, h2 { display:none !important; }
 
-  /* Felső sáv + rács */
+  /* rács – élő kártyák */
   #catBar { padding: 12px; }
-  .cats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
-    gap: 12px;
+  .cats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; }
+
+  /* kártya */
+  .cat{
+    display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+    padding:14px 16px; border-radius:14px; background:#1f2937; color:#fff; cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,.18); transition:transform .08s ease, box-shadow .12s ease;
+    min-height:84px; text-align:left; border:1px solid #0f2437;
   }
+  .cat:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.22); }
 
-  /* Kategória kártya-gombok */
-  .cat {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    min-height: 84px;
-    padding: 14px 16px;
-    background: #1f2937;
-    color: #fff;
-    border-radius: 14px;
-    box-shadow: 0 4px 14px rgba(0,0,0,.18);
-    cursor: pointer;
-    transition: transform .08s ease, box-shadow .12s ease;
-    text-align: left;
+  /* csatorna név – zöld */
+  :root{ --name-green:#22c55e; }
+  .cat .name{ color:var(--name-green); font-weight:700; font-size:18px; line-height:1.2; margin-bottom:6px; }
+
+  /* a névben az „ÉLŐ” legyen piros (ha span.live) */
+  .cat .name .live{ color:#ef4444 !important; font-weight:900; margin-right:4px; }
+
+  /* „Most megy” sor és a „Kattints” */
+  .cat .now{ font-size:15px; opacity:.95; white-space:normal; }
+  .cat .now .label{ opacity:.9; margin-right:6px; }
+  .cat .now .title{ font-size:16px; font-weight:800; }  /* KISEBB „Kattints” */
+
+  /* felső piros gomb (kilépés) */
+  .btn-danger{ background:#dc2626; border:1px solid #b91c1c; color:#fff; }
+  .btn-danger:hover{ filter:brightness(1.05); }
+
+  /* TOP színes gombok */
+  .top-filters{
+    display:grid; grid-template-columns:repeat(4, minmax(140px,1fr));
+    gap:10px; padding: 6px 12px 12px;
   }
-  .cat:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(0,0,0,.22); }
+  @media (max-width:900px){ .top-filters{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:520px){ .top-filters{ grid-template-columns:1fr; } }
 
-  .cat .name { font-weight: 700; font-size: 18px; line-height: 1.2; margin-bottom: 6px; }
-  .cat .now  { font-size: 15px; opacity: .95; }
-  .cat .now .label { opacity: .9; margin-right: 6px; }
-  .cat .now .title { font-weight: 800; }
-
-  /* Csak a név legyen zöld */
-  :root { --name-green: #22c55e; }
-  .cat .name { color: var(--name-green) !important; }
-
-  /* „Kilépés mindenből” – piros */
-  .btn-danger{
-    background:#dc2626;
-    border:1px solid #b91c1c;
-    color:#fff;
+  .chip{
+    display:flex; flex-direction:column; gap:4px;
+    padding:12px 14px; border-radius:14px; color:#fff;
+    border:1px solid rgba(255,255,255,.16);
+    box-shadow:0 4px 14px rgba(0,0,0,.18);
+    cursor:pointer; text-align:left;
+    transition:transform .08s ease, box-shadow .12s ease, filter .12s ease;
   }
-  .btn-danger:hover{ filter: brightness(1.05); }
+  .chip:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.22); filter:brightness(1.03); }
+  .chip-title{ font-weight:800; letter-spacing:.3px; }
+  .chip-sub{ font-size:14px; opacity:.95; }
+  .chip-sub .tag{ opacity:.9; }
+
+  .chip-krimi{    background:linear-gradient(180deg,#16a34a,#15803d); }
+  .chip-akcio{    background:linear-gradient(180deg,#2563eb,#1e40af); }
+  .chip-thriller{ background:linear-gradient(180deg,#e11d48,#be123c); }
+  .chip-actors{   background:linear-gradient(180deg,#f59e0b,#b45309); }
+
+  /* vissza gomb a nézetekben */
+  .btn-back{ margin-bottom:12px; }
 </style>
 <!-- ===== [SZAKASZ 4] STÍLUS – END ===== -->
 
