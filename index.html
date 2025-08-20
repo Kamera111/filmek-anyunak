@@ -564,7 +564,7 @@
 <!-- ===== [SZAKASZ 6] ADMIN BELÉPŐ – „A” GOMB ===== -->
 <style>
   #adminMini{
-    display:none; flex-direction:column; gap:10px; margin-top:6px;
+    display:none; flex-direction:column; gap:10px; margin-top:8px;
     padding:12px; border:1px solid #334155; border-radius:12px; background:#0b1220;
   }
   #adminMini label{ font-size:12px; color:#9ca3af; }
@@ -624,7 +624,6 @@
     if (!box) return;
     box.style.display = "flex";
     const email = document.getElementById("adminMiniEmail");
-    const pass  = document.getElementById("adminMiniPass");
     const err   = document.getElementById("adminMiniErr");
     if (err) err.textContent = "";
     if (email && !email.value){
@@ -636,7 +635,6 @@
     const box = document.getElementById("adminMini");
     if (box) box.style.display = "none";
   }
-
   async function doAdminLogin(){
     const email = document.getElementById("adminMiniEmail")?.value.trim();
     const pass  = document.getElementById("adminMiniPass")?.value || "";
@@ -650,7 +648,6 @@
         localStorage.setItem("filmek_anyunak_admin_ok","1");
         localStorage.setItem("admin_email", email);
       }catch{}
-      // PIN kapu elrejtése
       document.getElementById("gateOverlay")?.classList.remove("active");
       document.body.classList.remove("gate-active");
       hideAdminMini();
@@ -660,19 +657,36 @@
     }
   }
 
-  // „A” gomb biztos felülírása: klónozással eltávolítjuk a régi (alertes) listenert
-  document.addEventListener("DOMContentLoaded", () => {
-    const oldBtn = document.getElementById("adminTinyBtn");
-    if (oldBtn){
-      const newBtn = oldBtn.cloneNode(true);
-      oldBtn.replaceWith(newBtn);
-      newBtn.id = "adminTinyBtn";
-      newBtn.addEventListener("click", (ev)=>{ ev.preventDefault(); showAdminMini(); });
-    }
-  });
+  // --- A gomb drót: azonnal is, és DOMContentLoaded-re is, hogy biztos felülírjuk a régi alertet
+  function wireAGomb(){
+    const btn = document.getElementById("adminTinyBtn");
+    if (!btn) return;
+    // 1) töröljük az esetleges inline onclick-et
+    btn.onclick = null;
+    // 2) klónozás: minden korábbi listener lekerül
+    const clone = btn.cloneNode(true);
+    btn.replaceWith(clone);
+    // 3) saját handler (capture + stopImmediatePropagation a biztonság kedvéért)
+    clone.addEventListener("click", (ev)=>{
+      ev.preventDefault();
+      ev.stopPropagation();
+      ev.stopImmediatePropagation?.();
+      showAdminMini();
+    }, true);
+    // elérhető globálisan is
+    window.showAdminMini = showAdminMini;
+  }
 
-  // opcionális: elérhetővé tesszük globálisan (ha később hívnád)
-  window.showAdminMini = showAdminMini;
+  if (document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", wireAGomb, {once:true});
+  } else {
+    wireAGomb();
+  }
+
+  // ha a kapu csak később kerül a DOM-ba: figyeljük röviden
+  const obs = new MutationObserver(()=>{ wireAGomb(); });
+  obs.observe(document.documentElement, {subtree:true, childList:true});
+  setTimeout(()=>obs.disconnect(), 3000); // 3 mp után leállítjuk
 </script>
 <!-- ===== [SZAKASZ 6] VÉGE ===== -->
      
