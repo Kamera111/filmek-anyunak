@@ -43,7 +43,6 @@
     background:rgba(6,12,20,.94); backdrop-filter:blur(2px);
   }
   #gateOverlay.active{ display:flex; }
-  /* amikor kapu aktív, csak a kapu látszik */
   body.gate-active > :not(#gateOverlay){ display:none !important; }
 
   #gateBox{
@@ -68,7 +67,6 @@
     background:#0b1220; color:#e5e7eb; cursor:pointer;
   }
 
-  /* Mini admin űrlap a kapun belül */
   #adminMini{
     display:none; flex-direction:column; gap:10px; margin-top:16px;
     padding:12px; border:1px solid #334155; border-radius:12px; background:#0b1220;
@@ -97,27 +95,24 @@
 
     <div id="gateHint">Írd be a 6 számjegyet – <strong>automatikus belépés</strong>.</div>
 
-    <!-- „A” – admin mini-űrlap megnyitása -->
     <button id="adminTinyBtn" type="button" aria-label="Admin belépés">A</button>
 
-    <!-- ide épül be az admin űrlap (dinamikusan) -->
     <div id="adminMini"></div>
   </div>
 </div>
 
 <script>
 (function(){
-  const PIN = "195400";
+  const PIN = "195400";                      // vendég/admin PIN
   const LS_KEY = "filmek_anyunak_guest_ok";
   const overlay = document.getElementById("gateOverlay");
   const input   = document.getElementById("guestPinInput");
 
-  /* ===== Kapu megjelenítés/elrejtés ===== */
   function showGate(){
     try{ localStorage.removeItem(LS_KEY); }catch{}
     document.body.classList.add("gate-active");
     overlay.classList.add("active");
-    setTimeout(()=> input?.focus(), 20);
+    if (input){ input.value = ""; setTimeout(()=> input.focus(), 20); }
     window.scrollTo({top:0, behavior:"instant"});
   }
   function hideGate(){
@@ -126,14 +121,12 @@
     document.body.classList.remove("gate-active");
   }
 
-  /* ===== PIN kezelése ===== */
   function handle(val){
     const norm = String(val||"").replace(/\D+/g,"").slice(0,6);
     if (input && input.value !== norm) input.value = norm;
     if (norm.length === 6 && norm === PIN) hideGate();
   }
 
-  /* ===== Mini admin űrlap ===== */
   function buildAdminMiniOnce(){
     const host = document.getElementById("adminMini");
     if (!host || host.dataset.ready === "1") return;
@@ -141,27 +134,36 @@
     host.dataset.ready = "1";
     host.innerHTML = `
       <div class="err" id="adminMiniErr"></div>
+
       <div>
         <label for="adminMiniEmail">Admin email</label>
         <input id="adminMiniEmail" type="email" inputmode="email" autocomplete="off"
                autocapitalize="none" spellcheck="false" />
       </div>
+
       <div>
         <label for="adminMiniPass">Jelszó</label>
         <input id="adminMiniPass" type="password" autocomplete="current-password" />
       </div>
+
+      <div>
+        <label for="adminMiniPin">Admin PIN</label>
+        <input id="adminMiniPin" type="text" inputmode="numeric" pattern="[0-9]*"
+               placeholder="Írd be a PIN-t (látható)" />
+      </div>
+
       <div class="row">
         <button class="btn" id="adminMiniCancel" type="button">Mégse</button>
-        <button class="btn primary" id="adminMiniLogin" type="button">Belépés</button>
+        <button class="btn primary" id="adminMiniLogin"  type="button">Belépés</button>
       </div>
     `;
 
     document.getElementById("adminMiniCancel")?.addEventListener("click", hideAdminMini);
-    document.getElementById("adminMiniLogin")?.addEventListener("click", doAdminLogin);
-    document.getElementById("adminMiniPass")?.addEventListener("keyup",(e)=>{
-      if (e.key === "Enter") doAdminLogin();
-    });
+    document.getElementById("adminMiniLogin") ?.addEventListener("click", doAdminLogin);
+    document.getElementById("adminMiniPass")  ?.addEventListener("keyup",(e)=>{ if(e.key==="Enter") doAdminLogin(); });
+    document.getElementById("adminMiniPin")   ?.addEventListener("keyup",(e)=>{ if(e.key==="Enter") doAdminLogin(); });
   }
+
   function showAdminMini(){
     buildAdminMiniOnce();
     const box = document.getElementById("adminMini");
@@ -169,7 +171,7 @@
     box.style.display = "flex";
 
     const email = document.getElementById("adminMiniEmail");
-    const err = document.getElementById("adminMiniErr");
+    const err   = document.getElementById("adminMiniErr");
     if (err) err.textContent = "";
     if (email && !email.value){
       try{ const saved = localStorage.getItem("admin_email")||""; if(saved) email.value = saved; }catch{}
@@ -183,21 +185,23 @@
 
   async function doAdminLogin(){
     const email = document.getElementById("adminMiniEmail")?.value.trim();
-    const pass  = document.getElementById("adminMiniPass")?.value || "";
+    const pass  = document.getElementById("adminMiniPass") ?.value || "";
+    const pin   = document.getElementById("adminMiniPin")  ?.value.trim();
     const errEl = document.getElementById("adminMiniErr");
-    if (!email || !pass){ if(errEl) errEl.textContent = "Töltsd ki az emailt és a jelszót."; return; }
 
-    // opcionális Firebase (ha elérhető). Ha nem, akkor csak elmentjük és zárjuk a kaput.
+    if (!email || !pass){ if(errEl) errEl.textContent = "Töltsd ki az emailt és a jelszót."; return; }
+    if (pin !== PIN){     if(errEl) errEl.textContent = "Hibás PIN."; return; }
+
     let ok = false;
     try{
       if (window.fb && window.fb.auth){
         const auth = window.fb.auth;
-        const { signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js");
+        const { signInWithEmailAndPassword } =
+          await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js");
         await signInWithEmailAndPassword(auth, email, pass);
         ok = true;
-      }else{
-        // fallback: sikeresnek vesszük (eltávolítható, ha kötelező a Firebase)
-        ok = true;
+      } else {
+        ok = true; // fallback (ha Firebase nincs inicializálva)
       }
     }catch(e){ ok = false; }
 
@@ -214,25 +218,18 @@
     }
   }
 
-  /* ===== Események ===== */
   document.addEventListener("DOMContentLoaded", () => {
     const ok = (()=>{ try { return localStorage.getItem(LS_KEY) === "1"; } catch { return false; } })();
     if (!ok) showGate();
 
     input?.addEventListener("input", e => handle(e.target.value));
     input?.addEventListener("keyup",  e => handle(e.target.value));
-    input?.addEventListener("paste",  e => {
-      e.preventDefault();
-      const t = (e.clipboardData || window.clipboardData).getData("text") || "";
-      handle(t);
-    });
+    input?.addEventListener("paste",  e => { e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData("text")||""; handle(t); });
 
-    // „A” gomb – egyszerű, ütközésmentes click handler
     document.getElementById("adminTinyBtn")?.addEventListener("click",(ev)=>{
       ev.preventDefault(); ev.stopPropagation(); showAdminMini();
     });
 
-    // Kilépés mindenből → vissza a PIN kapura
     document.getElementById("btnLogoutAll")?.addEventListener("click", () => {
       try{
         localStorage.removeItem(LS_KEY);
@@ -242,20 +239,16 @@
       showGate();
     });
 
-    // ha másik fülben kiléptünk/beléptünk
     window.addEventListener("storage",(e)=>{
       if (e.key === LS_KEY && e.newValue === "1") hideGate();
     });
   });
 
-  // Kívülről is elérhető
   window.showPinGate   = showGate;
   window.showAdminMini = showAdminMini;
 })();
 </script>
 <!-- ===== [SZAKASZ 2] VÉGE ===== -->
-
-
 
 <!-- ===== [SZAKASZ 3] FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET – START ===== -->
 <div id="app" class="wrap">
