@@ -159,27 +159,51 @@
 
 <!-- ===== [SZAKASZ 4] STÍLUS – START ===== -->
 <style>
+  /* Felesleges főcímek rejtése */
   h1, h2 { display:none !important; }
 
+  /* Felső sáv + rács */
   #catBar { padding: 12px; }
-  .cats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; }
+  .cats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
+    gap: 12px;
+  }
+
+  /* Kategória kártya-gombok */
   .cat {
-    display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
-    padding: 14px 16px; border-radius: 14px; background: #1f2937; color: #fff; cursor: pointer;
-    box-shadow: 0 4px 14px rgba(0,0,0,.18); transition: transform .08s ease, box-shadow .12s ease;
-    min-height: 84px; text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 84px;
+    padding: 14px 16px;
+    background: #1f2937;
+    color: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.18);
+    cursor: pointer;
+    transition: transform .08s ease, box-shadow .12s ease;
+    text-align: left;
   }
   .cat:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(0,0,0,.22); }
+
   .cat .name { font-weight: 700; font-size: 18px; line-height: 1.2; margin-bottom: 6px; }
-  .cat .now  { font-size: 15px; opacity: .95; white-space: normal; }
-  .cat .now .label { opacity:.9; margin-right:6px; }
+  .cat .now  { font-size: 15px; opacity: .95; }
+  .cat .now .label { opacity: .9; margin-right: 6px; }
   .cat .now .title { font-weight: 800; }
-      .btn-danger{
-    background:#dc2626; /* piros */
+
+  /* Csak a név legyen zöld */
+  :root { --name-green: #22c55e; }
+  .cat .name { color: var(--name-green) !important; }
+
+  /* „Kilépés mindenből” – piros */
+  .btn-danger{
+    background:#dc2626;
     border:1px solid #b91c1c;
     color:#fff;
   }
-  .btn-danger:hover{ filter:brightness(1.05); }
+  .btn-danger:hover{ filter: brightness(1.05); }
 </style>
 <!-- ===== [SZAKASZ 4] STÍLUS – END ===== -->
 
@@ -218,7 +242,7 @@
   addChannel({ id:"tgo-24",  name:"RTL 2 tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=24",  provider:"telekom" });
   addChannel({ id:"tgo-28",  name:"FilmCafe tv",   url:"https://player.telekomtvgo.hu/player/live?channelNumber=28",  provider:"telekom" });
   addChannel({ id:"tgo-30",  name:"ozone tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=30",  provider:"telekom" });
-  addChannel({ id:"tgo-60",  name:"Cool tv",       url:"https://player.telekomtvgo.hu/player/live?channelNumber=60",  provider:"telekom" });
+  addChannel({ id:"tgo-60", name:"Cool tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=60",  provider:"telekom" });
   addChannel({ id:"tgo-61",  name:"AXN tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=61",  provider:"telekom" });
   addChannel({ id:"tgo-62",  name:"AMC tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=62",  provider:"telekom" });
   addChannel({ id:"tgo-66",  name:"Paramount tv",  url:"https://player.telekomtvgo.hu/player/live?channelNumber=66",  provider:"telekom" });
@@ -480,37 +504,14 @@
 <!-- =========================
      6. rész vége
 ========================== -->
-
-
+     
 <!-- =========================
      7. rész eleje – BELÉPŐ (vendég PIN + admin gomb/űrlap)
 ========================== -->
-<div id="pinView" class="wrap">
-  <input
-    id="guestPin"
-    class="pinInput"
-    type="text"
-    inputmode="numeric"
-    pattern="[0-9]*"
-    maxlength="6"
-    placeholder="Katt ide! Add a kódot!"
-    aria-label="Vendég PIN"
-    autocomplete="one-time-code"
-  />
-  <div id="pinError" role="alert" aria-live="polite" style="display:none;"></div>
-  <button id="btnShowAdmin" type="button" title="Admin belépés">A</button>
-  <form id="adminLoginForm" autocomplete="off">
-    <input id="adminEmail" type="email" inputmode="email" placeholder="Admin email"
-           autocomplete="off" autocapitalize="none" spellcheck="false" required />
-    <input id="adminPass" type="password" placeholder="Jelszó"
-           autocomplete="new-password" autocapitalize="none" spellcheck="false" required />
-    <button type="submit">Admin belépés</button>
-  </form>
-</div>
+
 <!-- =========================
      7. rész vége
 ========================== -->
-
 
 <!-- =========================
      8. rész eleje – (Megjegyzés) FIRESTORE SECURITY RULES – csak a konzolba
