@@ -376,13 +376,13 @@
       const safeName = escapeHtml(ch.name);
       const nameHtml = safeName.replace(
         /^ÉLŐ(\s+)/,
-        '<span style="color:#ef4444;font-weight:900;margin-right:4px">ÉLŐ</span>$1'
+        '<span class="live">ÉLŐ</span>$1'
       );
 
       btn.innerHTML = `
         <div class="name">${nameHtml}</div>
         <div class="now"><span class="label">Most megy:</span>
-          <span class="title" id="now-${ch.id}" style="font-size:18px;font-weight:800">Kattints</span>
+          <span class="title" id="now-${ch.id}">Kattints</span>
         </div>`;
       btn.addEventListener("click", () => openChannel(ch));
       catsLiveEl.appendChild(btn);
