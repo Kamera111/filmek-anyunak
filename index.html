@@ -146,7 +146,7 @@
       </div>
     </header>
 
-    <!-- Felső színes kategória-gombok (látszik vendégnek is) -->
+    <!-- Felső színes kategória-gombok (vendégnek is látszik) -->
     <div id="topFilters" class="top-filters">
       <button class="chip chip-krimi" data-goto="krimi">
         <div class="chip-title">KRIMI</div>
@@ -209,12 +209,32 @@
   .chip-thriller{ background:linear-gradient(180deg,#e11d48,#be123c); }
   .chip-actors{   background:linear-gradient(180deg,#f59e0b,#b45309); }
 
-  /* Vissza gomb a nézetekben */
+  /* Rács + kártyák */
+  #catBar { padding: 12px; }
+  .cats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; }
+
+  .cat{
+    display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+    padding:14px 16px; border-radius:14px; background:#1f2937; color:#fff; cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,.18); transition:transform .08s ease, box-shadow .12s ease;
+    min-height:84px; text-align:left; border:1px solid #0f2437;
+  }
+  .cat:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.22); }
+
+  :root{ --name-green:#22c55e; }
+  .cat .name{ color:var(--name-green); font-weight:700; font-size:18px; line-height:1.2; margin-bottom:6px; }
+  .cat .name .live{ color:#ef4444 !important; font-weight:900; margin-right:4px; } /* ÉLŐ piros */
+
+  .cat .now{ font-size:15px; opacity:.95; white-space:normal; }
+  .cat .now .label{ opacity:.9; margin-right:6px; }
+  .cat .now .title{ font-size:16px; font-weight:800; } /* Kattints kisebb */
+  .btn-danger{ background:#dc2626; border:1px solid #b91c1c; color:#fff; }
+  .btn-danger:hover{ filter:brightness(1.05); }
   .btn-back{ margin-bottom:12px; }
 </style>
 
 <script>
-/* Minimál navigáció a 4 kategóriához – adat nélkül, helyőrző nézetekkel */
+/* Minimál navigáció a 4 kategóriához – helyőrző nézetekkel */
 (function(){
   const viewEl = document.getElementById("view");
   const catBar = document.getElementById("catBar");
@@ -265,8 +285,6 @@
 })();
 </script>
 <!-- ===== [SZAKASZ 3] FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET – END ===== -->
-
-
 
 <!-- ===== [SZAKASZ 4] STÍLUS – START ===== -->
 <style>
@@ -345,11 +363,12 @@
   function addChannel({ id, name, url, provider, sweetName }) {
     channels.push({ id, name, url, provider, sweetName });
   }
+
   // SWEET.TV – 4 csatorna
-  addChannel({ id:"live-vigjatek",  name:"ÉLŐ Vígjáték TV", url:"https://sweet.tv/hu/free_tv/2014-comedy-universe-hd", provider:"sweet", sweetName:"Vígjáték univerzum HD" });
-  addChannel({ id:"live-akcio",     name:"ÉLŐ Akció TV",    url:"https://sweet.tv/hu/free_tv/2010-action-zone-hd",     provider:"sweet", sweetName:"Akció zóna HD" });
-  addChannel({ id:"live-thriller",  name:"ÉLŐ Thriller TV", url:"https://sweet.tv/hu/free_tv/2016-thriller-time-hd",    provider:"sweet", sweetName:"Thriller idő HD" });
-  addChannel({ id:"live-top",       name:"ÉLŐ TOP Filmek",  url:"https://sweet.tv/hu/free_tv/2967-top-movies-hd",       provider:"sweet", sweetName:"Top Filmek HD" });
+  addChannel({ id:"live-vigjatek",  name:"ÉLŐ Vígjáték TV", url:"https://sweet.tv/hu/free_tv/2014-comedy-universe-hd", provider:"sweet",   sweetName:"Vígjáték univerzum HD" });
+  addChannel({ id:"live-akcio",     name:"ÉLŐ Akció TV",    url:"https://sweet.tv/hu/free_tv/2010-action-zone-hd",     provider:"sweet",   sweetName:"Akció zóna HD" });
+  addChannel({ id:"live-thriller",  name:"ÉLŐ Thriller TV", url:"https://sweet.tv/hu/free_tv/2016-thriller-time-hd",    provider:"sweet",   sweetName:"Thriller idő HD" });
+  addChannel({ id:"live-top",       name:"ÉLŐ TOP Filmek",  url:"https://sweet.tv/hu/free_tv/2967-top-movies-hd",       provider:"sweet",   sweetName:"Top Filmek HD" });
 
   // TELEKOM TV GO – 12 csatorna
   addChannel({ id:"tgo-13",  name:"Mozi+ tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=13",  provider:"telekom" });
@@ -365,46 +384,49 @@
   addChannel({ id:"tgo-163", name:"FilmMánia tv",  url:"https://player.telekomtvgo.hu/player/live?channelNumber=163", provider:"telekom" });
   addChannel({ id:"tgo-169", name:"Moziverzum tv", url:"https://player.telekomtvgo.hu/player/live?channelNumber=169", provider:"telekom" });
 
-  /* ========== UI rajzolás ========== */
+  /* ========== Segédfüggvények ========== */
+  function channelHref(ch){
+    if (ch.provider === "sweet") {
+      // közvetlen Sweet.TV login -> visszairányítás a csatornára
+      const next = encodeURIComponent(ch.url);
+      return `https://sweet.tv/hu/login?next=${next}`;
+    }
+    // Telekomnál közvetlen lejátszó
+    return ch.url;
+  }
+
   function renderButtons() {
     if (!catsLiveEl) return;
     catsLiveEl.innerHTML = "";
     for (const ch of channels) {
-      const btn = document.createElement("button");
-      btn.className = "cat";
-      btn.dataset.channel = ch.id;
+      // LINK-ként rajzoljuk ki, hogy biztosan megnyíljon új fülön
+      const a = document.createElement("a");
+      a.className = "cat";
+      a.href = channelHref(ch);
+      a.target = "_blank";
+      a.rel = "noopener"; // biztonság
 
-      // „ÉLŐ ” piros kiemelése a név elején
-      const safeName = escapeHtml(ch.name);
-      const nameHtml = safeName.replace(
+      // „ÉLŐ” pirossal a név elején
+      const safeName = escapeHtml(ch.name).replace(
         /^ÉLŐ(\s+)/,
         '<span class="live">ÉLŐ</span>$1'
       );
 
-      btn.innerHTML = `
-        <div class="name">${nameHtml}</div>
-        <div class="now"><span class="label">Most megy:</span>
+      a.innerHTML = `
+        <div class="name">${safeName}</div>
+        <div class="now">
+          <span class="label">Most megy:</span>
           <span class="title" id="now-${ch.id}">Kattints</span>
-        </div>`;
-      btn.addEventListener("click", () => openChannel(ch));
-      catsLiveEl.appendChild(btn);
+        </div>
+      `;
+      catsLiveEl.appendChild(a);
     }
   }
 
-  function openChannel(ch) {
-    if (ch.provider === "sweet") {
-      const next = encodeURIComponent(ch.url);
-      window.open(\`https://sweet.tv/hu/login?next=\${next}\`, "_blank");
-    } else {
-      window.open(ch.url, "_blank");
-    }
-  }
-
-  /* ========== Frissítés ========== */
-  async function refreshAll() { await Promise.all(channels.map(ch => updateOne(ch))); }
+  async function refreshAll() { await Promise.all(channels.map(updateOne)); }
 
   async function updateOne(ch) {
-    const out = document.getElementById(\`now-\${ch.id}\`);
+    const out = document.getElementById(`now-${ch.id}`);
     if (!out) return;
     try {
       let title = null;
@@ -414,7 +436,7 @@
           const html = await fetchHtml("https://sweet.tv/hu/free_tv");
           title = findNear(html, ch.sweetName);
         }
-      } else if (ch.provider === "telekom") {
+      } else {
         title = await telekomFromPlayer(ch.url);
       }
       out.textContent = title ? cleanTitle(title) : "Kattints";
@@ -434,7 +456,7 @@
     return t || null;
   }
 
-  /* ========== TELEKOM TV GO (best-effort) ========== */
+  /* ========== TELEKOM TV GO (heurisztika) ========== */
   async function telekomFromPlayer(url) {
     const html = await fetchHtml(url);
     let t = matchTitle(html);
@@ -452,21 +474,20 @@
     return null;
   }
 
-  /* ========== Segédek ========== */
+  /* ========== HTML letöltés proxy-n keresztül ========== */
   async function fetchHtml(url) {
     const proxied = url.startsWith("https://")
-      ? \`https://r.jina.ai/\${url}\`
-      : \`https://r.jina.ai/http://\${url.replace(/^https?:\\/\\//,'')}\`;
+      ? `https://r.jina.ai/${url}`
+      : `https://r.jina.ai/http://${url.replace(/^https?:\/\//,'')}`;
     const res = await fetch(proxied, { method: "GET" });
     if (!res.ok) throw new Error("fetch failed");
     return await res.text();
   }
-  function matchTitle(text) {
-    const m = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-    return m && m[1] ? m[1] : null;
-  }
+
+  /* ========== Parszoló segédek ========== */
+  function matchTitle(text) { const m = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i); return m && m[1] ? m[1] : null; }
   function matchOg(text, prop) {
-    const re = new RegExp(\`property=["']\${prop}["'][^>]*content=["']([^"']+)["']\`,"i");
+    const re = new RegExp(`property=["']${prop}["'][^>]*content=["']([^"']+)["']`,"i");
     const m = text.match(re); return m && m[1] ? m[1] : null;
   }
   function matchJsonNowTitle(text) {
