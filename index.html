@@ -35,36 +35,32 @@
      1. rész vége
 ========================== -->
 
-<!-- ===== [SZAKASZ 2] VENDÉG PIN KAPU – CLEAN ===== -->
+<!-- ===== [SZAKASZ 2] VENDÉG PIN KAPU + KILÉPÉS HANDLER – CSERE ===== -->
 <style>
-  /* A kapu aktív állapotban mindent eltakar */
-  #gateOverlay {
-    position: fixed; inset: 0; z-index: 2147483647;
-    display: none; align-items: center; justify-content: center;
-    background: rgba(6,12,20,0.94); backdrop-filter: blur(2px);
+  #gateOverlay{
+    position:fixed; inset:0; z-index:2147483647;
+    display:none; align-items:center; justify-content:center;
+    background:rgba(6,12,20,.94); backdrop-filter:blur(2px);
   }
-  #gateOverlay.active { display: flex; }
+  #gateOverlay.active{ display:flex; }
+  body.gate-active > :not(#gateOverlay){ display:none !important; }
 
-  /* Biztos ami biztos: amíg a kapu aktív, rejtsünk el MINDENT a body-ban */
-  body.gate-active > :not(#gateOverlay) { display: none !important; }
-
-  /* Doboz + elemek */
-  #gateBox {
-    width: min(520px, 92vw);
+  #gateBox{
+    width:min(520px,92vw);
     background:#111827; color:#e5e7eb;
     border-radius:16px; padding:22px 20px;
     box-shadow:0 10px 30px rgba(0,0,0,.35);
     display:flex; flex-direction:column; gap:14px;
   }
-  #gateTitle { font-size:18px; font-weight:700; }
+  #gateTitle{ font-size:18px; font-weight:800; letter-spacing:.2px; }
   #guestPinInput{
     width:100%; font-size:22px; padding:14px 16px; outline:none;
     border-radius:12px; border:1px solid #374151; background:#0f172a; color:#f9fafb;
   }
-  #guestPinInput::placeholder { color:#9ca3af; }
-  #gateHint { color:#9ca3af; font-size:13px; }
+  #guestPinInput::placeholder{ color:#9ca3af; }
+  #gateHint{ color:#9ca3af; font-size:13px; }
   #adminTinyBtn{
-    align-self:flex-start; font-size:13px; font-weight:700; letter-spacing:.2px;
+    align-self:flex-start; font-size:13px; font-weight:800; letter-spacing:.2px;
     padding:6px 10px; border-radius:999px; border:1px solid #334155;
     background:#0b1220; color:#e5e7eb; cursor:pointer;
   }
@@ -74,62 +70,74 @@
   <div id="gateBox">
     <div id="gateTitle">Vendég PIN</div>
     <input id="guestPinInput" type="tel" inputmode="numeric" maxlength="6"
-           autocomplete="one-time-code" placeholder="katt ide a kódot" />
+           autocomplete="one-time-code" placeholder="KATT IDE! ÍRD A KÓDOT" />
     <div id="gateHint">Írd be a 6 számjegyet – <strong>automatikus belépés</strong>.</div>
     <button id="adminTinyBtn" type="button" aria-label="Admin belépés">A</button>
   </div>
 </div>
 
 <script>
-  (function(){
-    const PIN = "195400";
-    const LS_KEY = "filmek_anyunak_guest_ok";
-    const overlay = document.getElementById("gateOverlay");
-    const input   = document.getElementById("guestPinInput");
+(function(){
+  const PIN = "195400";
+  const LS_KEY = "filmek_anyunak_guest_ok";
+  const overlay = document.getElementById("gateOverlay");
+  const input   = document.getElementById("guestPinInput");
 
-    function showGate(){
-      try { localStorage.removeItem(LS_KEY); } catch {}
-      document.body.classList.add("gate-active");
-      overlay.classList.add("active");
-      setTimeout(()=> input?.focus(), 10);
-    }
-    function hideGate(){
-      try { localStorage.setItem(LS_KEY, "1"); } catch {}
-      overlay.classList.remove("active");
-      document.body.classList.remove("gate-active");
-    }
-    function handle(val){
-      const norm = String(val||"").replace(/\D+/g,"").slice(0,6);
-      if (input && input.value !== norm) input.value = norm;
-      if (norm.length === 6 && norm === PIN) hideGate();
-    }
+  function showGate(){
+    try{ localStorage.removeItem(LS_KEY); }catch{}
+    document.body.classList.add("gate-active");
+    overlay.classList.add("active");
+    setTimeout(()=>input?.focus(), 20);
+    window.scrollTo({top:0, behavior:"instant"});
+  }
+  function hideGate(){
+    try{ localStorage.setItem(LS_KEY,"1"); }catch{}
+    overlay.classList.remove("active");
+    document.body.classList.remove("gate-active");
+  }
+  function handle(val){
+    const norm = String(val||"").replace(/\D+/g,"").slice(0,6);
+    if (input && input.value !== norm) input.value = norm;
+    if (norm.length === 6 && norm === PIN) hideGate();
+  }
 
-    // Publikus a „Kilépés mindenből” gombnak
-    window.showPinGate = showGate;
+  // publikus hívások
+  window.showPinGate = showGate;
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const ok = (()=>{ try { return localStorage.getItem(LS_KEY) === "1"; } catch { return false; } })();
-      if (!ok) showGate();
+  // induláskor: ha nincs „ok” jel, mutasd a kaput
+  document.addEventListener("DOMContentLoaded", () => {
+    const ok = (()=>{ try { return localStorage.getItem(LS_KEY) === "1"; } catch { return false; } })();
+    if (!ok) showGate();
 
-      input?.addEventListener("input", e => handle(e.target.value));
-      input?.addEventListener("keyup", e => handle(e.target.value));
-      input?.addEventListener("paste", e => {
-        e.preventDefault();
-        const t = (e.clipboardData || window.clipboardData).getData("text") || "";
-        handle(t);
-      });
-
-      document.getElementById("adminTinyBtn")?.addEventListener("click", () => {
-        if (typeof openAdminModal === "function") return openAdminModal();
-        alert("Admin belépés hamarosan elérhető.");
-      });
-
-      // Ha másik fülön feloldtad
-      window.addEventListener("storage", (e)=>{
-        if (e.key === LS_KEY && e.newValue === "1") hideGate();
-      });
+    input?.addEventListener("input",  e => handle(e.target.value));
+    input?.addEventListener("keyup",  e => handle(e.target.value));
+    input?.addEventListener("paste",  e => { e.preventDefault();
+      const t=(e.clipboardData||window.clipboardData).getData("text")||""; handle(t);
     });
-  })();
+
+    // „A” – admin
+    document.getElementById("adminTinyBtn")?.addEventListener("click", () => {
+      if (typeof openAdminModal === "function") return openAdminModal();
+      alert("Admin belépés hamarosan elérhető.");
+    });
+
+    // Működő „Kilépés mindenből”
+    document.getElementById("btnLogoutAll")?.addEventListener("click", () => {
+      try{
+        localStorage.removeItem(LS_KEY);
+        ["filmek_anyunak_admin_ok","admin_session","admin_email"]
+          .forEach(k=>localStorage.removeItem(k));
+        sessionStorage.clear();
+      }catch{}
+      showGate();
+    });
+  });
+
+  // ha másik fülön beléptek, itt is zárjuk a kaput
+  window.addEventListener("storage", (e)=>{
+    if (e.key === LS_KEY && e.newValue === "1") hideGate();
+  });
+})();
 </script>
 <!-- ===== [SZAKASZ 2] VÉGE ===== -->
 
