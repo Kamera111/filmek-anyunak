@@ -1077,21 +1077,18 @@
 <!-- ===== [SZAKASZ 5] LOGIKA – GOMBOK + CÍM-KINYERÉS – CLEAN ===== -->
 <script>
 /* ===== Beállítások ===== */
-const NOW_PROXY = "https://script.google.com/macros/s/AKfycbywjfZIelu5SHvPS0OVjVTOf3xIdhmoam_-jbvrKFUeQHN9p8SatH8vx1y61HiLfow6/exec";
+<script>
+// Proxy kikapcsolva – csak r.jina.ai-t használunk
+const NOW_PROXY = "";
 
-/* ===== HTML letöltés a saját proxy-n keresztül + r.jina.ai fallback ===== */
+// Egyszerű HTML letöltő
 async function fetchHtml(url) {
-  try {
-    const r = await fetch(`${NOW_PROXY}?u=${encodeURIComponent(url)}`, { cache: "no-store" });
-    if (!r.ok) throw new Error("proxy_http_" + r.status);
-    const data = await r.json();                           // JSON-t várunk a GAS-tól
-    if (!data || typeof data.html !== "string") {
-      throw new Error("proxy_json");
-    }
-    return data.html;
-  } catch (e) {
-    console.warn("Proxy hiba, fallback:", e);
-  }
+  const r = await fetch('https://r.jina.ai/' + url, { cache: 'no-store' });
+  if (!r.ok) throw new Error('jina_fail_' + r.status);
+  return await r.text();
+}
+</script>
+
   const proxied = url.startsWith("https://")
     ? `https://r.jina.ai/${url}`
     : `https://r.jina.ai/http://${url.replace(/^https?:\/\//, "")}`;
