@@ -95,113 +95,53 @@
      1. rész vége
 ========================== -->
 
-<!-- ===== [SZAKASZ 2] VENDÉG PIN + „A” gomb (MINIMAL + HOTFIX, helyesen lezárva) ===== -->
-<style>
-  #gateOverlay{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;background:rgba(6,12,20,.94);backdrop-filter:blur(2px)}
-  #gateOverlay.active{display:flex}
-  body.gate-active > :not(#gateOverlay){display:none!important}
-  #gateBox{width:min(720px,92vw);background:#111827;color:#e5e7eb;border-radius:16px;padding:22px 20px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:14px}
-  #guestPinInput{width:100%;font-size:32px;padding:18px 20px;border-radius:12px;border:1px solid #374151;background:#0f172a;color:#f9fafb}
-  #adminTinyBtn{align-self:flex-start;font-size:22px;font-weight:800;padding:8px 14px;border-radius:999px;border:2px solid #e5e7eb;background:#0b1220;color:#e5e7eb;cursor:pointer}
-  #adminMini{display:none;flex-direction:column;gap:12px;margin-top:10px;padding:12px;border:1px solid #334155;border-radius:12px;background:#0b1220}
-</style>
+<!-- =========================
+     2. rész eleje – FIREBASE INIT (ÉLES) + EXPORT window.fb
+     Helye: közvetlenül a </head> UTÁN (mielőtt a 3. rész kezdődik)
+========================== -->
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, getDocs, onSnapshot,
+    query, where, orderBy, limit, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  import {
+    getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-<div id="gateOverlay" role="dialog" aria-modal="true">
-  <div id="gateBox">
-    <div id="gateTitle" style="font-size:28px;font-weight:800">Vendég PIN</div>
-    <input id="guestPinInput" type="tel" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="KATT IDE! ÍRD A KÓDOT" />
-    <div id="gateHint" style="color:#9ca3af;font-size:18px">Írd be a 6 számjegyet – <strong>automatikus belépés</strong>.</div>
-    <button id="adminTinyBtn" type="button" aria-label="Admin belépés">A</button>
-    <div id="adminMini"></div><!-- ÜRES: a 6. szakasz tölti fel email+jelszóval -->
-  </div>
-</div>
+  // ==== TÖLTSD KI A SAJÁT KONFIGODDAL (Firebase Console -> Project settings -> General) ====
+  // FIGYELEM: csak ezeket a kulcsokat módosítsd, a többi kódhoz ne nyúlj.
+  window.firebaseConfig = {
+    apiKey: "PASTE_API_KEY",
+    authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
+    projectId: "PASTE_PROJECT_ID",
+    storageBucket: "PASTE_PROJECT_ID.appspot.com",
+    messagingSenderId: "PASTE_SENDER_ID",
+    appId: "PASTE_APP_ID",
+    // measurementId: "G-XXXXXXX" // ha van, nem kötelező
+  };
 
-<script>
-(function(){
-  const PIN="195400", LS_KEY="filmek_anyunak_guest_ok";
-  const overlay=document.getElementById("gateOverlay");
-  const input=document.getElementById("guestPinInput");
+  // ==== Inicializálás (idempotens) ====
+  const app = getApps().length ? getApps()[0] : initializeApp(window.firebaseConfig);
+  const db  = getFirestore(app);
+  const auth = getAuth(app);
 
-  /* ===== HOTFIX: régi admin űrlap törlése (PIN mező, előtöltött email, pöttyös jelszó) ===== */
-  function nukeOldAdmin(){
-    const host=document.getElementById('adminMini');
-    if(!host) return;
-    host.replaceChildren();
-    host.removeAttribute('data-ready');
-    try{ localStorage.removeItem('admin_email'); }catch{}
-  }
-  nukeOldAdmin();
-  const obs=new MutationObserver(()=>nukeOldAdmin());
-  obs.observe(document.documentElement,{subtree:true,childList:true});
-  setTimeout(()=>obs.disconnect(),4000);
-
-  /* ===== Vendégkapu ===== */
-  function showGate(){
-    try{ localStorage.removeItem(LS_KEY);}catch{}
-    document.body.classList.add("gate-active");
-    overlay.classList.add("active");
-    if(input){ input.value=""; setTimeout(()=>input.focus(),50); }
-  }
-  function hideGate(){
-    try{ localStorage.setItem(LS_KEY,"1"); }catch{}
-    overlay.classList.remove("active");
-    document.body.classList.remove("gate-active");
-  }
-  function handle(v){
-    const norm=String(v||"").replace(/\D+/g,"").slice(0,6);
-    if(input && input.value!==norm) input.value=norm;
-    if(norm.length===6 && norm===PIN) hideGate();
-  }
-
-  /* ===== „A” gomb → 6. szakasz showAdminMini() ===== */
-  function wireAGomb(){
-    const btn=document.getElementById("adminTinyBtn");
-    if(!btn) return;
-    const clone=btn.cloneNode(true); btn.replaceWith(clone);
-    clone.addEventListener("click",(e)=>{
-      e.preventDefault(); e.stopPropagation();
-      if(typeof window.showAdminMini==="function"){ window.showAdminMini(); return; }
-      const watch=new MutationObserver(()=>{
-        if(typeof window.showAdminMini==="function"){ window.showAdminMini(); watch.disconnect(); }
-      });
-      watch.observe(document.documentElement,{subtree:true,childList:true});
-      setTimeout(()=>watch.disconnect(),5000);
-    },true);
-  }
-
-  document.addEventListener("DOMContentLoaded", ()=>{
-    const ok=(()=>{try{return localStorage.getItem(LS_KEY)==="1"}catch{return false}})();
-    if(!ok) showGate();
-
-    input?.addEventListener("input",e=>handle(e.target.value));
-    input?.addEventListener("keyup",e=>handle(e.target.value));
-    input?.addEventListener("paste",e=>{e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData("text")||""; handle(t);});
-
-    wireAGomb();
-
-    document.getElementById("btnLogoutAll")?.addEventListener("click",()=>{
-      try{
-        localStorage.removeItem(LS_KEY);
-        ["filmek_anyunak_admin_ok","admin_session","admin_email"].forEach(k=>localStorage.removeItem(k));
-        sessionStorage.clear();
-      }catch{}
-      showGate();
-    });
-
-    window.addEventListener("storage",(e)=>{
-      if(e.key===LS_KEY && e.newValue==="1") hideGate();
-    });
+  // ==== Export a meglévő kódhoz (3.6 szakasz ezt keresi: window.fb.db / window.fb.auth) ====
+  window.fb = Object.freeze({
+    app,
+    db: {
+      db, collection, addDoc, getDocs, onSnapshot,
+      query, where, orderBy, limit, serverTimestamp
+    },
+    auth: { auth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   });
 
-  window.showPinGate=showGate;
-})();
+  // Log – ha ezt látod a konzolban, az élő Firebase kész.
+  console.debug("[Firebase] READY – project:", window.firebaseConfig.projectId);
 </script>
-<!-- ===== [SZAKASZ 2 VÉGE] ===== -->
-<!-- ===== [SZAKASZ 1.9] FIREBASE INIT (OFF) ===== -->
-<script>
-  // Firestore ideiglenesen kikapcsolva, hogy ne dobja a 400-as hibákat
-  window.DB_ENABLED = false;
-</script>
+<!-- =========================
+     2. rész vége
+========================== -->
 
 <!-- ===== [SZAKASZ 3] FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET – START ===== -->
 <div id="app" class="wrap">
