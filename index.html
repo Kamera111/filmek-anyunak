@@ -1,39 +1,100 @@
 <!-- =========================
-     1. rész eleje – HEAD + ALAP STÍLUSOK
+     1. rész eleje – HEAD + ALAP STÍLUSOK (STABIL)
 ========================== -->
 <!doctype html>
 <html lang="hu">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
   <title>Filmek Anyunak</title>
 
+  <!-- Alap színek, tipó és elrendezés – csak semleges, későbbi szakaszokkal kompatibilis -->
   <style>
-    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --txt:#e5e7eb; --accent:#22d3ee; }
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    .wrap{max-width:980px;margin:0 auto;padding:16px}
-    .sticky{position:sticky;top:0;background:linear-gradient(180deg, rgba(15,23,42,.98), rgba(15,23,42,.75) 60%, rgba(15,23,42,0));backdrop-filter: blur(6px);z-index:10}
-    header{display:flex;align-items:center;gap:12px;padding:12px 0}
-    .title{font-weight:800;font-size:clamp(20px,4.8vw,28px);letter-spacing:.3px}
-    .btn{background:#1f2937;color:#fff;border:1px solid #334155;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:600}
-    .btn:active{transform:scale(.98)}
-    .btn[hidden]{display:none!important}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-    .card{background:var(--card);border:1px solid #1f2937;border-radius:16px;padding:14px}
-    .muted{color:var(--muted);font-size:14px}
-    input,select,textarea{width:100%;padding:10px;border-radius:12px;border:1px solid #334155;background:#0b1220;color:#e5e7eb}
-    label{font-size:13px;color:#b3c1d1;margin-bottom:6px;display:block}
-    form .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    img{max-width:100%;border-radius:10px;border:1px solid #1f2937}
-    a{color:#a5f3fc;text-decoration:none}
-    a:hover{text-decoration:underline}
-    .hidden{display:none!important}
-    .footer{margin:30px 0 10px;text-align:center;color:#6b7280;font-size:12px}
+    :root{
+      --bg:#0f172a;        /* háttér */
+      --bg-soft:#0b1220;   /* sötétebb panel */
+      --card:#111827;      /* kártya */
+      --line:#1f2937;      /* szegély */
+      --muted:#94a3b8;     /* halvány szöveg */
+      --txt:#e5e7eb;       /* alap szöveg */
+      --btn:#1f2937;       /* alap gomb */
+      --btn-line:#334155;  /* gomb szegély */
+      --accent:#22d3ee;    /* kiemelés */
+    }
+
+    html, body{
+      margin:0; padding:0;
+      background:var(--bg);
+      color:var(--txt);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* Oldalszélesség + ragadós fejléc hely */
+    .wrap{ max-width:980px; margin:0 auto; padding:16px; }
+    .sticky{
+      position:sticky; top:0; z-index:10;
+      background:linear-gradient(180deg, rgba(15,23,42,.98), rgba(15,23,42,.75) 60%, rgba(15,23,42,0));
+      backdrop-filter:blur(6px);
+    }
+
+    /* Fejléc */
+    header{ display:flex; align-items:center; gap:12px; padding:12px 0; }
+    .title{ font-weight:800; font-size:clamp(20px,4.8vw,28px); letter-spacing:.3px; }
+
+    /* Gombok */
+    .btn{
+      background:var(--btn);
+      color:#fff;
+      border:1px solid var(--btn-line);
+      border-radius:12px;
+      padding:10px 14px;
+      cursor:pointer;
+      font-weight:600;
+      transition:filter .12s ease, transform .06s ease;
+    }
+    .btn:hover{ filter:brightness(1.06); }
+    .btn:active{ transform:scale(.98); }
+    .btn[hidden]{ display:none !important; }
+
+    /* Rács és kártyák */
+    .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+    }
+
+    /* Szövegstílusok */
+    .muted{ color:var(--muted); font-size:14px; }
+    a{ color:#a5f3fc; text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+
+    /* Form elemek (admin részhez is jó) */
+    label{ display:block; font-size:13px; color:#b3c1d1; margin-bottom:6px; }
+    input, select, textarea{
+      width:100%; box-sizing:border-box;
+      padding:10px; border-radius:12px;
+      border:1px solid var(--btn-line);
+      background:var(--bg-soft); color:var(--txt);
+    }
+    textarea{ resize:vertical; }
+
+    /* Képek a kártyákon */
+    img{ max-width:100%; height:auto; border-radius:10px; border:1px solid var(--line); }
+
+    /* Hasznos utilok */
+    .hidden{ display:none !important; }
+    .footer{ margin:30px 0 10px; text-align:center; color:#6b7280; font-size:12px; }
   </style>
 </head>
 <!-- =========================
      1. rész vége
 ========================== -->
+
 <!-- ===== [SZAKASZ 2] VENDÉG PIN + „A” gomb (MINIMAL + HOTFIX, helyesen lezárva) ===== -->
 <style>
   #gateOverlay{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;background:rgba(6,12,20,.94);backdrop-filter:blur(2px)}
