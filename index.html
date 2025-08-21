@@ -289,14 +289,14 @@
 ========================== -->
 
 <!-- =========================
-     3.1. rész – KILÉPÉS (egyetlen globális handler, PIN vagy reload)
+     3.1. rész – KILÉPÉS végleges (felirat alapján keres, PIN vagy reload)
 ========================== -->
 <script>
 (function(){
   async function hardSignOutIfAny(){
     try{
       if (window.fb?.auth?.auth && typeof window.fb.auth.signOut === "function") {
-        await window.fb.auth.signOut(window.fb.auth.auth); // Firebase kijelentkezés
+        await window.fb.auth.signOut(window.fb.auth.auth);
       }
     }catch(e){
       console.warn("signOut hiba:", e?.message||e);
@@ -321,10 +321,12 @@
     location.reload();
   }
 
-  // Eseménydelegáció – akkor is működik, ha a gomb később kerül be a DOM-ba
+  // Delegáció: minden kattintást figyelünk, és ha a gomb szövegében benne van a "Kilépés", akkor fut
   document.addEventListener("click", async (ev)=>{
-    const btn = ev.target.closest("#btnLogoutAll");
+    const btn = ev.target.closest("button");
     if (!btn) return;
+    if (!btn.textContent.includes("Kilépés")) return;
+
     ev.preventDefault();
     btn.disabled = true;
     try{
@@ -334,19 +336,11 @@
       showPinGateOrReload();
     }
   });
-
-  // Extra: ha a gomb már most a DOM-ban van, tehermentesítjük a saját handlert
-  document.addEventListener("DOMContentLoaded", ()=>{
-    const b = document.getElementById("btnLogoutAll");
-    if (!b) return;
-    b.addEventListener("click", e => e.preventDefault(), { capture:true });
-  });
 })();
 </script>
 <!-- =========================
      3.1. rész vége
 ========================== -->
-
 
 <!-- ===== [SZAKASZ 4] STÍLUS – START ===== -->
 <style>
