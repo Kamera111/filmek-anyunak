@@ -685,6 +685,275 @@
 })();
 </script>
 <!-- ===== [SZAKASZ 3.6 VÉGE] ===== -->
+<!-- ===== [SZAKASZ 3.7] YouTube LEJÁTSZÁSI LISTA – TÖMEGES IMPORT (KRIMI) ===== -->
+<style>
+  .bulk-box{margin:12px;padding:14px;border-radius:14px;background:#0e1729;border:1px solid #334155}
+  .bulk-box h3{margin:0 0 8px;font-size:18px}
+  .bulk-box .row{display:grid;grid-template-columns:1fr;gap:8px}
+  .bulk-box input{width:100%;padding:10px;border-radius:10px;border:1px solid #374151;background:#0f172a;color:#e5e7eb}
+  .bulk-box .btn{background:#1f2937;border:1px solid #334155;color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer}
+  .bulk-box .btn.primary{background:#2563eb;border-color:#1d4ed8}
+  .bulk-box .muted{color:#9ca3af;font-size:12px}
+  .bulk-box .log{font-size:12px;max-height:200px;overflow:auto;border-top:1px solid #263246;padding-top:8px;white-space:pre-wrap}
+</style>
+
+<script>
+(function(){
+  const isAdmin = ()=> { try{ return localStorage.getItem("filmek_anyunak_admin_ok")==="1"; }catch{ return false; } };
+  const $ = (s, r=document)=> r.querySelector(s);
+
+  // CORS-safe HTML letöltés
+  async function fetchHtml(url){
+    const u = url.startsWith("https://") ? `https://r.jina.ai/${url}` : `https://r.jina.ai/http://${url.replace(/^https?:\/\//,'')}`;
+    const r = await fetch(u); if(!r.ok) throw new Error("fetch fail"); return await r.text();
+  }
+
+  // Playlist HTML → [{id,title}]
+  function parsePlaylist(html){
+    const out = [];
+    const re = /"playlistVideoRenderer"\s*:\s*\{[^}]*"videoId"\s*:\s*"([^"]+)"[\s\S]*?"title"\s*:\s*\{[^}]*"runs"\s*:\s*\[\s*\{\s*"text"\s*:\s*"([^"]{1,300})"/g;
+    let m; const seen = new Set();
+    while ((m = re.exec(html)) && out.length < 500){
+      const id = m[1]; const title = m[2];
+      if (!seen.has(id)){ seen.add(id); out.push({ id, title }); }
+    }
+    return out;
+  }
+
+  // Firestore segéd (opcionális)
+  async function ensureFirestore(){
+    try{
+      if (window.fb && window.fb.db){
+        const { db, collection, addDoc, getDocs, query, where, serverTimestamp } = window.fb.db;
+        return { db, collection, addDoc, getDocs, query, where, serverTimestamp, from:"fb" };
+      }
+      const appMod = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js");
+      const fsMod  = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js");
+      if (appMod.getApps && appMod.getApps().length===0 && window.firebaseConfig){
+        appMod.initializeApp(window.firebaseConfig);
+      }
+      const db = fsMod.getFirestore();
+      return {
+        db,
+        collection: fsMod.collection,
+        addDoc: fsMod.addDoc,
+        getDocs: fsMod.getDocs,
+        query: fsMod.query,
+        where: fsMod.where,
+        serverTimestamp: fsMod.serverTimestamp,
+        from:"dyn"
+      };
+    }catch(e){ console.warn("Firestore nem elérhető:", e?.message||e); return null; }
+  }
+
+  async function getExistingLinksSet(catKey, fx){
+    const set = new Set();
+    try{
+      const { db, collection, getDocs } = fx;
+      const snap = await getDocs(collection(db, "categories", catKey, "movies"));
+      snap.forEach(d => { const v = d.data(); if (v && v.link) set.add(String(v.link)); });
+    }catch{}
+    return set;
+  }
+
+  async function importPlaylistToCat(catKey, url, log){
+    try{ log("Playlist oldal töltése…"); }catch{}
+    const html = await fetchHtml(url);
+    const items = parsePlaylist(html);
+    if (!items.length){ log("Nem találtam videókat a listában."); return; }
+
+    log(`Összesen ${items.length} tétel találva. Előkészítés…`);
+
+    const fx = await ensureFirestore();
+    const dedup = fx ? await getExistingLinksSet(catKey, fx) : new Set();
+
+    let ok=0, skip=0, fail=0;
+    for (const it of items){
+      const link  = `https://www.youtube.com/watch?v=${it.id}`;
+      if (dedup.has(link)){ skip++; continue; }
+
+      const cover = `https://i.ytimg.com/vi/${it.id}/hqdefault.jpg`;
+      let content = "";
+      // (gyors) próbálunk leírást szerezni az og:description-ból
+      try{
+        const vhtml = await fetchHtml(link);
+        const m = vhtml.match(/property=["']og:description["'][^>]*content=["']([^"']+)["']/i);
+        content = m ? m[1] : "";
+      }catch{}
+
+      if (fx){
+        try{
+          const { db, collection, addDoc, serverTimestamp } = fx;
+          await addDoc(collection(db, "categories", catKey, "movies"), {
+            title: it.title, link, cover, content, createdAt: serverTimestamp ? serverTimestamp() : Date.now()
+          });
+          ok++;
+          // kis „kímélő” várakozás
+          await new Promise(r=>setTimeout(r, 120));
+        }catch(e){ fail++; log("Hiba mentés közben: " + (e?.message||e)); }
+      }else{
+        console.log("DEMO import:", {catKey, title:it.title, link, cover, content});
+        ok++;
+      }
+    }
+    log(`Kész. Sikeres: ${ok}, kihagyva (dupla): ${skip}, hiba: ${fail}.`);
+  }
+
+  function mountBulkBox(){
+    if (!isAdmin()) return;
+    const view = $("#view");
+    if (!view) return;
+    // Csak akkor, ha egy kategória nézet van nyitva:
+    const list = view.querySelector('[id^="list-"]');
+    if (!list || $("#yt-bulk-box")) return;
+
+    // csak KRIMI-be szeretnéd? -> akkor ellenőrizzük
+    const catKey = list.id.replace(/^list-/,'');
+    if (catKey !== "krimi") return;
+
+    const box = document.createElement("div");
+    box.className = "bulk-box";
+    box.id = "yt-bulk-box";
+    box.innerHTML = `
+      <h3>YouTube lejátszási lista import – KRIMI</h3>
+      <div class="row">
+        <input id="yt-playlist-url" type="url" placeholder="Illeszd be a lejátszási lista URL-jét" />
+        <div class="muted">Tipp: beillesztés után kattints az „Import” gombra. Duplákat átugorjuk.</div>
+        <div>
+          <button class="btn primary" id="yt-import-btn" type="button">Import</button>
+          <button class="btn" id="yt-fill-demo" type="button">Beillesztés a fenti példával</button>
+        </div>
+        <div class="log" id="yt-import-log"></div>
+      </div>
+    `;
+    list.parentNode.insertBefore(box, list);
+
+    const inp = $("#yt-playlist-url");
+    const logEl = $("#yt-import-log");
+    const log = (t)=>{ if (logEl) logEl.textContent += (t+"\n"); };
+
+    $("#yt-fill-demo")?.addEventListener("click", ()=>{
+      inp.value = "https://www.youtube.com/watch?v=lcPm7AtXYfA&list=PLdMd8pLOo_K8bQ28XJTlX3z6DSXq9twww";
+    });
+    $("#yt-import-btn")?.addEventListener("click", async ()=>{
+      const url = (inp.value||"").trim();
+      if (!url){ log("Adj meg playlist URL-t."); return; }
+      logEl.textContent = "";
+      await importPlaylistToCat(catKey, url, log);
+    });
+  }
+
+  const mo = new MutationObserver(()=> mountBulkBox());
+  mo.observe(document.getElementById("view"), { childList:true, subtree:true });
+  document.addEventListener("DOMContentLoaded", mountBulkBox);
+})();
+</script>
+<!-- ===== [SZAKASZ 3.7 VÉGE] ===== -->
+<!-- ===== [SZAKASZ 3.8] „MIÉRT ÉRDEMES?” – AI gomb (fallbackkal) ===== -->
+<style>
+  .ai-btn{margin-top:8px}
+  #aiModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:99999}
+  #aiModal.active{display:flex}
+  #aiBox{width:min(760px,92vw);background:#0e1729;color:#e5e7eb;border:1px solid #334155;border-radius:14px;padding:16px}
+  #aiBox h3{margin:0 0 8px}
+  #aiClose{float:right}
+  #aiText{white-space:pre-wrap}
+</style>
+
+<div id="aiModal" role="dialog" aria-modal="true">
+  <div id="aiBox">
+    <button id="aiClose" class="btn">Bezár</button>
+    <h3 id="aiTitle">Miért érdemes megnézni?</h3>
+    <div id="aiText" class="muted"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = (s,r=document)=> r.querySelector(s);
+
+  function attachButtons(){
+    const list = document.querySelector('#view [id^="list-"]');
+    if (!list) return;
+    list.querySelectorAll('.card').forEach(card=>{
+      if (card.dataset.aiReady === "1") return;
+      card.dataset.aiReady = "1";
+      const btn = document.createElement('button');
+      btn.className = 'btn ai-btn';
+      btn.type = 'button';
+      btn.textContent = 'Miért érdemes?';
+      btn.addEventListener('click',()=> openAIForCard(card));
+      card.appendChild(btn);
+    });
+  }
+
+  async function openAIForCard(card){
+    const titleEl = card.querySelector('div[style*="font-weight:800"]');
+    const descEl  = card.querySelector('.muted');
+    const linkEl  = card.querySelector('a.btn[href]');
+    const title = (titleEl?.textContent||"").trim();
+    const content = (descEl?.textContent||"").trim();
+    const link = (linkEl?.href||"").trim();
+
+    $('#aiTitle').textContent = title || 'Miért érdemes megnézni?';
+    $('#aiText').textContent = 'Összefoglaló készítése…';
+    $('#aiModal').classList.add('active');
+
+    const txt = await summarizeSmart({ title, content, link });
+    $('#aiText').textContent = txt;
+  }
+
+  async function summarizeSmart({ title, content, link }){
+    // 1) Ha beállítasz egy saját proxy végpontot (pl. Netlify/Cloudflare),
+    //    akkor itt kérheted le a valódi AI választ:
+    //    window.OPENAI_PROXY_URL = 'https://sajat-szerver/fetch-ai';
+    if (window.OPENAI_PROXY_URL){
+      try{
+        const r = await fetch(window.OPENAI_PROXY_URL, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ title, content, link })
+        });
+        const j = await r.json();
+        if (j && (j.summary || j.text)) return j.summary || j.text;
+      }catch(e){ /* esés fallbackre */ }
+    }
+
+    // 2) Fallback – meta leírás kinyerése a videóról + okos, sablonos „miért érdemes”
+    let meta = content;
+    if (!meta && link){
+      try{
+        const u = link.startsWith('https://') ? `https://r.jina.ai/${link}` : `https://r.jina.ai/http://${link.replace(/^https?:\/\//,'')}`;
+        const t = await (await fetch(u)).text();
+        const m = t.match(/property=["']og:description["'][^>]*content=["']([^"']+)["']/i);
+        meta = m ? m[1] : "";
+      }catch{}
+    }
+    const why = buildWhy(title, meta);
+    const plot = meta ? `Tartalom: ${meta}` : 'Tartalom: (részletek hamarosan…)';
+    return `${why}\n\n${plot}`;
+  }
+
+  function buildWhy(title, meta){
+    const t = (title||'').toLowerCase();
+    const tags = [];
+    if (/\b(thriller|krimi|crime|detective)\b/.test(t)) tags.push('fordulatos krimi');
+    if (/\b(akci|action)\b/.test(t)) tags.push('pörgős akció');
+    if (/\b(klasszikus|classic|2000|199\d|198\d)\b/.test(t)) tags.push('klasszikus hangulat');
+    if (meta && /igaz történet|true story/i.test(meta)) tags.push('igaz történet alapján');
+    const base = 'Miért érdemes megnézni:';
+    if (tags.length) return `${base} ${tags.join(' · ')} – feszes tempóval és erős atmoszférával.`;
+    return `${base} feszes, szórakoztató történet és jó tempó – krimi rajongóknak kötelező.`;
+  }
+
+  $('#aiClose')?.addEventListener('click', ()=> $('#aiModal').classList.remove('active'));
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('#aiModal').classList.remove('active'); });
+
+  const mo = new MutationObserver(()=> attachButtons());
+  mo.observe(document.getElementById('view'), { childList:true, subtree:true });
+  document.addEventListener('DOMContentLoaded', attachButtons);
+})();
+</script>
+<!-- ===== [SZAKASZ 3.8 VÉGE] ===== -->
 
 <!-- ===== [SZAKASZ 3] FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET – END ===== -->
 
