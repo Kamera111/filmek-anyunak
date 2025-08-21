@@ -1120,6 +1120,22 @@
 
 <!-- ===== [SZAKASZ 5] LOGIKA – GOMBOK + CÍM-KINYERÉS – CLEAN ===== -->
 <script>
+const NOW_PROXY = "https://script.google.com/macros/s/AKfycbywjfZIelu5SHvPS0OVjVTOf3xIdhmoam_-jbvrKFUeQHN9p8SatH8vx1y61HiLfow6/exec";
+
+// ÚJ: proxyn át HTML letöltés + r.jina.ai fallback
+async function fetchHtml(url) {
+  try {
+    const r = await fetch(`${NOW_PROXY}?u=${encodeURIComponent(url)}`, { cache: 'no-store' });
+    if (!r.ok) throw new Error('proxy_fail_' + r.status);
+    return await r.text();
+  } catch (e) {
+    console.warn('Proxy hiba, fallback:', e);
+  }
+  const r2 = await fetch('https://r.jina.ai/' + url, { cache: 'no-store' });
+  if (!r2.ok) throw new Error('fallback_fail_' + r2.status);
+  return await r2.text();
+}
+
 (function(){
   const REFRESH_MS = 5 * 60 * 1000; // 5 perc
   const catsLiveEl = document.getElementById("catsLive");
@@ -1241,15 +1257,19 @@
     return null;
   }
 
-  /* ========== HTML letöltés proxy-n keresztül ========== */
-  async function fetchHtml(url) {
-    const proxied = url.startsWith("https://")
-      ? `https://r.jina.ai/${url}`
-      : `https://r.jina.ai/http://${url.replace(/^https?:\/\//,'')}`;
-    const res = await fetch(proxied, { method: "GET" });
-    if (!res.ok) throw new Error("fetch failed");
-    return await res.text();
+// HTML letöltés a saját proxy-n keresztül + r.jina.ai fallback
+async function fetchHtml(url) {
+  try {
+    const r = await fetch(`${NOW_PROXY}?u=${encodeURIComponent(url)}`, { cache: 'no-store' });
+    if (!r.ok) throw new Error('proxy_fail_' + r.status);
+    return await r.text();
+  } catch (e) {
+    console.warn('Proxy hiba, fallback:', e);
   }
+  const r2 = await fetch('https://r.jina.ai/' + url, { cache: 'no-store' });
+  if (!r2.ok) throw new Error('fallback_fail_' + r2.status);
+  return await r2.text();
+}
 
   /* ========== Parszoló segédek ========== */
   function matchTitle(text) { const m = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i); return m && m[1] ? m[1] : null; }
