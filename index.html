@@ -136,55 +136,11 @@
 })();
 </script>
 <!-- ===== [SZAKASZ 2 VÉGE] ===== -->
-<!-- ===== [SZAKASZ 1.9] FIREBASE INIT (auth + firestore) ===== -->
+<!-- ===== [SZAKASZ 1.9] FIREBASE INIT (OFF) ===== -->
 <script>
-  // A TE projekted configja
-  window.firebaseConfig = {
-    apiKey: "AIzaSyBDSI-z3a4IFAIoKCVZVcUyue7GMoO5acY",
-    authDomain: "filmek-fe035.firebaseapp.com",
-    projectId: "filmek-fe035",
-    storageBucket: "filmek-fe035.appspot.com",
-    messagingSenderId: "302167835367",
-    appId: "1:302167835367:web:6e0fd4304c4496612c1842",
-    measurementId: "G-QBG7LG0ZQH"
-  };
-
-  (async () => {
-    try {
-      const appMod  = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js");
-      const authMod = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js");
-      const fsMod   = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js");
-
-      if (appMod.getApps && appMod.getApps().length === 0) {
-        appMod.initializeApp(window.firebaseConfig);
-      }
-
-      const auth = authMod.getAuth();
-      const db   = fsMod.getFirestore();
-
-      // Wrapper a már meglévő kódhoz
-      window.fb = window.fb || {};
-      window.fb.auth = auth;
-      window.fb.db = {
-        db,
-        addDoc: fsMod.addDoc,
-        collection: fsMod.collection,
-        getDocs: fsMod.getDocs,
-        onSnapshot: fsMod.onSnapshot,
-        query: fsMod.query,
-        orderBy: fsMod.orderBy,
-        limit: fsMod.limit,
-        serverTimestamp: fsMod.serverTimestamp,
-        where: fsMod.where
-      };
-
-      console.log("Firebase ready.");
-    } catch (e) {
-      console.error("Firebase init hiba:", e);
-    }
-  })();
+  // Firestore ideiglenesen kikapcsolva, hogy ne dobja a 400-as hibákat
+  window.DB_ENABLED = false;
 </script>
-<!-- ===== [SZAKASZ 1.9 VÉGE] ===== -->
 
 <!-- ===== [SZAKASZ 3] FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET – START ===== -->
 <div id="app" class="wrap">
