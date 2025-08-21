@@ -144,8 +144,7 @@
 ========================== -->
 
 <!-- =========================
-     3. rész eleje – FEJLÉC + TOP KATEGÓRIÁK + NÉZET
-     (csak UI és navigáció; a betöltést a 3.6 szakasz intézi)
+     3. rész eleje – FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET (MINIMAL, FIX)
 ========================== -->
 
 <div id="app" class="wrap">
@@ -153,7 +152,9 @@
     <header>
       <div class="title">Filmek Anyunak</div>
       <div style="margin-left:auto; display:flex; gap:8px;">
-        <button id="btnLogoutAll" class="btn btn-danger" title="Vissza a PIN-hez">Kilépés mindenből</button>
+        <button id="btnLogoutAll" class="btn btn-danger" title="Kijelentkezés és vissza a PIN-hez">
+          Kilépés mindenből
+        </button>
         <button class="btn" id="btnRefreshAll">Frissítés</button>
       </div>
     </header>
@@ -189,21 +190,24 @@
         <div class="chip-sub">20 név (hamarosan)</div>
       </button>
     </div>
+
+    <!-- ÉLŐ csatornák rácsa (NE TÖRÖLD – ezt a [SZAKASZ 5] tölti fel!) -->
+    <div id="catBar">
+      <div class="cats-row" id="catsLive"></div>
+    </div>
   </div>
 
-  <!-- Dinamikus nézetek ide kerülnek -->
+  <!-- Dinamikus nézetek (kategóriák listája ide kerül) -->
   <main id="view" class="view"></main>
 </div>
 
 <style>
-  /* TOP színes gombsor */
   .top-filters{
     display:grid; grid-template-columns:repeat(4, minmax(140px,1fr));
-    gap:10px; padding: 6px 12px 12px;
+    gap:10px; padding:6px 12px 12px;
   }
   @media (max-width:900px){ .top-filters{ grid-template-columns:repeat(2,1fr); } }
   @media (max-width:520px){ .top-filters{ grid-template-columns:1fr; } }
-
   .chip{
     display:flex; flex-direction:column; gap:4px;
     padding:12px 14px; border-radius:14px; color:#fff;
@@ -215,30 +219,35 @@
   .chip:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.22); filter:brightness(1.03); }
   .chip-title{ font-weight:800; letter-spacing:.3px; }
   .chip-sub{ font-size:14px; opacity:.95; }
-  .chip-sub .tag{ opacity:.9; }
-
   .chip-krimi{    background:linear-gradient(180deg,#16a34a,#15803d); }
   .chip-akcio{    background:linear-gradient(180deg,#2563eb,#1e40af); }
   .chip-thriller{ background:linear-gradient(180deg,#e11d48,#be123c); }
   .chip-actors{   background:linear-gradient(180deg,#f59e0b,#b45309); }
 
-  /* Vissza gomb a nézetekben */
+  /* ÉLŐ gombok tartó – a [SZAKASZ 5] kezeli a kártyákat */
+  #catBar { padding:12px; }
+  .cats-row { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:12px; }
+
   .btn-danger{ background:#dc2626; border:1px solid #b91c1c; }
   .btn-back{ margin-bottom:12px; }
 </style>
 
 <script>
-/* ===== 3. rész logika: egyszerű navigáció a kategória nézetekre ===== */
+/* ===== 3. rész logika – navigáció + Kilépés javítás ===== */
 (function(){
   const viewEl  = document.getElementById("view");
   const topBox  = document.getElementById("topFilters");
+  const catBar  = document.getElementById("catBar");
 
   function goHome(){
+    // főoldal: ÉLŐ rács látszik, a nézet üres
+    catBar.style.display = "";
     viewEl.innerHTML = "";
     window.scrollTo({top:0, behavior:"smooth"});
   }
 
   function renderCategory(catKey, label){
+    catBar.style.display = "none";
     viewEl.innerHTML = `
       <div class="card" style="margin:12px;">
         <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
@@ -247,12 +256,11 @@
         <div id="list-${catKey}" class="grid"></div>
       </div>`;
     document.getElementById("btnBackHome").addEventListener("click", goHome);
-
-    // A 3.6 szakasz figyeli a #view változását és betölti a listát (#list-${catKey})
     window.scrollTo({top:0, behavior:"smooth"});
   }
 
   function renderActors(){
+    catBar.style.display = "none";
     viewEl.innerHTML = `
       <div class="card" style="margin:12px;">
         <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
@@ -260,9 +268,7 @@
         <div class="muted" style="margin-bottom:10px">20 név lesz itt – kattintható szűréssel.</div>
         <ul id="actorsList" style="margin:0; padding-left:18px;"></ul>
       </div>`;
-    document.getElementById("btnBackHome").addEventListener("click", ()=> {
-      goHome();
-    });
+    document.getElementById("btnBackHome").addEventListener("click", goHome);
   }
 
   document.addEventListener("DOMContentLoaded", ()=>{
@@ -277,7 +283,7 @@
     });
   });
 
-  // Kilépés (PIN kapuhoz a későbbi szakaszban)
+  // Kilépés javítás: töröljük az állapotot és megjelenítjük a PIN kaput, ha van
   document.getElementById("btnLogoutAll")?.addEventListener("click", ()=>{
     try{
       localStorage.removeItem("filmek_anyunak_guest_ok");
@@ -285,8 +291,11 @@
       localStorage.removeItem("admin_email");
       sessionStorage.clear();
     }catch{}
-    // Ha van PIN kapu, majd megjelenik; ha nincs, csak „home”
-    goHome();
+    if (typeof window.showPinGate === "function"){
+      window.showPinGate();      // [SZAKASZ 2/6] biztosítja
+    } else {
+      location.reload();         // fallback
+    }
   });
 })();
 </script>
