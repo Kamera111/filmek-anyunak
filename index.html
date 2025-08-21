@@ -302,6 +302,55 @@
 <!-- =========================
      3. rész vége
 ========================== -->
+<!-- =========================
+     3.1. rész – KILÉPÉS FIX (globális kötés + biztos PIN kapu)
+     Helye: a 3. szakasz UTÁN
+========================== -->
+<script>
+(function(){
+  async function forceLogout(){
+    // 1) Tárolt állapotok törlése
+    try{
+      localStorage.removeItem("filmek_anyunak_guest_ok");
+      localStorage.removeItem("filmek_anyunak_admin_ok");
+      localStorage.removeItem("admin_email");
+      sessionStorage.clear();
+    }catch{}
+
+    // 2) Firebase signOut (ha elérhető)
+    try{
+      if (window.fb && window.fb.auth && window.fb.auth.auth) {
+        await window.fb.auth.signOut(window.fb.auth.auth);
+      }
+    }catch(e){ /* nem baj, megyünk tovább */ }
+
+    // 3) PIN kapu megjelenítése (ha van), különben újratöltés
+    try{
+      if (typeof window.showPinGate === "function") {
+        window.showPinGate();
+      } else {
+        location.reload();
+      }
+    }catch{
+      location.reload();
+    }
+  }
+
+  // Globális elérés (ha máshonnan is hívnád)
+  window.forceLogout = forceLogout;
+
+  // Esemény-delegáció: akkor is működik, ha a gomb később kerül a DOM-ba
+  document.addEventListener("click", (e)=>{
+    const btn = e.target.closest("#btnLogoutAll");
+    if (!btn) return;
+    e.preventDefault();
+    forceLogout();
+  });
+})();
+</script>
+<!-- =========================
+     3.1. rész vége
+========================== -->
 
 <!-- ===== [SZAKASZ 4] STÍLUS – START ===== -->
 <style>
