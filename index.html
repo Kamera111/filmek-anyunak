@@ -1120,19 +1120,27 @@
 
 <!-- ===== [SZAKASZ 5] LOGIKA – GOMBOK + CÍM-KINYERÉS – CLEAN ===== -->
 <script>
+/* ===== Beállítások ===== */
 const NOW_PROXY = "https://script.google.com/macros/s/AKfycbywjfZIelu5SHvPS0OVjVTOf3xIdhmoam_-jbvrKFUeQHN9p8SatH8vx1y61HiLfow6/exec";
 
-// ÚJ: proxyn át HTML letöltés + r.jina.ai fallback
+/* ===== HTML letöltés a saját proxy-n keresztül + r.jina.ai fallback ===== */
 async function fetchHtml(url) {
   try {
-    const r = await fetch(`${NOW_PROXY}?u=${encodeURIComponent(url)}`, { cache: 'no-store' });
-    if (!r.ok) throw new Error('proxy_fail_' + r.status);
-    return await r.text();
+    const r = await fetch(`${NOW_PROXY}?u=${encodeURIComponent(url)}`, { cache: "no-store" });
+    if (!r.ok) throw new Error("proxy_http_" + r.status);
+    const data = await r.json();                           // JSON-t várunk a GAS-tól
+    if (!data || typeof data.html !== "string") {
+      throw new Error("proxy_json");
+    }
+    return data.html;
   } catch (e) {
-    console.warn('Proxy hiba, fallback:', e);
+    console.warn("Proxy hiba, fallback:", e);
   }
-  const r2 = await fetch('https://r.jina.ai/' + url, { cache: 'no-store' });
-  if (!r2.ok) throw new Error('fallback_fail_' + r2.status);
+  const proxied = url.startsWith("https://")
+    ? `https://r.jina.ai/${url}`
+    : `https://r.jina.ai/http://${url.replace(/^https?:\/\//, "")}`;
+  const r2 = await fetch(proxied, { cache: "no-store" });
+  if (!r2.ok) throw new Error("fallback_http_" + r2.status);
   return await r2.text();
 }
 
@@ -1170,26 +1178,22 @@ async function fetchHtml(url) {
   /* ========== Segédfüggvények ========== */
   function channelHref(ch){
     if (ch.provider === "sweet") {
-      // közvetlen Sweet.TV login -> visszairányítás a csatornára
       const next = encodeURIComponent(ch.url);
       return `https://sweet.tv/hu/login?next=${next}`;
     }
-    // Telekomnál közvetlen lejátszó
-    return ch.url;
+    return ch.url; // Telekom: közvetlen lejátszó
   }
 
   function renderButtons() {
     if (!catsLiveEl) return;
     catsLiveEl.innerHTML = "";
     for (const ch of channels) {
-      // LINK-ként rajzoljuk ki, hogy biztosan megnyíljon új fülön
       const a = document.createElement("a");
       a.className = "cat";
       a.href = channelHref(ch);
       a.target = "_blank";
-      a.rel = "noopener"; // biztonság
+      a.rel = "noopener";
 
-      // „ÉLŐ” pirossal a név elején
       const safeName = escapeHtml(ch.name).replace(
         /^ÉLŐ(\s+)/,
         '<span class="live">ÉLŐ</span>$1'
@@ -1256,20 +1260,6 @@ async function fetchHtml(url) {
     for (const x of texts) { if (looksLikeTitle(x)) return x; }
     return null;
   }
-
-// HTML letöltés a saját proxy-n keresztül + r.jina.ai fallback
-async function fetchHtml(url) {
-  try {
-    const r = await fetch(`${NOW_PROXY}?u=${encodeURIComponent(url)}`, { cache: 'no-store' });
-    if (!r.ok) throw new Error('proxy_fail_' + r.status);
-    return await r.text();
-  } catch (e) {
-    console.warn('Proxy hiba, fallback:', e);
-  }
-  const r2 = await fetch('https://r.jina.ai/' + url, { cache: 'no-store' });
-  if (!r2.ok) throw new Error('fallback_fail_' + r2.status);
-  return await r2.text();
-}
 
   /* ========== Parszoló segédek ========== */
   function matchTitle(text) { const m = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i); return m && m[1] ? m[1] : null; }
@@ -1339,6 +1329,7 @@ async function fetchHtml(url) {
 })();
 </script>
 <!-- ===== [SZAKASZ 5] VÉGE ===== -->
+
 <!-- ===== [SZAKASZ 6] ADMIN BELÉPŐ – „A” GOMB (email + jelszó, üresen; Firebase opcionális) ===== -->
 <style>
   #adminMini{
