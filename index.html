@@ -1,103 +1,56 @@
-<!-- =========================
-     1. rész eleje – HEAD + ALAP STÍLUSOK (STABIL)
-========================== -->
 <!doctype html>
 <html lang="hu">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <meta name="theme-color" content="#0f172a" />
   <title>Filmek Anyunak</title>
 
-  <!-- Alap színek, tipó és elrendezés – csak semleges, későbbi szakaszokkal kompatibilis -->
+  <!-- =========================
+       1. rész – ALAP STÍLUSOK
+  ========================== -->
   <style>
-    :root{
-      --bg:#0f172a;        /* háttér */
-      --bg-soft:#0b1220;   /* sötétebb panel */
-      --card:#111827;      /* kártya */
-      --line:#1f2937;      /* szegély */
-      --muted:#94a3b8;     /* halvány szöveg */
-      --txt:#e5e7eb;       /* alap szöveg */
-      --btn:#1f2937;       /* alap gomb */
-      --btn-line:#334155;  /* gomb szegély */
-      --accent:#22d3ee;    /* kiemelés */
-    }
+    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --txt:#e5e7eb; }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .sticky{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(15,23,42,.7) 60%,rgba(15,23,42,0));backdrop-filter:blur(6px)}
+    header{display:flex;align-items:center;gap:12px;padding:10px 0}
+    .title{font-weight:800;font-size:clamp(20px,4.6vw,28px)}
+    .btn{background:#1f2937;color:#fff;border:1px solid #334155;border-radius:12px;padding:9px 13px;cursor:pointer;font-weight:600}
+    .btn:active{transform:scale(.98)}
+    .btn-danger{background:#dc2626;border-color:#b91c1c}
+    .muted{color:var(--muted);font-size:14px}
+    .card{background:var(--card);border:1px solid #1f2937;border-radius:16px;padding:14px}
+    a{color:#a5f3fc;text-decoration:none} a:hover{text-decoration:underline}
+    img{max-width:100%;border-radius:10px;border:1px solid #1f2937}
 
-    html, body{
-      margin:0; padding:0;
-      background:var(--bg);
-      color:var(--txt);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-    }
+    /* felső színes kategória gombok */
+    .top-filters{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px;padding:6px 12px 12px}
+    @media (max-width:900px){.top-filters{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:520px){.top-filters{grid-template-columns:1fr}}
+    .chip{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:14px;color:#fff;border:1px solid rgba(255,255,255,.16);box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer;transition:.12s}
+    .chip:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(0,0,0,.22);filter:brightness(1.03)}
+    .chip-title{font-weight:800}
+    .chip-sub{font-size:14px;opacity:.95}
+    .chip-krimi{background:linear-gradient(180deg,#16a34a,#15803d)}
+    .chip-akcio{background:linear-gradient(180deg,#2563eb,#1e40af)}
+    .chip-thriller{background:linear-gradient(180deg,#e11d48,#be123c)}
+    .chip-actors{background:linear-gradient(180deg,#f59e0b,#b45309)}
 
-    /* Oldalszélesség + ragadós fejléc hely */
-    .wrap{ max-width:980px; margin:0 auto; padding:16px; }
-    .sticky{
-      position:sticky; top:0; z-index:10;
-      background:linear-gradient(180deg, rgba(15,23,42,.98), rgba(15,23,42,.75) 60%, rgba(15,23,42,0));
-      backdrop-filter:blur(6px);
-    }
-
-    /* Fejléc */
-    header{ display:flex; align-items:center; gap:12px; padding:12px 0; }
-    .title{ font-weight:800; font-size:clamp(20px,4.8vw,28px); letter-spacing:.3px; }
-
-    /* Gombok */
-    .btn{
-      background:var(--btn);
-      color:#fff;
-      border:1px solid var(--btn-line);
-      border-radius:12px;
-      padding:10px 14px;
-      cursor:pointer;
-      font-weight:600;
-      transition:filter .12s ease, transform .06s ease;
-    }
-    .btn:hover{ filter:brightness(1.06); }
-    .btn:active{ transform:scale(.98); }
-    .btn[hidden]{ display:none !important; }
-
-    /* Rács és kártyák */
-    .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; }
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px;
-    }
-
-    /* Szövegstílusok */
-    .muted{ color:var(--muted); font-size:14px; }
-    a{ color:#a5f3fc; text-decoration:none; }
-    a:hover{ text-decoration:underline; }
-
-    /* Form elemek (admin részhez is jó) */
-    label{ display:block; font-size:13px; color:#b3c1d1; margin-bottom:6px; }
-    input, select, textarea{
-      width:100%; box-sizing:border-box;
-      padding:10px; border-radius:12px;
-      border:1px solid var(--btn-line);
-      background:var(--bg-soft); color:var(--txt);
-    }
-    textarea{ resize:vertical; }
-
-    /* Képek a kártyákon */
-    img{ max-width:100%; height:auto; border-radius:10px; border:1px solid var(--line); }
-
-    /* Hasznos utilok */
-    .hidden{ display:none !important; }
-    .footer{ margin:30px 0 10px; text-align:center; color:#6b7280; font-size:12px; }
+    /* ÉLŐ kártyarács */
+    #catBar{padding:12px}
+    .cats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    .cat{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:14px;background:#1f2937;color:#fff;border:1px solid #0f2437;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+    .cat .name{color:#22c55e;font-weight:700;font-size:18px}
+    .cat .name .live{color:#ef4444;font-weight:900;margin-right:4px}
+    .cat .now{font-size:15px}
+    .btn-back{margin-bottom:12px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
   </style>
 </head>
-<!-- =========================
-     1. rész vége
-========================== -->
 
 <!-- =========================
-     2. rész – FIREBASE INIT (ÉLES) + EXPORT window.fb
-     Helye: közvetlenül a </head> UTÁN
+     2. rész – FIREBASE INIT (ÉLES) + window.fb
+     (KÖZVETLENÜL a </head> után legyen)
 ========================== -->
 <script type="module">
   import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
@@ -105,13 +58,8 @@
     getFirestore, collection, addDoc, getDocs, onSnapshot,
     query, where, orderBy, limit, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-  import {
-    getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-  // (Analytics opcionális, nem szükséges a működéshez)
-  // import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-  // --- A TE KONFIGOD (Firebase Console -> Project settings -> General) ---
   const firebaseConfig = {
     apiKey: "AIzaSyBDSI-z3a4IFAIoKCVZVcUyue7GMoO5acY",
     authDomain: "filmek-fe035.firebaseapp.com",
@@ -122,687 +70,207 @@
     measurementId: "G-QBG7LG0ZQH"
   };
 
-  // --- Inicializálás (idempotens) ---
   const app  = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
   const db   = getFirestore(app);
   const auth = getAuth(app);
-  // try { getAnalytics(app); } catch {}
 
-  // --- Export: PONT OLYAN STRUKTÚRA, AMIT A 3.6 SZAKASZ VÁR ---
-  // A 3.6 ezt csinálja: if (window.fb && window.fb.db) { const { db, collection, ... } = window.fb.db; }
   window.firebaseConfig = firebaseConfig;
   window.fb = Object.freeze({
     app,
-    db: {                         // <-- Ezt fogja felhasználni a 3.6
-      db, collection, addDoc, getDocs, onSnapshot,
-      query, where, orderBy, limit, serverTimestamp
-    },
+    db: { db, collection, addDoc, getDocs, onSnapshot, query, where, orderBy, limit, serverTimestamp },
     auth: { auth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   });
 
   console.debug("[Firebase] READY – project:", firebaseConfig.projectId);
 </script>
-<!-- =========================
-     2. rész vége
-========================== -->
 
+<body>
 <!-- =========================
-     3. rész eleje – FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET (MINIMAL, FIX)
+     3. rész – UI: FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET
 ========================== -->
-
 <div id="app" class="wrap">
   <div class="sticky">
     <header>
       <div class="title">Filmek Anyunak</div>
-      <div style="margin-left:auto; display:flex; gap:8px;">
-        <button id="btnLogoutAll" class="btn btn-danger" title="Kijelentkezés és vissza a PIN-hez">
-          Kilépés mindenből
-        </button>
-        <button class="btn" id="btnRefreshAll">Frissítés</button>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button id="btnLogoutAll" class="btn btn-danger" title="Kijelentkezés és vissza">Kilépés mindenből</button>
+        <button id="btnRefreshAll" class="btn">Frissítés</button>
       </div>
     </header>
 
-    <!-- Felső színes kategória-gombok -->
     <div id="topFilters" class="top-filters">
-      <button class="chip chip-krimi" data-goto="krimi">
-        <div class="chip-title">KRIMI</div>
-        <div class="chip-sub">
-          <span class="tag">Új:</span><span id="badge-new-krimi">0</span> ·
-          <span class="tag">Összes:</span><span id="badge-all-krimi">0</span>
-        </div>
-      </button>
-
-      <button class="chip chip-akcio" data-goto="akcio">
-        <div class="chip-title">AKCIÓ</div>
-        <div class="chip-sub">
-          <span class="tag">Új:</span><span id="badge-new-akcio">0</span> ·
-          <span class="tag">Összes:</span><span id="badge-all-akcio">0</span>
-        </div>
-      </button>
-
-      <button class="chip chip-thriller" data-goto="thriller">
-        <div class="chip-title">THRILLER</div>
-        <div class="chip-sub">
-          <span class="tag">Új:</span><span id="badge-new-thriller">0</span> ·
-          <span class="tag">Összes:</span><span id="badge-all-thriller">0</span>
-        </div>
-      </button>
-
-      <button class="chip chip-actors" data-goto="actors">
-        <div class="chip-title">SZÍNÉSZEK</div>
-        <div class="chip-sub">20 név (hamarosan)</div>
-      </button>
+      <button class="chip chip-krimi"    data-goto="krimi"><div class="chip-title">KRIMI</div><div class="chip-sub">Új:<span id="badge-new-krimi">0</span> · Összes:<span id="badge-all-krimi">0</span></div></button>
+      <button class="chip chip-akcio"    data-goto="akcio"><div class="chip-title">AKCIÓ</div><div class="chip-sub">Új:<span id="badge-new-akcio">0</span> · Összes:<span id="badge-all-akcio">0</span></div></button>
+      <button class="chip chip-thriller" data-goto="thriller"><div class="chip-title">THRILLER</div><div class="chip-sub">Új:<span id="badge-new-thriller">0</span> · Összes:<span id="badge-all-thriller">0</span></div></button>
+      <button class="chip chip-actors"   data-goto="actors"><div class="chip-title">SZÍNÉSZEK</div><div class="chip-sub">20 név (hamarosan)</div></button>
     </div>
 
-    <!-- ÉLŐ csatornák rácsa (NE TÖRÖLD – ezt a [SZAKASZ 5] tölti fel!) -->
-    <div id="catBar">
-      <div class="cats-row" id="catsLive"></div>
-    </div>
+    <div id="catBar"><div class="cats-row" id="catsLive"></div></div>
   </div>
 
-  <!-- Dinamikus nézetek (kategóriák listája ide kerül) -->
   <main id="view" class="view"></main>
 </div>
 
-<style>
-  .top-filters{
-    display:grid; grid-template-columns:repeat(4, minmax(140px,1fr));
-    gap:10px; padding:6px 12px 12px;
-  }
-  @media (max-width:900px){ .top-filters{ grid-template-columns:repeat(2,1fr); } }
-  @media (max-width:520px){ .top-filters{ grid-template-columns:1fr; } }
-  .chip{
-    display:flex; flex-direction:column; gap:4px;
-    padding:12px 14px; border-radius:14px; color:#fff;
-    border:1px solid rgba(255,255,255,.16);
-    box-shadow:0 4px 14px rgba(0,0,0,.18);
-    cursor:pointer; text-align:left;
-    transition:transform .08s ease, box-shadow .12s ease, filter .12s ease;
-  }
-  .chip:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.22); filter:brightness(1.03); }
-  .chip-title{ font-weight:800; letter-spacing:.3px; }
-  .chip-sub{ font-size:14px; opacity:.95; }
-  .chip-krimi{    background:linear-gradient(180deg,#16a34a,#15803d); }
-  .chip-akcio{    background:linear-gradient(180deg,#2563eb,#1e40af); }
-  .chip-thriller{ background:linear-gradient(180deg,#e11d48,#be123c); }
-  .chip-actors{   background:linear-gradient(180deg,#f59e0b,#b45309); }
-
-  /* ÉLŐ gombok tartó – a [SZAKASZ 5] kezeli a kártyákat */
-  #catBar { padding:12px; }
-  .cats-row { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:12px; }
-
-  .btn-danger{ background:#dc2626; border:1px solid #b91c1c; }
-  .btn-back{ margin-bottom:12px; }
-</style>
-
-<script>
-/* ===== 3. rész logika – navigáció (Kilépés handler NINCS itt, lásd 3.1) ===== */
-(function(){
-  const viewEl  = document.getElementById("view");
-  const topBox  = document.getElementById("topFilters");
-  const catBar  = document.getElementById("catBar");
-
-  function goHome(){
-    // főoldal: ÉLŐ rács látszik, a nézet üres
-    catBar.style.display = "";
-    viewEl.innerHTML = "";
-    window.scrollTo({top:0, behavior:"smooth"});
-  }
-
-  function renderCategory(catKey, label){
-    catBar.style.display = "none";
-    viewEl.innerHTML = `
-      <div class="card" style="margin:12px;">
-        <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
-        <h2 style="margin:4px 0 8px">${label}</h2>
-        <div class="muted" style="margin-bottom:10px">Görgess – hamarosan ide töltjük a filmeket…</div>
-        <div id="list-${catKey}" class="grid"></div>
-      </div>`;
-    document.getElementById("btnBackHome").addEventListener("click", goHome);
-    window.scrollTo({top:0, behavior:"smooth"});
-  }
-
-  function renderActors(){
-    catBar.style.display = "none";
-    viewEl.innerHTML = `
-      <div class="card" style="margin:12px;">
-        <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
-        <h2 style="margin:4px 0 8px">Színészek</h2>
-        <div class="muted" style="margin-bottom:10px">20 név lesz itt – kattintható szűréssel.</div>
-        <ul id="actorsList" style="margin:0; padding-left:18px;"></ul>
-      </div>`;
-    document.getElementById("btnBackHome").addEventListener("click", goHome);
-  }
-
-  document.addEventListener("DOMContentLoaded", ()=>{
-    topBox?.addEventListener("click", (e)=>{
-      const btn = e.target.closest(".chip");
-      if(!btn) return;
-      const dest = btn.dataset.goto;
-      if(dest === "krimi")    renderCategory("krimi","KRIMI");
-      if(dest === "akcio")    renderCategory("akcio","AKCIÓ");
-      if(dest === "thriller") renderCategory("thriller","THRILLER");
-      if(dest === "actors")   renderActors();
-    });
-  });
-})();
-</script>
 <!-- =========================
-     3. rész vége
-========================== -->
-
-<!-- =========================
-     3.1. rész – KILÉPÉS (ultrastabil: capture + több cél, AZONNALI RELOAD)
+     3.1 rész – KILÉPÉS: capture + tiszta reload
 ========================== -->
 <script>
 (function(){
-  // Központi kilépés
-  async function doLogoutCore(){
-    // 1) Lokális állapotok törlése
+  async function doLogout(){
     try{
       localStorage.removeItem("filmek_anyunak_guest_ok");
       localStorage.removeItem("filmek_anyunak_admin_ok");
       localStorage.removeItem("admin_email");
       sessionStorage.clear();
     }catch{}
-
-    // 2) Firebase signOut (ha van)
     try{
-      if (window.fb?.auth?.auth && typeof window.fb.auth.signOut === "function") {
-        await Promise.race([
-          window.fb.auth.signOut(window.fb.auth.auth),
-          new Promise(res => setTimeout(res, 1200)) // safety timeout
-        ]);
+      const a = window.fb?.auth?.auth;
+      const so = window.fb?.auth?.signOut;
+      if (a && typeof so === "function"){
+        await Promise.race([ so(a), new Promise(r=>setTimeout(r,1200)) ]);
       }
     }catch{}
-
-    // 3) Azonnali TISZTA reload (paraméterek nélkül)
-    try{
-      const clean = location.origin + location.pathname;
-      location.replace(clean);
-    }catch{
-      location.reload();
-    }
+    const clean = location.origin + location.pathname;
+    if (location.href !== clean) location.href = clean; else location.reload();
   }
-
-  // Export (ha máshonnan hívnád)
-  window.forceLogout = doLogoutCore;
-
-  // Felismerjük, hogy a cél „Kilépés” jellegű-e
-  function isLogoutEl(el){
-    if (!el) return false;
-    if (el.id === "btnLogoutAll") return true;
-    const t = (el.title || "") + " " + (el.getAttribute?.("aria-label") || "") + " " + (el.textContent || "");
-    return /Kilépés/i.test(t);
-  }
-  function findLogoutTarget(start){
-    let n = start;
-    while (n && n !== document.documentElement){
-      if (isLogoutEl(n)) return n;
-      n = n.parentNode;
-    }
-    return null;
-  }
-
-  // 1) Kattintások megfogása CAPTURE fázisban (bármi is rajzolja újra a gombot)
-  document.addEventListener("click", function(ev){
-    const target = findLogoutTarget(ev.target);
-    if (!target) return;
-
-    ev.preventDefault?.();
-    ev.stopImmediatePropagation?.();
-    ev.stopPropagation?.();
-
-    try{
-      if (target.tagName === "BUTTON" && target.type !== "button") target.type = "button";
-      target.disabled = true;
-    }catch{}
-
-    doLogoutCore();
-  }, true); // CAPTURE!
-
-  // 2) Billentyű aktiválás (Enter/Space), ha a gomb fókuszban van
-  document.addEventListener("keydown", function(ev){
-    if (!("key" in ev)) return;
-    if (ev.key !== "Enter" && ev.key !== " ") return;
-    const target = findLogoutTarget(document.activeElement);
-    if (!target) return;
-
-    ev.preventDefault?.();
-    ev.stopImmediatePropagation?.();
-    ev.stopPropagation?.();
-
-    try{
-      if (target.tagName === "BUTTON" && target.type !== "button") target.type = "button";
-      target.disabled = true;
-    }catch{}
-
-    doLogoutCore();
+  document.addEventListener("click",(e)=>{
+    const b = e.target.closest("#btnLogoutAll,button");
+    if (!b) return;
+    const t = (b.textContent||"") + " " + (b.title||"") + " " + (b.getAttribute?.("aria-label")||"");
+    if (!/(kilép|kijelent|logout|sign\s*out)/i.test(t)) return;
+    e.preventDefault(); e.stopPropagation();
+    doLogout();
   }, true);
-
-  // 3) Form submit megfogása (ha a Kilépés véletlenül submit gomb lenne)
-  document.addEventListener("submit", function(ev){
-    const s = ev.submitter || null;
-    if (s && findLogoutTarget(s)){
-      ev.preventDefault?.();
-      ev.stopImmediatePropagation?.();
-      ev.stopPropagation?.();
-      doLogoutCore();
-    }
-  }, true);
-
-  // 4) Oldal betöltéskor: ha a gomb már bent van, tegyük "button"-ná és jelöljük role-lal
-  document.addEventListener("DOMContentLoaded", function(){
-    const cands = Array.from(document.querySelectorAll("#btnLogoutAll, button, [title], [aria-label]"));
-    for (const el of cands){
-      if (!isLogoutEl(el)) continue;
-      if (el.tagName === "BUTTON" && el.type !== "button") el.type = "button";
-      el.setAttribute("role","button");
-    }
-  }, { once:true });
 })();
 </script>
+
 <!-- =========================
-     3.1. rész vége
+     5. rész – ÉLŐ gombok feltöltése
 ========================== -->
-
-<!-- ===== [SZAKASZ 4] STÍLUS – START ===== -->
-<style>
-  /* alap rejtések */
-  h1, h2 { display:none !important; }
-
-  /* rács – élő kártyák */
-  #catBar { padding: 12px; }
-  .cats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; }
-
-  /* kártya */
-  .cat{
-    display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
-    padding:14px 16px; border-radius:14px; background:#1f2937; color:#fff; cursor:pointer;
-    box-shadow:0 4px 14px rgba(0,0,0,.18); transition:transform .08s ease, box-shadow .12s ease;
-    min-height:84px; text-align:left; border:1px solid #0f2437;
-  }
-  .cat:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.22); }
-
-  /* csatorna név – zöld */
-  :root{ --name-green:#22c55e; }
-  .cat .name{ color:var(--name-green); font-weight:700; font-size:18px; line-height:1.2; margin-bottom:6px; }
-
-  /* a névben az „ÉLŐ” legyen piros (ha span.live) */
-  .cat .name .live{ color:#ef4444 !important; font-weight:900; margin-right:4px; }
-
-  /* „Most megy” sor és a „Kattints” */
-  .cat .now{ font-size:15px; opacity:.95; white-space:normal; }
-  .cat .now .label{ opacity:.9; margin-right:6px; }
-  .cat .now .title{ font-size:16px; font-weight:800; }  /* KISEBB „Kattints” */
-
-  /* felső piros gomb (kilépés) */
-  .btn-danger{ background:#dc2626; border:1px solid #b91c1c; color:#fff; }
-  .btn-danger:hover{ filter:brightness(1.05); }
-
-  /* TOP színes gombok */
-  .top-filters{
-    display:grid; grid-template-columns:repeat(4, minmax(140px,1fr));
-    gap:10px; padding: 6px 12px 12px;
-  }
-  @media (max-width:900px){ .top-filters{ grid-template-columns:repeat(2,1fr); } }
-  @media (max-width:520px){ .top-filters{ grid-template-columns:1fr; } }
-
-  .chip{
-    display:flex; flex-direction:column; gap:4px;
-    padding:12px 14px; border-radius:14px; color:#fff;
-    border:1px solid rgba(255,255,255,.16);
-    box-shadow:0 4px 14px rgba(0,0,0,.18);
-    cursor:pointer; text-align:left;
-    transition:transform .08s ease, box-shadow .12s ease, filter .12s ease;
-  }
-  .chip:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.22); filter:brightness(1.03); }
-  .chip-title{ font-weight:800; letter-spacing:.3px; }
-  .chip-sub{ font-size:14px; opacity:.95; }
-  .chip-sub .tag{ opacity:.9; }
-
-  .chip-krimi{    background:linear-gradient(180deg,#16a34a,#15803d); }
-  .chip-akcio{    background:linear-gradient(180deg,#2563eb,#1e40af); }
-  .chip-thriller{ background:linear-gradient(180deg,#e11d48,#be123c); }
-  .chip-actors{   background:linear-gradient(180deg,#f59e0b,#b45309); }
-
-  /* vissza gomb a nézetekben */
-  .btn-back{ margin-bottom:12px; }
-</style>
-<!-- ===== [SZAKASZ 4] STÍLUS – END ===== -->
-
-<!-- ===== [SZAKASZ 5] LOGIKA – GOMBOK + CÍM-KINYERÉS – CLEAN ===== -->
-<script>
-(function () {
-  const catsLiveEl    = document.getElementById("catsLive");
-  const btnRefreshAll = document.getElementById("btnRefreshAll"); // nem használjuk, elrejtjük
-
-  /* ========== Csatornák ========== */
-  const channels = [];
-  function addChannel({ id, name, url, provider, sweetName }) {
-    channels.push({ id, name, url, provider, sweetName });
-  }
-
-  // SWEET.TV – 4 csatorna
-  addChannel({ id:"live-vigjatek",  name:"ÉLŐ Vígjáték TV", url:"https://sweet.tv/hu/free_tv/2014-comedy-universe-hd", provider:"sweet",   sweetName:"Vígjáték univerzum HD" });
-  addChannel({ id:"live-akcio",     name:"ÉLŐ Akció TV",    url:"https://sweet.tv/hu/free_tv/2010-action-zone-hd",     provider:"sweet",   sweetName:"Akció zóna HD" });
-  addChannel({ id:"live-thriller",  name:"ÉLŐ Thriller TV", url:"https://sweet.tv/hu/free_tv/2016-thriller-time-hd",    provider:"sweet",   sweetName:"Thriller idő HD" });
-  addChannel({ id:"live-top",       name:"ÉLŐ TOP Filmek",  url:"https://sweet.tv/hu/free_tv/2967-top-movies-hd",       provider:"sweet",   sweetName:"Top Filmek HD" });
-
-  // TELEKOM TV GO – 12 csatorna
-  addChannel({ id:"tgo-13",  name:"Mozi+ tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=13",  provider:"telekom" });
-  addChannel({ id:"tgo-15",  name:"Film + tv",     url:"https://player.telekomtvgo.hu/player/live?channelNumber=15",  provider:"telekom" });
-  addChannel({ id:"tgo-21",  name:"Prime tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=21",  provider:"telekom" });
-  addChannel({ id:"tgo-24",  name:"RTL 2 tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=24",  provider:"telekom" });
-  addChannel({ id:"tgo-28",  name:"FilmCafe tv",   url:"https://player.telekomtvgo.hu/player/live?channelNumber=28",  provider:"telekom" });
-  addChannel({ id:"tgo-30",  name:"ozone tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=30",  provider:"telekom" });
-  addChannel({ id:"tgo-60",  name:"Cool tv",       url:"https://player.telekomtvgo.hu/player/live?channelNumber=60",  provider:"telekom" });
-  addChannel({ id:"tgo-61",  name:"AXN tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=61",  provider:"telekom" });
-  addChannel({ id:"tgo-62",  name:"AMC tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=62",  provider:"telekom" });
-  addChannel({ id:"tgo-66",  name:"Paramount tv",  url:"https://player.telekomtvgo.hu/player/live?channelNumber=66",  provider:"telekom" });
-  addChannel({ id:"tgo-163", name:"FilmMánia tv",  url:"https://player.telekomtvgo.hu/player/live?channelNumber=163", provider:"telekom" });
-  addChannel({ id:"tgo-169", name:"Moziverzum tv", url:"https://player.telekomtvgo.hu/player/live?channelNumber=169", provider:"telekom" });
-
-  /* ========== Linkgyártás ========== */
-  function channelHref(ch) {
-    if (ch.provider === "sweet") {
-      // Sweet.TV-n először login, aztán visszairányítás a csatornára
-      const next = encodeURIComponent(ch.url);
-      return `https://sweet.tv/hu/login?next=${next}`;
-    }
-    // Telekomnál közvetlen lejátszó
-    return ch.url;
-  }
-
-  /* ========== Kirajzolás ========== */
-  function renderButtons() {
-    if (!catsLiveEl) return;
-    catsLiveEl.innerHTML = "";
-
-    for (const ch of channels) {
-      const a = document.createElement("a");
-      a.className = "cat";
-      a.href   = channelHref(ch);
-      a.target = "_blank";
-      a.rel    = "noopener";
-
-      const safeName = escapeHtml(ch.name).replace(
-        /^ÉLŐ(\s+)/,
-        '<span class="live">ÉLŐ</span>$1'
-      );
-
-      a.innerHTML = `
-        <div class="name">${safeName}</div>
-        <div class="now">
-          <span class="label">Most megy:</span>
-          <span class="title">Kattints</span>
-        </div>
-      `;
-      catsLiveEl.appendChild(a);
-    }
-  }
-
-  /* ========== Kiegészítők ========== */
-  function escapeHtml(str) {
-    return String(str)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#39;");
-  }
-
-  /* ========== Init ========== */
-  document.addEventListener("DOMContentLoaded", () => {
-    renderButtons();
-    // nincs automatikus frissítés; a gombot el is rejthetjük
-    if (btnRefreshAll) btnRefreshAll.style.display = "none";
-  });
-})();
-</script>
-<!-- ===== [SZAKASZ 5] VÉGE ===== -->
-
-<!-- ===== [SZAKASZ 6] ADMIN BELÉPŐ – „A” GOMB (email + jelszó, üresen; Firebase opcionális) ===== -->
-<style>
-  #adminMini{
-    display:none; flex-direction:column; gap:12px; margin-top:10px;
-    padding:12px; border:1px solid #334155; border-radius:12px; background:#0b1220;
-  }
-  #adminMini label{ font-size:12px; color:#9ca3af; }
-  #adminMini input{
-    width:100%; padding:10px; border-radius:10px; border:1px solid #374151;
-    background:#0f172a; color:#e5e7eb;
-  }
-  #adminMini .row{ display:flex; gap:8px; }
-  #adminMini .btn{
-    background:#1f2937; border:1px solid #334155; color:#fff;
-    padding:8px 12px; border-radius:10px; cursor:pointer;
-  }
-  #adminMini .btn.primary{ background:#2563eb; border-color:#1d4ed8; }
-  #adminMini .btn:active{ transform:scale(.98); }
-  #adminMini .err{ color:#fca5a5; font-size:12px; min-height:16px; }
-</style>
-
 <script>
 (function(){
-  function buildAdminMiniOnce(){
-    const host = document.getElementById("adminMini");
-    if (!host || host.dataset.ready === "1") return;
-    host.dataset.ready = "1";
-
-    host.innerHTML = `
-      <div class="err" id="adminMiniErr"></div>
-
-      <div>
-        <label for="adminMiniEmail">Admin email</label>
-        <input id="adminMiniEmail" type="email" inputmode="email" autocomplete="off"
-               autocapitalize="none" spellcheck="false" value="" />
-      </div>
-
-      <div>
-        <label for="adminMiniPass">Jelszó</label>
-        <input id="adminMiniPass" type="text" autocomplete="off" value="" />
-      </div>
-
-      <div class="row">
-        <button class="btn" id="adminMiniCancel" type="button">Mégse</button>
-        <button class="btn primary" id="adminMiniLogin" type="button">Belépés</button>
-      </div>
-    `;
-
-    document.getElementById("adminMiniCancel")?.addEventListener("click", hideAdminMini);
-    document.getElementById("adminMiniLogin")?.addEventListener("click", doAdminLogin);
-    document.getElementById("adminMiniPass")?.addEventListener("keyup",(e)=>{ if(e.key==="Enter") doAdminLogin(); });
-  }
-
-  function showAdminMini(){
-    buildAdminMiniOnce();
-    const box = document.getElementById("adminMini");
-    if (!box) return;
-    box.style.display = "flex";
-    const err = document.getElementById("adminMiniErr");
-    if (err) err.textContent = "";
-    const email = document.getElementById("adminMiniEmail");
-    const pass  = document.getElementById("adminMiniPass");
-    if (email) email.value = "";
-    if (pass)  pass.value = "";
-    email?.focus();
-  }
-
-  function hideAdminMini(){
-    const box  = document.getElementById("adminMini");
-    const email= document.getElementById("adminMiniEmail");
-    const pass = document.getElementById("adminMiniPass");
-    if (email) email.value = "";
-    if (pass)  pass.value = "";
-    if (box)   box.style.display = "none";
-  }
-
-  async function doAdminLogin(){
-    const email = (document.getElementById("adminMiniEmail")?.value || "").trim();
-    const pass  = (document.getElementById("adminMiniPass") ?.value || "").trim();
-    const errEl = document.getElementById("adminMiniErr");
-
-    if (!email || !pass){
-      if (errEl) errEl.textContent = "Írd be az emailt és a jelszót.";
-      return;
-    }
-
-    // ===== Firebase-belépés (opcionális) =====
-    let ok = false;
-    try{
-      let auth = null;
-
-      // 1) Ha a projekt már inicializálta a Firebase-t, használd azt
-      if (window.fb && window.fb.auth) {
-        auth = window.fb.auth;
-      } else {
-        // 2) Próbálj dinamikusan betölteni mindent. Ha nincs firebaseConfig, akkor demó mód.
-        const appMod  = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js");
-        const authMod = await import("https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js");
-
-        if (appMod && appMod.getApps && appMod.getApps().length === 0 && window.firebaseConfig) {
-          appMod.initializeApp(window.firebaseConfig);
-        }
-        try { auth = authMod.getAuth(); } catch { auth = null; }
-
-        if (auth) {
-          await authMod.signInWithEmailAndPassword(auth, email, pass);
-        }
-      }
-
-      // Ha idáig eljutottunk: vagy sikeres Firebase login, vagy nincs Firebase -> demó OK
-      ok = true;
-    }catch(e){
-      // Ha konkrét Firebase hiba volt és tényleg kellene Firebase, ezt ide írhatod ki:
-      ok = false;
-      if (errEl) errEl.textContent = "Sikertelen belépés. Hibás adatok, vagy nincs Firebase beállítva.";
-    }
-
-    if (ok){
-      try{
-        localStorage.setItem("filmek_anyunak_guest_ok","1");
-        localStorage.setItem("filmek_anyunak_admin_ok","1");
-        localStorage.setItem("admin_email", email);
-      }catch{}
-
-      document.getElementById("gateOverlay")?.classList.remove("active");
-      document.body.classList.remove("gate-active");
-      hideAdminMini();
-    }
-  }
-
-  function wireAGomb(){
-    const btn = document.getElementById("adminTinyBtn");
-    if (!btn) return;
-    const clone = btn.cloneNode(true); btn.replaceWith(clone);
-    clone.addEventListener("click",(ev)=>{
-      ev.preventDefault(); ev.stopPropagation();
-      showAdminMini();
-    }, true);
-  }
-
-  // publikus, hogy a 2. szakasz hívhassa
-  window.showAdminMini = showAdminMini;
-
-  if (document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", wireAGomb, { once:true });
-  } else {
-    wireAGomb();
+  const list = [
+    {name:"ÉLŐ Vígjáték TV", url:"https://sweet.tv/hu/free_tv/2014-comedy-universe-hd", provider:"sweet"},
+    {name:"ÉLŐ Akció TV",    url:"https://sweet.tv/hu/free_tv/2010-action-zone-hd",     provider:"sweet"},
+    {name:"ÉLŐ Thriller TV", url:"https://sweet.tv/hu/free_tv/2016-thriller-time-hd",    provider:"sweet"},
+    {name:"ÉLŐ TOP Filmek",  url:"https://sweet.tv/hu/free_tv/2967-top-movies-hd",       provider:"sweet"},
+    {name:"Mozi+ tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=13"},
+    {name:"Film + tv",     url:"https://player.telekomtvgo.hu/player/live?channelNumber=15"},
+    {name:"Prime tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=21"},
+    {name:"RTL 2 tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=24"},
+    {name:"FilmCafe tv",   url:"https://player.telekomtvgo.hu/player/live?channelNumber=28"},
+    {name:"ozone tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=30"},
+    {name:"Cool tv",       url:"https://player.telekomtvgo.hu/player/live?channelNumber=60"},
+    {name:"AXN tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=61"},
+    {name:"AMC tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=62"},
+    {name:"Paramount tv",  url:"https://player.telekomtvgo.hu/player/live?channelNumber=66"},
+    {name:"FilmMánia tv",  url:"https://player.telekomtvgo.hu/player/live?channelNumber=163"},
+    {name:"Moziverzum tv", url:"https://player.telekomtvgo.hu/player/live?channelNumber=169"}
+  ];
+  const host = document.getElementById("catsLive");
+  if (!host) return;
+  for (const ch of list){
+    const a = document.createElement("a");
+    a.className="cat"; a.target="_blank"; a.rel="noopener"; a.href=ch.url;
+    const safe = ch.name.replace(/^ÉLŐ(\s+)/, "<span class='live'>ÉLŐ</span>$1");
+    a.innerHTML = `<div class="name">${safe}</div><div class="now"><span class="label">Most megy:</span> <span class="title">Kattints</span></div>`;
+    host.appendChild(a);
   }
 })();
 </script>
-<!-- ===== [SZAKASZ 6] VÉGE ===== -->
-
-
-     
-<!-- =========================
-     7. rész eleje – BELÉPŐ (vendég PIN + admin gomb/űrlap)
-========================== -->
 
 <!-- =========================
-     7. rész vége
+     3.6 rész – FILMLISTA (Vendég: egyszeri lekérés; Admin: realtime)
 ========================== -->
+<script>
+(function(){
+  const $ = (s,r=document)=>r.querySelector(s);
 
-<!-- =========================
-     8. rész eleje – (Megjegyzés) FIRESTORE SECURITY RULES – csak a konzolba
-========================== -->
-<!--
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Olvasás csak bejelentkezve
-    match /{doc=**} { allow read: if request.auth != null; }
-
-    // Írás csak admin emailről
-    match /categories/{cat}/movies/{doc} {
-      allow create, update, delete: if request.auth != null
-        && request.auth.token.email == "chisnyan@gmail.com";
-    }
+  function goHome(){
+    $("#catBar").style.display = "";
+    $("#view").innerHTML = "";
+    window.scrollTo({top:0, behavior:"smooth"});
   }
-}
--->
-<!-- =========================
-     8. rész vége
-========================== -->
-<!-- ===== HOTFIX: Ensure window.fb.db exists (place just before </body>) ===== -->
-<script type="module">
-(async () => {
-  // Ha már van, nem csinál semmit
-  if (window.fb?.db) {
-    console.debug("[HOTFIX] window.fb.db already present");
-    return;
+  function renderCategory(catKey, label){
+    $("#catBar").style.display = "none";
+    $("#view").innerHTML = `
+      <div class="card" style="margin:12px;">
+        <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
+        <h2 style="margin:4px 0 8px">${label}</h2>
+        <div class="muted" style="margin-bottom:10px">Lista betöltése…</div>
+        <div id="list-${catKey}" class="grid"></div>
+      </div>`;
+    $("#btnBackHome").addEventListener("click", goHome);
+    attachLoader(catKey);
+  }
+  function renderActors(){
+    $("#catBar").style.display = "none";
+    $("#view").innerHTML = `
+      <div class="card" style="margin:12px;">
+        <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
+        <h2 style="margin:4px 0 8px">Színészek</h2>
+        <div class="muted">20 név – hamarosan.</div>
+      </div>`;
+    $("#btnBackHome").addEventListener("click", goHome);
   }
 
-  // Firebase modulok betöltése
-  const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
-  const fs = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
-  const au = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
-
-  // Konfig (a sajátod). Ha fent már beállítottad window.firebaseConfig-ot, azt használja.
-  const cfg = window.firebaseConfig || {
-    apiKey: "AIzaSyBDSI-z3a4IFAIoKCVZVcUyue7GMoO5acY",
-    authDomain: "filmek-fe035.firebaseapp.com",
-    projectId: "filmek-fe035",
-    storageBucket: "filmek-fe035.appspot.com",
-    messagingSenderId: "302167835367",
-    appId: "1:302167835367:web:6e0fd4304c4496612c1842",
-    measurementId: "G-QBG7LG0ZQH"
-  };
-
-  // App init (idempotens)
-  const app = getApps().length ? getApps()[0] : initializeApp(cfg);
-  const db  = fs.getFirestore(app);
-  const auth = au.getAuth(app);
-
-  // Ugyanaz a STRUKTÚRA, amit a 3.6-os szakasz vár
-  window.firebaseConfig = cfg;
-  window.fb = Object.freeze({
-    app,
-    db: {
-      db,
-      collection: fs.collection,
-      addDoc: fs.addDoc,
-      getDocs: fs.getDocs,
-      onSnapshot: fs.onSnapshot,
-      query: fs.query,
-      where: fs.where,
-      orderBy: fs.orderBy,
-      limit: fs.limit,
-      serverTimestamp: fs.serverTimestamp
-    },
-    auth: {
-      auth,
-      signInWithEmailAndPassword: au.signInWithEmailAndPassword,
-      signOut: au.signOut,
-      onAuthStateChanged: au.onAuthStateChanged
-    }
+  document.addEventListener("DOMContentLoaded", ()=>{
+    $("#topFilters").addEventListener("click",(e)=>{
+      const b = e.target.closest(".chip"); if(!b) return;
+      const g = b.dataset.goto;
+      if (g==="krimi")    renderCategory("krimi","KRIMI");
+      if (g==="akcio")    renderCategory("akcio","AKCIÓ");
+      if (g==="thriller") renderCategory("thriller","THRILLER");
+      if (g==="actors")   renderActors();
+    });
+    $("#btnRefreshAll").addEventListener("click", ()=>{
+      const list = document.querySelector('#view [id^="list-"]');
+      if (!list) return;
+      const catKey = list.id.replace(/^list-/,'');
+      attachLoader(catKey, true);
+    });
   });
 
-  console.debug("[HOTFIX] window.fb.db ready –", cfg.projectId);
+  function cardHtml(m){
+    const img = m.cover ? `<img src="${m.cover}" alt="">` : "";
+    return `<div class="card">${img}<div style="font-weight:800;margin:6px 0">${m.title||"Cím nélkül"}</div><div class="muted" style="margin-bottom:8px">${m.content||""}</div><a class="btn" href="${m.link||"#"}" target="_blank" rel="noopener">Megnyitás</a></div>`;
+  }
+  function updateBadges(catKey, total){
+    const t = document.getElementById(`badge-all-${catKey}`); if (t) t.textContent=String(total||0);
+    const n = document.getElementById(`badge-new-${catKey}`); if (n) n.textContent="0";
+  }
+
+  async function attachLoader(catKey, force=false){
+    const listEl = document.getElementById(`list-${catKey}`);
+    if (!listEl) return;
+    const fbd = window.fb?.db;
+    if (!fbd){ listEl.innerHTML = `<div class="muted">Firebase nincs inicializálva.</div>`; return; }
+
+    const { db, collection, getDocs, onSnapshot, query, orderBy, limit } = fbd;
+    listEl.innerHTML = `<div class="muted">Lista betöltése…</div>`;
+    try{
+      // vendég: egyszeri lekérés
+      const q = query(collection(db,"categories",catKey,"movies"), orderBy("createdAt","desc"), limit(200));
+      const snap = await getDocs(q);
+      const movies = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+      if (!movies.length){
+        listEl.innerHTML = `<div class="muted">Még nincs film ebben a kategóriában.</div>`;
+        updateBadges(catKey, 0);
+        return;
+      }
+      listEl.innerHTML = movies.map(cardHtml).join("");
+      updateBadges(catKey, movies.length);
+    }catch(e){
+      listEl.innerHTML = `<div class="muted">Hiba: ${e?.message||e}</div>`;
+    }
+  }
 })();
 </script>
-<!-- ===== HOTFIX END ===== -->
+
+<!-- =========================
+     9. rész – Favicon (404 elkerülés)
+========================== -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='50%' x='50%' dominant-baseline='middle' text-anchor='middle' font-size='44'>🎬</text></svg>">
 
 </body>
 </html>
