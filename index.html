@@ -143,6 +143,64 @@
   }, true);
 })();
 </script>
+<!-- =========================
+     3.2. rész – KILÉPÉS FIX (csak #btnLogoutAll)
+========================== -->
+<script>
+  (function(){
+    const BTN_ID = "btnLogoutAll";
+    async function hardSignOut(){
+      try{
+        localStorage.removeItem("filmek_anyunak_guest_ok");
+        localStorage.removeItem("filmek_anyunak_admin_ok");
+        localStorage.removeItem("admin_email");
+        sessionStorage.clear();
+      }catch{}
+      try{
+        if (window.fb?.auth?.auth && typeof window.fb.auth.signOut === "function") {
+          await Promise.race([
+            window.fb.auth.signOut(window.fb.auth.auth),
+            new Promise(r=>setTimeout(r,1200))
+          ]);
+        } else {
+          const au = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
+          const auth = au.getAuth();
+          await Promise.race([
+            au.signOut(auth),
+            new Promise(r=>setTimeout(r,1200))
+          ]);
+        }
+      }catch{}
+      const clean = location.origin + location.pathname;
+      if (location.href !== clean) location.replace(clean);
+      else location.reload();
+    }
+    function onClick(e){
+      e.preventDefault();
+      e.stopPropagation();
+      hardSignOut();
+    }
+    function bindDirect(){
+      const btn = document.getElementById(BTN_ID);
+      if (!btn) return;
+      try{ btn.onclick = null; }catch{}
+      btn.addEventListener("click", onClick, true);
+    }
+    document.addEventListener("click", (ev)=>{
+      const btn = ev.target.closest("#"+BTN_ID);
+      if (!btn) return;
+      onClick(ev);
+    }, true);
+    if (document.readyState === "loading"){
+      document.addEventListener("DOMContentLoaded", bindDirect, { once:true });
+    } else {
+      bindDirect();
+    }
+  })();
+</script>
+<!-- =========================
+     3.2. rész vége
+========================== -->
 
 <!-- =========================
      5. rész – ÉLŐ gombok feltöltése
