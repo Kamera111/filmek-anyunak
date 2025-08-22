@@ -745,6 +745,64 @@ service cloud.firestore {
 <!-- =========================
      8. rész vége
 ========================== -->
+<!-- ===== HOTFIX: Ensure window.fb.db exists (place just before </body>) ===== -->
+<script type="module">
+(async () => {
+  // Ha már van, nem csinál semmit
+  if (window.fb?.db) {
+    console.debug("[HOTFIX] window.fb.db already present");
+    return;
+  }
+
+  // Firebase modulok betöltése
+  const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
+  const fs = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
+  const au = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
+
+  // Konfig (a sajátod). Ha fent már beállítottad window.firebaseConfig-ot, azt használja.
+  const cfg = window.firebaseConfig || {
+    apiKey: "AIzaSyBDSI-z3a4IFAIoKCVZVcUyue7GMoO5acY",
+    authDomain: "filmek-fe035.firebaseapp.com",
+    projectId: "filmek-fe035",
+    storageBucket: "filmek-fe035.appspot.com",
+    messagingSenderId: "302167835367",
+    appId: "1:302167835367:web:6e0fd4304c4496612c1842",
+    measurementId: "G-QBG7LG0ZQH"
+  };
+
+  // App init (idempotens)
+  const app = getApps().length ? getApps()[0] : initializeApp(cfg);
+  const db  = fs.getFirestore(app);
+  const auth = au.getAuth(app);
+
+  // Ugyanaz a STRUKTÚRA, amit a 3.6-os szakasz vár
+  window.firebaseConfig = cfg;
+  window.fb = Object.freeze({
+    app,
+    db: {
+      db,
+      collection: fs.collection,
+      addDoc: fs.addDoc,
+      getDocs: fs.getDocs,
+      onSnapshot: fs.onSnapshot,
+      query: fs.query,
+      where: fs.where,
+      orderBy: fs.orderBy,
+      limit: fs.limit,
+      serverTimestamp: fs.serverTimestamp
+    },
+    auth: {
+      auth,
+      signInWithEmailAndPassword: au.signInWithEmailAndPassword,
+      signOut: au.signOut,
+      onAuthStateChanged: au.onAuthStateChanged
+    }
+  });
+
+  console.debug("[HOTFIX] window.fb.db ready –", cfg.projectId);
+})();
+</script>
+<!-- ===== HOTFIX END ===== -->
 
 </body>
 </html>
