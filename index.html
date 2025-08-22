@@ -289,45 +289,114 @@
 ========================== -->
 
 <!-- =========================
-     3.1. rész – KILÉPÉS (felirat alapján, AZONNALI RELOAD)
+     3.1. rész – KILÉPÉS (ultrastabil: capture + több cél, AZONNALI RELOAD)
 ========================== -->
 <script>
 (function(){
-  async function hardSignOutIfAny(){
-    try{
-      if (window.fb?.auth?.auth && typeof window.fb.auth.signOut === "function") {
-        await window.fb.auth.signOut(window.fb.auth.auth);
-      }
-    }catch(e){
-      // nem gond, így is kiléptetünk
-    }
-  }
-
-  function clearLocalState(){
+  // Központi kilépés
+  async function doLogoutCore(){
+    // 1) Lokális állapotok törlése
     try{
       localStorage.removeItem("filmek_anyunak_guest_ok");
       localStorage.removeItem("filmek_anyunak_admin_ok");
       localStorage.removeItem("admin_email");
       sessionStorage.clear();
     }catch{}
-  }
 
-  // Delegáció: bármelyik "Kilépés" feliratú gombra működik
-  document.addEventListener("click", async (ev)=>{
-    const btn = ev.target.closest("button");
-    if (!btn) return;
-    if (!/Kilépés/i.test(btn.textContent)) return;
-
-    ev.preventDefault();
-    btn.disabled = true;
+    // 2) Firebase signOut (ha van)
     try{
-      clearLocalState();
-      await hardSignOutIfAny();
-    } finally {
-      // Nincs PIN-kapu próbálkozás – azonnali újratöltés
+      if (window.fb?.auth?.auth && typeof window.fb.auth.signOut === "function") {
+        await Promise.race([
+          window.fb.auth.signOut(window.fb.auth.auth),
+          new Promise(res => setTimeout(res, 1200)) // safety timeout
+        ]);
+      }
+    }catch{}
+
+    // 3) Azonnali TISZTA reload (paraméterek nélkül)
+    try{
+      const clean = location.origin + location.pathname;
+      location.replace(clean);
+    }catch{
       location.reload();
     }
-  });
+  }
+
+  // Export (ha máshonnan hívnád)
+  window.forceLogout = doLogoutCore;
+
+  // Felismerjük, hogy a cél „Kilépés” jellegű-e
+  function isLogoutEl(el){
+    if (!el) return false;
+    if (el.id === "btnLogoutAll") return true;
+    const t = (el.title || "") + " " + (el.getAttribute?.("aria-label") || "") + " " + (el.textContent || "");
+    return /Kilépés/i.test(t);
+  }
+  function findLogoutTarget(start){
+    let n = start;
+    while (n && n !== document.documentElement){
+      if (isLogoutEl(n)) return n;
+      n = n.parentNode;
+    }
+    return null;
+  }
+
+  // 1) Kattintások megfogása CAPTURE fázisban (bármi is rajzolja újra a gombot)
+  document.addEventListener("click", function(ev){
+    const target = findLogoutTarget(ev.target);
+    if (!target) return;
+
+    ev.preventDefault?.();
+    ev.stopImmediatePropagation?.();
+    ev.stopPropagation?.();
+
+    try{
+      if (target.tagName === "BUTTON" && target.type !== "button") target.type = "button";
+      target.disabled = true;
+    }catch{}
+
+    doLogoutCore();
+  }, true); // CAPTURE!
+
+  // 2) Billentyű aktiválás (Enter/Space), ha a gomb fókuszban van
+  document.addEventListener("keydown", function(ev){
+    if (!("key" in ev)) return;
+    if (ev.key !== "Enter" && ev.key !== " ") return;
+    const target = findLogoutTarget(document.activeElement);
+    if (!target) return;
+
+    ev.preventDefault?.();
+    ev.stopImmediatePropagation?.();
+    ev.stopPropagation?.();
+
+    try{
+      if (target.tagName === "BUTTON" && target.type !== "button") target.type = "button";
+      target.disabled = true;
+    }catch{}
+
+    doLogoutCore();
+  }, true);
+
+  // 3) Form submit megfogása (ha a Kilépés véletlenül submit gomb lenne)
+  document.addEventListener("submit", function(ev){
+    const s = ev.submitter || null;
+    if (s && findLogoutTarget(s)){
+      ev.preventDefault?.();
+      ev.stopImmediatePropagation?.();
+      ev.stopPropagation?.();
+      doLogoutCore();
+    }
+  }, true);
+
+  // 4) Oldal betöltéskor: ha a gomb már bent van, tegyük "button"-ná és jelöljük role-lal
+  document.addEventListener("DOMContentLoaded", function(){
+    const cands = Array.from(document.querySelectorAll("#btnLogoutAll, button, [title], [aria-label]"));
+    for (const el of cands){
+      if (!isLogoutEl(el)) continue;
+      if (el.tagName === "BUTTON" && el.type !== "button") el.type = "button";
+      el.setAttribute("role","button");
+    }
+  }, { once:true });
 })();
 </script>
 <!-- =========================
