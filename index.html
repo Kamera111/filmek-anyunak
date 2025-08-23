@@ -74,12 +74,13 @@
   <!-- ========== 1. RÉSZ VÉGE – ALAP STÍLUSOK ========== -->
 </head>
 
-<!-- ========== 2. RÉSZ ELEJE – FIREBASE INIT (doc + deleteDoc exportokkal) ========== -->
+<!-- ========== 2. RÉSZ ELEJE – FIREBASE INIT (doc + deleteDoc + getCountFromServer) ========== -->
 <script type="module">
   import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import {
     getFirestore, collection, addDoc, getDocs, onSnapshot,
-    query, where, orderBy, limit, serverTimestamp, doc, deleteDoc
+    query, where, orderBy, limit, serverTimestamp, doc, deleteDoc,
+    getCountFromServer
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
@@ -106,7 +107,11 @@
   /* Exportok az oldal többi részének */
   window.fb = {
     app,
-    db: { db, collection, addDoc, getDocs, onSnapshot, query, where, orderBy, limit, serverTimestamp, doc, deleteDoc },
+    db: {
+      db, collection, addDoc, getDocs, onSnapshot,
+      query, where, orderBy, limit, serverTimestamp,
+      doc, deleteDoc, getCountFromServer
+    },
     auth: { auth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   };
 
@@ -327,7 +332,7 @@
   /* ----- SZÍNÉSZ LISTA (név + fotó URL) ----- */
   const ACTORS_RAW = [
     {name:"Sylvester Stallone", photo:"https://upload.wikimedia.org/wikipedia/commons/6/6b/Sylvester_Stallone_2014.jpg"},
-    {name:"Jason Statham", photo:"https://upload.wikimedia.org/wikipedia/commons/0/05/Jason_Statham_2018.jpg"},
+    {name:"Jason Statham", photo:"img/actors/jason-statham.jpg"},   /* <<< helyi kép */
     {name:"Jet Li", photo:"https://upload.wikimedia.org/wikipedia/commons/5/5c/Jet_Li_2009.jpg"},
     {name:"Dolph Lundgren", photo:"https://upload.wikimedia.org/wikipedia/commons/9/91/Dolph_Lundgren_2018.jpg"},
     {name:"Randy Couture", photo:"https://upload.wikimedia.org/wikipedia/commons/1/1d/Randy_Couture_2008.jpg"},
@@ -355,6 +360,7 @@
     {name:"Chuck Norris", photo:"https://upload.wikimedia.org/wikipedia/commons/3/35/Chuck_Norris_May_2015.jpg"},
   ];
   const ACTORS = ACTORS_RAW.map(a=>({ ...a, id: slug(a.name) }));
+
   function slug(s){ return (s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,""); }
   function findActor(id){ return ACTORS.find(a=>a.id===id); }
 
@@ -363,8 +369,8 @@
     `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'>
        <rect width='120' height='80' rx='12' fill='#1f2937'/>
        <circle cx='40' cy='32' r='14' fill='#4b5563'/>
-       <rect x='20' y=' Fifty' width='80' height='18' rx='9' fill='#4b5563'/>
-     </svg>`.replace(" Fifty","50") // csak hogy biztos valid svg legyen
+       <rect x='20' y='50' width='80' height='18' rx='9' fill='#4b5563'/>
+     </svg>`
   );
 
   function goHome(){ $("#catBar").style.display=""; const v=$("#view"); v.dataset.type=""; v.dataset.key=""; v.innerHTML=""; window.scrollTo({top:0,behavior:"smooth"}); }
@@ -402,7 +408,6 @@
     const t = (title||"").trim(); if (!t) return "";
     try{
       if (window.MOVIE_API?.TMDB_API_KEY){
-        // HU leírás, ha nincs: EN
         const k = window.MOVIE_API.TMDB_API_KEY;
         const q = encodeURIComponent(t);
         const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${k}&language=hu-HU&query=${q}`);
@@ -535,7 +540,7 @@
     }catch(e){ host.innerHTML = `<div class="muted">Hiba: ${e?.message||e}</div>`; }
   }
 
-  /* ----- Színész galéria ----- */
+  /* ----- Színész galéria + filmszámláló ----- */
   function renderActorsGallery(){
     detach(); $("#catBar").style.display="none";
     const v=$("#view"); v.dataset.type="actors"; v.dataset.key=""; v.innerHTML = `
@@ -545,17 +550,38 @@
         <div class="actor-grid" id="actorGrid"></div>
       </div>`;
     $("#btnBackHome").addEventListener("click", goHome);
+
     const grid=$("#actorGrid");
     grid.innerHTML = ACTORS.map(a=>`
       <div class="actor" data-id="${a.id}">
         <img src="${a.photo}" alt="${a.name}" referrerpolicy="no-referrer"
              onerror="this.onerror=null;this.src='${IMG_FALLBACK}'">
         <div class="name">${a.name}</div>
-        <div class="sub">kattints</div>
+        <div class="sub"><span class="actor-count" data-id="${a.id}">számolás…</span> · kattints</div>
       </div>`).join("");
+
     grid.querySelectorAll(".actor").forEach(el=>{
       el.addEventListener("click", ()=> loadActorDetails(el.dataset.id));
     });
+
+    refreshActorCounts();  // <<< filmszámok frissítése
+  }
+
+  // Filmszámok aggregált lekérése
+  async function refreshActorCounts(){
+    try{
+      const { db, collection, getCountFromServer } = window.fb.db;
+      const els = document.querySelectorAll(".actor-count");
+      for (const el of els){
+        const id = el.dataset.id;
+        try{
+          const coll = collection(db, "actors", id, "movies");
+          const snap = await getCountFromServer(coll);
+          const c = snap.data().count || 0;
+          el.textContent = c===1 ? "1 film" : `${c} film`;
+        }catch{ el.textContent = "0 film"; }
+      }
+    }catch(e){ /* csendben elnyelhető */ }
   }
 
   /* ----- Egy színész filmjei ----- */
