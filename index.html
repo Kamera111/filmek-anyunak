@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>Filmek Anyunak</title>
 
-  <!-- =========================
-       1. rész – ALAP STÍLUSOK
-  ========================== -->
+  <!-- ========== 1. RÉSZ ELEJE – ALAP STÍLUSOK ========== -->
   <style>
     :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --txt:#e5e7eb; }
     html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
@@ -45,13 +43,22 @@
     .cat .now{font-size:15px}
     .btn-back{margin-bottom:12px}
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+
+    /* ===== Admin belépő modál ===== */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+    .modal{background:var(--card);border:1px solid #273244;border-radius:16px;padding:16px;max-width:420px;width:100%;box-shadow:0 10px 35px rgba(0,0,0,.35)}
+    .modal h3{margin:0 0 10px}
+    .field{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+    .field input{background:#0b1220;color:#fff;border:1px solid #324156;border-radius:10px;padding:10px 12px;font-size:15px;outline:none}
+    .row{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:10px}
+    .hint{font-size:12px;color:var(--muted)}
+    .err{color:#fecaca;font-size:13px;min-height:18px}
+    .show{display:flex}
   </style>
+  <!-- ========== 1. RÉSZ VÉGE – ALAP STÍLUSOK ========== -->
 </head>
 
-<!-- =========================
-     2. rész – FIREBASE INIT (ÉLES) + window.fb
-     (KÖZVETLENÜL a </head> után legyen)
-========================== -->
+<!-- ========== 2. RÉSZ ELEJE – FIREBASE INIT ========== -->
 <script type="module">
   import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import {
@@ -74,26 +81,24 @@
   const db   = getFirestore(app);
   const auth = getAuth(app);
 
-  window.firebaseConfig = firebaseConfig;
-  window.fb = Object.freeze({
+  // Globális híd
+  window.fb = {
     app,
     db: { db, collection, addDoc, getDocs, onSnapshot, query, where, orderBy, limit, serverTimestamp },
     auth: { auth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
-  });
-
+  };
   console.debug("[Firebase] READY – project:", firebaseConfig.projectId);
 </script>
+<!-- ========== 2. RÉSZ VÉGE – FIREBASE INIT ========== -->
 
 <body>
-<!-- =========================
-     3. rész – UI: FEJLÉC + TOP KATEGÓRIÁK + ÉLŐ RÁCS + NÉZET
-========================== -->
+<!-- ========== 3. RÉSZ ELEJE – FŐ UI (HEADER + KATEGÓRIÁK) ========== -->
 <div id="app" class="wrap">
   <div class="sticky">
     <header>
       <div class="title">Filmek Anyunak</div>
       <div style="margin-left:auto;display:flex;gap:8px">
-        <button id="btnLogoutAll" class="btn btn-danger" title="Kijelentkezés és vissza">Kilépés mindenből</button>
+        <button id="btnAdmin" class="btn" title="Admin belépés / Kijelentkezés">A</button>
         <button id="btnRefreshAll" class="btn">Frissítés</button>
       </div>
     </header>
@@ -110,17 +115,92 @@
 
   <main id="view" class="view"></main>
 </div>
+<!-- ========== 3. RÉSZ VÉGE – FŐ UI (HEADER + KATEGÓRIÁK) ========== -->
 
-<!-- =========================
-     3.1 rész – KILÉPÉS: capture + tiszta reload
-========================== -->
+<!-- ========== 4. RÉSZ ELEJE – ADMIN MODÁL (email+jelszó) ========== -->
+<div id="adminModal" class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="admintitle">
+    <h3 id="admintitle">Admin belépés</h3>
+    <div class="field">
+      <label for="admEmail">Email</label>
+      <input id="admEmail" type="email" inputmode="email" autocomplete="username" placeholder="pl. te@pelda.hu">
+    </div>
+    <div class="field">
+      <label for="admPass">Jelszó</label>
+      <input id="admPass" type="password" autocomplete="current-password" placeholder="••••••••">
+      <div class="hint">A jelszó nincs előtöltve — kézzel írd be.</div>
+    </div>
+    <div class="err" id="admErr"></div>
+    <div class="row">
+      <button id="admCancel" class="btn btn-danger" type="button">Mégse</button>
+      <button id="admSubmit" class="btn" type="button">Belépés</button>
+    </div>
+  </div>
+</div>
+<!-- ========== 4. RÉSZ VÉGE – ADMIN MODÁL (email+jelszó) ========== -->
+
+<!-- ========== 5. RÉSZ ELEJE – ADMIN LOGIKA (gomb, belépés, kijelentkezés) ========== -->
 <script>
 (function(){
+  const LS_ADMIN_OK    = "filmek_anyunak_admin_ok";
+  const LS_ADMIN_EMAIL = "admin_email";
+
+  const modal   = document.getElementById("adminModal");
+  const btn     = document.getElementById("btnAdmin");
+  const emailEl = document.getElementById("admEmail");
+  const passEl  = document.getElementById("admPass");
+  const errEl   = document.getElementById("admErr");
+  const cancel  = document.getElementById("admCancel");
+  const submit  = document.getElementById("admSubmit");
+
+  // ---- Modal helpers
+  function openModal(){
+    errEl.textContent = "";
+    emailEl.value = localStorage.getItem(LS_ADMIN_EMAIL) || "";
+    passEl.value = "";
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden","false");
+    setTimeout(()=> (emailEl.value ? passEl.focus() : emailEl.focus()), 0);
+  }
+  function closeModal(){
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden","true");
+  }
+
+  // ---- Auth helpers
+  function loggedIn(){
+    try{
+      if (window.fb?.auth?.auth?.currentUser) return true;
+      return localStorage.getItem(LS_ADMIN_OK)==="1";
+    }catch{return false;}
+  }
+  function updateButton(){
+    btn.textContent = "A";
+    btn.title = loggedIn() ? "Kijelentkezés (Admin)" : "Admin belépés";
+  }
+
+  async function doLogin(){
+    errEl.textContent = "";
+    const email = String(emailEl.value||"").trim();
+    const pass  = String(passEl.value||"");
+    if (!email || !pass){ errEl.textContent="Add meg az email címet és a jelszót."; return; }
+    try{
+      const a  = window.fb?.auth?.auth;
+      const si = window.fb?.auth?.signInWithEmailAndPassword;
+      if (!a || typeof si !== "function") throw new Error("Firebase Auth nincs inicializálva.");
+      await Promise.race([ si(a,email,pass), new Promise((_,rej)=>setTimeout(()=>rej(new Error("Időtúllépés")),8000)) ]);
+      localStorage.setItem(LS_ADMIN_OK,"1");
+      localStorage.setItem(LS_ADMIN_EMAIL,email);
+      closeModal(); updateButton();
+      document.dispatchEvent(new CustomEvent("admin:login"));
+    }catch(e){
+      errEl.textContent = e?.message || "Ismeretlen hiba.";
+    }
+  }
+
   async function doLogout(){
     try{
-      localStorage.removeItem("filmek_anyunak_guest_ok");
-      localStorage.removeItem("filmek_anyunak_admin_ok");
-      localStorage.removeItem("admin_email");
+      localStorage.removeItem(LS_ADMIN_OK);
       sessionStorage.clear();
     }catch{}
     try{
@@ -130,81 +210,45 @@
         await Promise.race([ so(a), new Promise(r=>setTimeout(r,1200)) ]);
       }
     }catch{}
-    const clean = location.origin + location.pathname;
-    if (location.href !== clean) location.href = clean; else location.reload();
+    updateButton();
+    document.dispatchEvent(new CustomEvent("admin:logout"));
   }
-  document.addEventListener("click",(e)=>{
-    const b = e.target.closest("#btnLogoutAll,button");
-    if (!b) return;
-    const t = (b.textContent||"") + " " + (b.title||"") + " " + (b.getAttribute?.("aria-label")||"");
-    if (!/(kilép|kijelent|logout|sign\s*out)/i.test(t)) return;
-    e.preventDefault(); e.stopPropagation();
-    doLogout();
-  }, true);
+
+  // ---- Events
+  btn.addEventListener("click", ()=> loggedIn() ? doLogout() : openModal());
+  cancel.addEventListener("click", closeModal);
+  submit.addEventListener("click", doLogin);
+  modal.addEventListener("click",(e)=>{ if(e.target===modal) closeModal(); });
+  document.addEventListener("keydown",(e)=>{
+    if(e.key==="Escape" && modal.classList.contains("show")) closeModal();
+    if(e.key==="Enter"  && modal.classList.contains("show")) doLogin();
+  });
+
+  // ---- Keep in sync with Firebase
+  try{
+    const o = window.fb?.auth?.onAuthStateChanged;
+    const a = window.fb?.auth?.auth;
+    if (typeof o==="function" && a){
+      o(a,(user)=>{
+        if (user){
+          localStorage.setItem(LS_ADMIN_OK,"1");
+          if (user.email) localStorage.setItem(LS_ADMIN_EMAIL,user.email);
+          document.dispatchEvent(new CustomEvent("admin:login"));
+        }else{
+          localStorage.removeItem(LS_ADMIN_OK);
+          document.dispatchEvent(new CustomEvent("admin:logout"));
+        }
+        updateButton();
+      });
+    }
+  }catch{}
+
+  updateButton();
 })();
 </script>
-<!-- =========================
-     3.2. rész – KILÉPÉS FIX (csak #btnLogoutAll)
-========================== -->
-<script>
-  (function(){
-    const BTN_ID = "btnLogoutAll";
-    async function hardSignOut(){
-      try{
-        localStorage.removeItem("filmek_anyunak_guest_ok");
-        localStorage.removeItem("filmek_anyunak_admin_ok");
-        localStorage.removeItem("admin_email");
-        sessionStorage.clear();
-      }catch{}
-      try{
-        if (window.fb?.auth?.auth && typeof window.fb.auth.signOut === "function") {
-          await Promise.race([
-            window.fb.auth.signOut(window.fb.auth.auth),
-            new Promise(r=>setTimeout(r,1200))
-          ]);
-        } else {
-          const au = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
-          const auth = au.getAuth();
-          await Promise.race([
-            au.signOut(auth),
-            new Promise(r=>setTimeout(r,1200))
-          ]);
-        }
-      }catch{}
-      const clean = location.origin + location.pathname;
-      if (location.href !== clean) location.replace(clean);
-      else location.reload();
-    }
-    function onClick(e){
-      e.preventDefault();
-      e.stopPropagation();
-      hardSignOut();
-    }
-    function bindDirect(){
-      const btn = document.getElementById(BTN_ID);
-      if (!btn) return;
-      try{ btn.onclick = null; }catch{}
-      btn.addEventListener("click", onClick, true);
-    }
-    document.addEventListener("click", (ev)=>{
-      const btn = ev.target.closest("#"+BTN_ID);
-      if (!btn) return;
-      onClick(ev);
-    }, true);
-    if (document.readyState === "loading"){
-      document.addEventListener("DOMContentLoaded", bindDirect, { once:true });
-    } else {
-      bindDirect();
-    }
-  })();
-</script>
-<!-- =========================
-     3.2. rész vége
-========================== -->
+<!-- ========== 5. RÉSZ VÉGE – ADMIN LOGIKA (gomb, belépés, kijelentkezés) ========== -->
 
-<!-- =========================
-     5. rész – ÉLŐ gombok feltöltése
-========================== -->
+<!-- ========== 6. RÉSZ ELEJE – ÉLŐ TV GOMBOK FELTÖLTÉSE ========== -->
 <script>
 (function(){
   const list = [
@@ -236,99 +280,150 @@
   }
 })();
 </script>
+<!-- ========== 6. RÉSZ VÉGE – ÉLŐ TV GOMBOK FELTÖLTÉSE ========== -->
 
-<!-- =========================
-     3.6 rész – FILMLISTA (Vendég: egyszeri lekérés; Admin: realtime)
-========================== -->
+<!-- ========== 7. RÉSZ ELEJE – FILMLISTA BETÖLTÉS (vendég vs admin) ========== -->
 <script>
 (function(){
   const $ = (s,r=document)=>r.querySelector(s);
+  const LS_ADMIN_OK = "filmek_anyunak_admin_ok";
+
+  function isAdmin(){
+    try{
+      if (window.fb?.auth?.auth?.currentUser) return true;
+      return localStorage.getItem(LS_ADMIN_OK) === "1";
+    }catch{ return false; }
+  }
 
   function goHome(){
     $("#catBar").style.display = "";
     $("#view").innerHTML = "";
     window.scrollTo({top:0, behavior:"smooth"});
   }
-  function renderCategory(catKey, label){
-    $("#catBar").style.display = "none";
-    $("#view").innerHTML = `
-      <div class="card" style="margin:12px;">
-        <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
-        <h2 style="margin:4px 0 8px">${label}</h2>
-        <div class="muted" style="margin-bottom:10px">Lista betöltése…</div>
-        <div id="list-${catKey}" class="grid"></div>
-      </div>`;
-    $("#btnBackHome").addEventListener("click", goHome);
-    attachLoader(catKey);
-  }
-  function renderActors(){
-    $("#catBar").style.display = "none";
-    $("#view").innerHTML = `
-      <div class="card" style="margin:12px;">
-        <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
-        <h2 style="margin:4px 0 8px">Színészek</h2>
-        <div class="muted">20 név – hamarosan.</div>
-      </div>`;
-    $("#btnBackHome").addEventListener("click", goHome);
-  }
-
-  document.addEventListener("DOMContentLoaded", ()=>{
-    $("#topFilters").addEventListener("click",(e)=>{
-      const b = e.target.closest(".chip"); if(!b) return;
-      const g = b.dataset.goto;
-      if (g==="krimi")    renderCategory("krimi","KRIMI");
-      if (g==="akcio")    renderCategory("akcio","AKCIÓ");
-      if (g==="thriller") renderCategory("thriller","THRILLER");
-      if (g==="actors")   renderActors();
-    });
-    $("#btnRefreshAll").addEventListener("click", ()=>{
-      const list = document.querySelector('#view [id^="list-"]');
-      if (!list) return;
-      const catKey = list.id.replace(/^list-/,'');
-      attachLoader(catKey, true);
-    });
-  });
 
   function cardHtml(m){
     const img = m.cover ? `<img src="${m.cover}" alt="">` : "";
-    return `<div class="card">${img}<div style="font-weight:800;margin:6px 0">${m.title||"Cím nélkül"}</div><div class="muted" style="margin-bottom:8px">${m.content||""}</div><a class="btn" href="${m.link||"#"}" target="_blank" rel="noopener">Megnyitás</a></div>`;
+    const title = m.title || "Cím nélkül";
+    const content = m.content || "";
+    const link = m.link || "#";
+    return `<div class="card">${img}<div style="font-weight:800;margin:6px 0">${title}</div><div class="muted" style="margin-bottom:8px">${content}</div><a class="btn" href="${link}" target="_blank" rel="noopener">Megnyitás</a></div>`;
   }
+
   function updateBadges(catKey, total){
     const t = document.getElementById(`badge-all-${catKey}`); if (t) t.textContent=String(total||0);
     const n = document.getElementById(`badge-new-${catKey}`); if (n) n.textContent="0";
   }
 
-  async function attachLoader(catKey, force=false){
-    const listEl = document.getElementById(`list-${catKey}`);
-    if (!listEl) return;
-    const fbd = window.fb?.db;
-    if (!fbd){ listEl.innerHTML = `<div class="muted">Firebase nincs inicializálva.</div>`; return; }
+  let unsub = null;
+  function detach(){
+    if (typeof unsub === "function"){ try{unsub();}catch{} }
+    unsub = null;
+  }
 
-    const { db, collection, getDocs, onSnapshot, query, orderBy, limit } = fbd;
-    listEl.innerHTML = `<div class="muted">Lista betöltése…</div>`;
+  async function loadCategory(catKey, label){
+    detach();
+    $("#catBar").style.display = "none";
+    $("#view").innerHTML = `
+      <div class="card" style="margin:12px;">
+        <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
+        <h2 style="margin:4px 0 8px">${label}</h2>
+        <div class="muted" id="listInfo" style="margin-bottom:10px">Lista betöltése…</div>
+        <div id="list-${catKey}" class="grid"></div>
+      </div>`;
+    $("#btnBackHome").addEventListener("click",()=>{ detach(); goHome(); });
+
+    const host = document.getElementById(`list-${catKey}`);
+    if (!window.fb?.db){ host.innerHTML = `<div class="muted">Firebase nincs inicializálva.</div>`; return; }
+
+    const { db, collection, getDocs, onSnapshot, query, orderBy, limit } = window.fb.db;
+
     try{
-      // vendég: egyszeri lekérés
       const q = query(collection(db,"categories",catKey,"movies"), orderBy("createdAt","desc"), limit(200));
-      const snap = await getDocs(q);
-      const movies = snap.docs.map(d=>({ id:d.id, ...d.data() }));
-      if (!movies.length){
-        listEl.innerHTML = `<div class="muted">Még nincs film ebben a kategóriában.</div>`;
-        updateBadges(catKey, 0);
-        return;
+
+      if (isAdmin()){
+        // Realtime admin nézet
+        unsub = onSnapshot(q, (snap)=>{
+          const movies = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+          if (!movies.length){
+            host.innerHTML = `<div class="muted">Még nincs film ebben a kategóriában.</div>`;
+            updateBadges(catKey, 0);
+            return;
+          }
+          host.innerHTML = movies.map(cardHtml).join("");
+          updateBadges(catKey, movies.length);
+          const info = document.getElementById("listInfo"); if (info) info.textContent = "Valós idejű lista (admin mód)";
+        }, (err)=>{
+          host.innerHTML = `<div class="muted">Hiba (realtime): ${err?.message||err}</div>`;
+        });
+      } else {
+        // Vendég: egyszeri lekérés
+        const snap = await getDocs(q);
+        const movies = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+        if (!movies.length){
+          host.innerHTML = `<div class="muted">Még nincs film ebben a kategóriában.</div>`;
+          updateBadges(catKey, 0);
+          return;
+        }
+        host.innerHTML = movies.map(cardHtml).join("");
+        updateBadges(catKey, movies.length);
+        const info = document.getElementById("listInfo"); if (info) info.textContent = "Egyszeri lista (vendég mód)";
       }
-      listEl.innerHTML = movies.map(cardHtml).join("");
-      updateBadges(catKey, movies.length);
     }catch(e){
-      listEl.innerHTML = `<div class="muted">Hiba: ${e?.message||e}</div>`;
+      host.innerHTML = `<div class="muted">Hiba: ${e?.message||e}</div>`;
     }
   }
+
+  // Felső gombok
+  document.addEventListener("DOMContentLoaded", ()=>{
+    const top = document.getElementById("topFilters");
+    top.addEventListener("click",(e)=>{
+      const b = e.target.closest(".chip"); if(!b) return;
+      const g = b.dataset.goto;
+      if (g==="krimi")    loadCategory("krimi","KRIMI");
+      if (g==="akcio")    loadCategory("akcio","AKCIÓ");
+      if (g==="thriller") loadCategory("thriller","THRILLER");
+      if (g==="actors"){
+        detach();
+        document.getElementById("catBar").style.display="none";
+        document.getElementById("view").innerHTML = `
+          <div class="card" style="margin:12px;">
+            <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
+            <h2 style="margin:4px 0 8px">Színészek</h2>
+            <div class="muted">20 név – hamarosan.</div>
+          </div>`;
+        document.getElementById("btnBackHome").addEventListener("click",()=>{ goHome(); });
+      }
+    });
+
+    // Frissítés: ha egy kategória nyitva van, újratölti
+    document.getElementById("btnRefreshAll").addEventListener("click", ()=>{
+      const openList = document.querySelector('#view [id^="list-"]');
+      if (!openList) return;
+      const catKey = openList.id.replace(/^list-/,'');
+      loadCategory(catKey, catKey.toUpperCase());
+    });
+  });
+
+  // Admin státuszváltáskor újra-kötjük a realtime-ot, ha épp nyitva van lista
+  document.addEventListener("admin:login", ()=>{
+    const openList = document.querySelector('#view [id^="list-"]');
+    if (!openList) return;
+    const catKey = openList.id.replace(/^list-/,'');
+    loadCategory(catKey, catKey.toUpperCase());
+  });
+  document.addEventListener("admin:logout", ()=>{
+    const openList = document.querySelector('#view [id^="list-"]');
+    if (!openList) return;
+    const catKey = openList.id.replace(/^list-/,'');
+    loadCategory(catKey, catKey.toUpperCase());
+  });
 })();
 </script>
+<!-- ========== 7. RÉSZ VÉGE – FILMLISTA BETÖLTÉS (vendég vs admin) ========== -->
 
-<!-- =========================
-     9. rész – Favicon (404 elkerülés)
-========================== -->
+<!-- ========== 8. RÉSZ ELEJE – FAVICON ========== -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='50%' x='50%' dominant-baseline='middle' text-anchor='middle' font-size='44'>🎬</text></svg>">
+<!-- ========== 8. RÉSZ VÉGE – FAVICON ========== -->
 
 </body>
 </html>
