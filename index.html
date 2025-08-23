@@ -320,51 +320,80 @@
 })();
 </script>
 <!-- ========== 6. RÉSZ VÉGE – ÉLŐ TV GOMBOK FELTÖLTÉSE ========== -->
-
 <!-- ========== 7. RÉSZ ELEJE – FILMEK + FELTÖLTŐ + TÖRLÉS + SZÍNÉSZ GALÉRIA + AUTOMATA TARTALOM ========== -->
 <script>
 (function(){
   const $ = (s,r=document)=>r.querySelector(s);
+
+  /* --- admin állapot: Firebase auth vagy lokál jelző --- */
   const LS_ADMIN_OK = "filmek_anyunak_admin_ok";
-  const isAdmin = ()=> { try{ if(window.fb?.auth?.auth?.currentUser) return true; return localStorage.getItem(LS_ADMIN_OK)==="1"; } catch{ return false; } };
+  const isAdmin = ()=> {
+    try{
+      if (window.fb?.auth?.auth?.currentUser) return true;
+      return localStorage.getItem(LS_ADMIN_OK)==="1";
+    }catch{ return false; }
+  };
+
   const catLabel = (k)=>({krimi:"KRIMI", akcio:"AKCIÓ", thriller:"THRILLER"})[k]||k.toUpperCase();
 
-  /* ----- SZÍNÉSZ LISTA (név + fotó URL) ----- */
+  /* ----- SZÍNÉSZ LISTA (név + fotó URL) – FRISSÍTVE HELYI KÉPEKKEL + ÚJ NEVEK ----- */
   const ACTORS_RAW = [
-    {name:"Sylvester Stallone", photo:"https://upload.wikimedia.org/wikipedia/commons/6/6b/Sylvester_Stallone_2014.jpg"},
-    {name:"Jason Statham", photo:"img/actors/jason-statham.jpg"},   /* <<< helyi kép */
-    {name:"Jet Li", photo:"https://upload.wikimedia.org/wikipedia/commons/5/5c/Jet_Li_2009.jpg"},
-    {name:"Dolph Lundgren", photo:"https://upload.wikimedia.org/wikipedia/commons/9/91/Dolph_Lundgren_2018.jpg"},
-    {name:"Randy Couture", photo:"https://upload.wikimedia.org/wikipedia/commons/1/1d/Randy_Couture_2008.jpg"},
-    {name:"Terry Crews", photo:"https://upload.wikimedia.org/wikipedia/commons/d/df/Terry_Crews_2019.jpg"},
-    {name:"Mickey Rourke", photo:"https://upload.wikimedia.org/wikipedia/commons/7/71/Mickey_Rourke_2009.jpg"},
-    {name:"Eric Roberts", photo:"https://upload.wikimedia.org/wikipedia/commons/4/47/Eric_Roberts_2013.jpg"},
-    {name:"Bruce Willis", photo:"https://upload.wikimedia.org/wikipedia/commons/8/89/Bruce_Willis_by_Gage_Skidmore.jpg"},
-    {name:"Arnold Schwarzenegger", photo:"https://upload.wikimedia.org/wikipedia/commons/9/98/Arnold_Schwarzenegger_2019.jpg"},
-    {name:"Wesley Snipes", photo:"https://upload.wikimedia.org/wikipedia/commons/4/47/Wesley_Snipes_2014.jpg"},
-    {name:"Antonio Banderas", photo:"https://upload.wikimedia.org/wikipedia/commons/0/0f/Antonio_Banderas_2019.jpg"},
-    {name:"Kelsey Grammer", photo:"https://upload.wikimedia.org/wikipedia/commons/0/0c/Kelsey_Grammer_2010.jpg"},
-    {name:"Kellan Lutz", photo:"https://upload.wikimedia.org/wikipedia/commons/7/74/Kellan_Lutz_2012.jpg"},
-    {name:"Ronda Rousey", photo:"https://upload.wikimedia.org/wikipedia/commons/5/5d/Ronda_Rousey_2018.jpg"},
-    {name:"Glen Powell", photo:"https://upload.wikimedia.org/wikipedia/commons/2/22/Glen_Powell_2019.jpg"},
-    {name:"Victor Ortiz", photo:"https://upload.wikimedia.org/wikipedia/commons/6/6a/Victor_Ortiz_2011.jpg"},
-    {name:"Mel Gibson", photo:"https://upload.wikimedia.org/wikipedia/commons/7/7f/Mel_Gibson_Cannes_2016.jpg"},
-    {name:"Harrison Ford", photo:"https://upload.wikimedia.org/wikipedia/commons/9/9f/Harrison_Ford_2017.jpg"},
-    {name:'Curtis "50 Cent" Jackson', photo:"https://upload.wikimedia.org/wikipedia/commons/b/b0/50_Cent_2018.jpg"},
-    {name:"Megan Fox", photo:"https://upload.wikimedia.org/wikipedia/commons/5/50/Megan_Fox_2009.jpg"},
-    {name:"Tony Jaa", photo:"https://upload.wikimedia.org/wikipedia/commons/3/38/Tony_Jaa_2018.jpg"},
-    {name:"Jacob Scipio", photo:"https://upload.wikimedia.org/wikipedia/commons/0/0c/Jacob_Scipio_2020.jpg"},
-    {name:"Levy Tran", photo:"https://upload.wikimedia.org/wikipedia/commons/8/8e/Levy_Tran_2019.jpg"},
-    {name:"Iko Uwais", photo:"https://upload.wikimedia.org/wikipedia/commons/1/1c/Iko_Uwais_2012.jpg"},
-    {name:"Jean-Claude Van Damme", photo:"https://upload.wikimedia.org/wikipedia/commons/8/80/Jean-Claude_Van_Damme_2012.jpg"},
-    {name:"Chuck Norris", photo:"https://upload.wikimedia.org/wikipedia/commons/3/35/Chuck_Norris_May_2015.jpg"},
+    {name:"Sylvester Stallone",      photo:"img/actors/sylvester-stallone.jpg"},
+    {name:"Jason Statham",           photo:"img/actors/jason-statham.jpg"},
+    {name:"Jet Li",                  photo:"img/actors/jet-li.jpg"},
+    {name:"Dolph Lundgren",          photo:"img/actors/dolph-lundgren.jpg"},
+    {name:"Randy Couture",           photo:"https://upload.wikimedia.org/wikipedia/commons/1/1d/Randy_Couture_2008.jpg"},
+    {name:"Terry Crews",             photo:"https://upload.wikimedia.org/wikipedia/commons/d/df/Terry_Crews_2019.jpg"},
+    {name:"Mickey Rourke",           photo:"https://upload.wikimedia.org/wikipedia/commons/7/71/Mickey_Rourke_2009.jpg"},
+    {name:"Eric Roberts",            photo:"https://upload.wikimedia.org/wikipedia/commons/4/47/Eric_Roberts_2013.jpg"},
+    {name:"Bruce Willis",            photo:"https://upload.wikimedia.org/wikipedia/commons/8/89/Bruce_Willis_by_Gage_Skidmore.jpg"},
+    {name:"Arnold Schwarzenegger",   photo:"https://upload.wikimedia.org/wikipedia/commons/9/98/Arnold_Schwarzenegger_2019.jpg"},
+    {name:"Wesley Snipes",           photo:"https://upload.wikimedia.org/wikipedia/commons/4/47/Wesley_Snipes_2014.jpg"},
+    {name:"Antonio Banderas",        photo:"https://upload.wikimedia.org/wikipedia/commons/0/0f/Antonio_Banderas_2019.jpg"},
+
+    /* <<< ÚJ / FRISSÍTETT HELYI KÉPEK >>> */
+    {name:"Mel Gibson",              photo:"img/actors/mel-gibson.jpg"},
+    {name:"Lucy Liu",                photo:"img/actors/lucy-liu.jpg"},       // új kártya
+    {name:"Andy Garcia",             photo:"img/actors/andy-garcia.jpg"},    // új kártya
+    {name:"Jean-Claude Van Damme",   photo:"img/actors/jcvd-lionheart.jpg"},
+
+    /* a többi maradhat a korábbi wikimédiás képekkel */
+    {name:"Kelsey Grammer",          photo:"https://upload.wikimedia.org/wikipedia/commons/0/0c/Kelsey_Grammer_2010.jpg"},
+    {name:"Kellan Lutz",             photo:"https://upload.wikimedia.org/wikipedia/commons/7/74/Kellan_Lutz_2012.jpg"},
+    {name:"Ronda Rousey",            photo:"https://upload.wikimedia.org/wikipedia/commons/5/5d/Ronda_Rousey_2018.jpg"},
+    {name:"Glen Powell",             photo:"https://upload.wikimedia.org/wikipedia/commons/2/22/Glen_Powell_2019.jpg"},
+    {name:"Victor Ortiz",            photo:"https://upload.wikimedia.org/wikipedia/commons/6/6a/Victor_Ortiz_2011.jpg"},
+    {name:"Harrison Ford",           photo:"https://upload.wikimedia.org/wikipedia/commons/9/9f/Harrison_Ford_2017.jpg"},
+    {name:'Curtis "50 Cent" Jackson',photo:"https://upload.wikimedia.org/wikipedia/commons/b/b0/50_Cent_2018.jpg"},
+    {name:"Megan Fox",               photo:"https://upload.wikimedia.org/wikipedia/commons/5/50/Megan_Fox_2009.jpg"},
+    {name:"Tony Jaa",                photo:"https://upload.wikimedia.org/wikipedia/commons/3/38/Tony_Jaa_2018.jpg"},
+    {name:"Jacob Scipio",            photo:"https://upload.wikimedia.org/wikipedia/commons/0/0c/Jacob_Scipio_2020.jpg"},
+    {name:"Levy Tran",               photo:"https://upload.wikimedia.org/wikipedia/commons/8/8e/Levy_Tran_2019.jpg"},
+    {name:"Iko Uwais",               photo:"https://upload.wikimedia.org/wikipedia/commons/1/1c/Iko_Uwais_2012.jpg"},
+    {name:"Chuck Norris",            photo:"https://upload.wikimedia.org/wikipedia/commons/3/35/Chuck_Norris_May_2015.jpg"}
   ];
   const ACTORS = ACTORS_RAW.map(a=>({ ...a, id: slug(a.name) }));
 
+  /* --- „A feláldozhatók 2 (2012)” – statikus extra link, az érintett színészeknél a lista elejére kerül --- */
+  const EX2_URL = "https://videa.hu/videok/film-animacio/a-felaldozhatok-2-2012-DYijjZfk6FlRP35xe";
+  const EX2_ACTORS = [
+    "sylvester-stallone",
+    "jason-statham",
+    "jet-li",
+    "dolph-lundgren",
+    "randy-couture",
+    "terry-crews",
+    "bruce-willis",
+    "arnold-schwarzenegger",
+    "jean-claude-van-damme",
+    "chuck-norris"
+  ];
+
+  /* --- segédek --- */
   function slug(s){ return (s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,""); }
   function findActor(id){ return ACTORS.find(a=>a.id===id); }
 
-  /* ----- Placeholder kép hibára ----- */
+  /* --- placeholder, ha a kép hibás/hiányzik --- */
   const IMG_FALLBACK = "data:image/svg+xml;utf8," + encodeURIComponent(
     `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'>
        <rect width='120' height='80' rx='12' fill='#1f2937'/>
@@ -373,16 +402,27 @@
      </svg>`
   );
 
-  function goHome(){ $("#catBar").style.display=""; const v=$("#view"); v.dataset.type=""; v.dataset.key=""; v.innerHTML=""; window.scrollTo({top:0,behavior:"smooth"}); }
+  function goHome(){
+    $("#catBar").style.display="";
+    const v=$("#view"); v.dataset.type=""; v.dataset.key=""; v.innerHTML="";
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
 
-  /* ----- Kártya HTML (film) ----- */
+  /* --- filmkártya --- */
   function cardHtml(m, admin, delMeta){
     const img = m.cover ? `<img src="${m.cover}" alt="">` : "";
     const title = m.title || "Cím nélkül";
     const content = m.content || "";
     const link = m.link || "#";
-    const delBtn = admin ? `<button class="btn btn-danger btn-del" data-id="${delMeta.id}" data-path="${(delMeta.path||[]).join("/")}">Törlés</button>` : "";
-    return `<div class="card">${img}<div style="font-weight:800;margin:6px 0">${title}</div><div class="muted" style="margin-bottom:8px">${content}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" href="${link}" target="_blank" rel="noopener">Megnyitás</a>${delBtn}</div></div>`;
+    const delBtn = (admin && delMeta && delMeta.id)
+      ? `<button class="btn btn-danger btn-del" data-id="${delMeta.id}" data-path="${(delMeta.path||[]).join("/")}">Törlés</button>`
+      : "";
+    return `<div class="card">${img}
+      <div style="font-weight:800;margin:6px 0">${title}</div>
+      <div class="muted" style="margin-bottom:8px">${content}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a class="btn" href="${link}" target="_blank" rel="noopener">Megnyitás</a>${delBtn}
+      </div></div>`;
   }
 
   function updateBadges(catKey, total){
@@ -390,7 +430,7 @@
     const n = document.getElementById(`badge-new-${catKey}`); if (n) n.textContent="0";
   }
 
-  /* ----- oEmbed meta (YouTube/Vimeo/Dailymotion) ----- */
+  /* --- oEmbed meta (YouTube/Vimeo/Dailymotion) --- */
   async function fetchMeta(url){
     const u = String(url||"").trim();
     if (!u) return {};
@@ -400,10 +440,15 @@
       if (/vimeo\.com/.test(u)){ const o=await get(`https://vimeo.com/api/oembed.json?url=${encodeURIComponent(u)}`); return {title:o.title,cover:o.thumbnail_url}; }
       if (/dailymotion\.com/.test(u)){ const o=await get(`https://www.dailymotion.com/services/oembed?url=${encodeURIComponent(u)}`); return {title:o.title,cover:o.thumbnail_url}; }
     }catch(e){}
-    try{ const p=new URL(u); const last=decodeURIComponent(p.pathname.split("/").filter(Boolean).pop()||""); const guess=last.replace(/[-_]/g," ").replace(/\.\w+$/,""); return {title:guess||p.hostname, cover:""}; }catch{ return {}; }
+    try{
+      const p=new URL(u);
+      const last=decodeURIComponent(p.pathname.split("/").filter(Boolean).pop()||"");
+      const guess=last.replace(/[-_]/g," ").replace(/\.\w+$/,"");
+      return {title:guess||p.hostname, cover:""};
+    }catch{ return {}; }
   }
 
-  /* ----- AUTOMATA TARTALOM (TMDb/OMDb – opcionális) ----- */
+  /* --- Automata tartalom TMDb/OMDb-ból (ha van API-kulcs) --- */
   async function fetchPlotByTitle(title){
     const t = (title||"").trim(); if (!t) return "";
     try{
@@ -429,13 +474,13 @@
     return "";
   }
 
-  /* ----- Feltöltő (új film) ----- */
+  /* --- feltöltő UI + kötés --- */
   function uploaderHtml(scopeLabel){
     return `
       <div class="card" style="margin:12px;">
         <h3 style="margin:0 0 8px">Új film hozzáadása – <span class="muted">${scopeLabel}</span></h3>
         <div class="uploader">
-          <div class="field"><label>Videó/film link</label><input id="upLink" type="url" placeholder="Illeszd be a linket (pl. YouTube)"><div class="hint">Beillesztés után a cím és a borítókép automatikus (ha elérhető).</div></div>
+          <div class="field"><label>Videó/film link</label><input id="upLink" type="url" placeholder="Illeszd be a linket (pl. YouTube, Videa…)"><div class="hint">Beillesztés után a cím és a borítókép automatikus (ha elérhető).</div></div>
           <div class="two">
             <div class="field"><label>Cím</label><input id="upTitle" type="text" placeholder="Automatikus, de módosítható"></div>
             <div class="field"><label>Borítókép (URL)</label><input id="upCover" type="url" placeholder="Automatikus, ha van oEmbed"></div>
@@ -496,8 +541,9 @@
     });
   }
 
-  /* ----- Kategória nézet ----- */
-  let unsub=null; const detach=()=>{ if(typeof unsub==="function"){try{unsub();}catch{}} unsub=null; };
+  /* --- kategória nézet --- */
+  let unsub=null;
+  const detach=()=>{ if(typeof unsub==="function"){try{unsub();}catch{}} unsub=null; };
 
   async function loadCategory(catKey, label){
     detach(); $("#catBar").style.display="none";
@@ -519,7 +565,8 @@
       const q = query(collection(db,"categories",catKey,"movies"), orderBy("createdAt","desc"), limit(200));
       const render=(movies)=>{
         if(!movies.length){ host.innerHTML=`<div class="muted">Még nincs film ebben a kategóriában.</div>`; updateBadges(catKey,0); return; }
-        host.innerHTML = movies.map(m=>cardHtml(m, admin, {id:m.id, path:["categories",catKey,"movies"]})).join(""); updateBadges(catKey,movies.length);
+        host.innerHTML = movies.map(m=>cardHtml(m, admin, {id:m.id, path:["categories",catKey,"movies"]})).join("");
+        updateBadges(catKey,movies.length);
         if(admin){
           host.querySelectorAll(".btn-del").forEach(b=>{
             b.addEventListener("click", async ()=>{
@@ -531,7 +578,10 @@
         }
       };
       if(admin){
-        unsub = onSnapshot(q, snap=>{ render(snap.docs.map(d=>({id:d.id,...d.data()}))); const info=document.getElementById("listInfo"); if(info) info.textContent="Valós idejű lista (admin mód)"; }, err=>{ host.innerHTML=`<div class="muted">Hiba (realtime): ${err?.message||err}</div>`; });
+        unsub = onSnapshot(q, snap=>{
+          render(snap.docs.map(d=>({id:d.id,...d.data()})));
+          const info=document.getElementById("listInfo"); if(info) info.textContent="Valós idejű lista (admin mód)";
+        }, err=>{ host.innerHTML=`<div class="muted">Hiba (realtime): ${err?.message||err}</div>`; });
       }else{
         const snap = await getDocs(q);
         render(snap.docs.map(d=>({id:d.id,...d.data()})));
@@ -540,7 +590,7 @@
     }catch(e){ host.innerHTML = `<div class="muted">Hiba: ${e?.message||e}</div>`; }
   }
 
-  /* ----- Színész galéria + filmszámláló ----- */
+  /* --- színész galéria + film-darabszám --- */
   function renderActorsGallery(){
     detach(); $("#catBar").style.display="none";
     const v=$("#view"); v.dataset.type="actors"; v.dataset.key=""; v.innerHTML = `
@@ -564,10 +614,9 @@
       el.addEventListener("click", ()=> loadActorDetails(el.dataset.id));
     });
 
-    refreshActorCounts();  // <<< filmszámok frissítése
+    refreshActorCounts();
   }
 
-  // Filmszámok aggregált lekérése
   async function refreshActorCounts(){
     try{
       const { db, collection, getCountFromServer } = window.fb.db;
@@ -581,10 +630,10 @@
           el.textContent = c===1 ? "1 film" : `${c} film`;
         }catch{ el.textContent = "0 film"; }
       }
-    }catch(e){ /* csendben elnyelhető */ }
+    }catch(e){ /* csöndben elnyelhető */ }
   }
 
-  /* ----- Egy színész filmjei ----- */
+  /* --- egy színész filmjei --- */
   async function loadActorDetails(actorId){
     const actor = findActor(actorId); if(!actor){ alert("Ismeretlen színész."); return; }
     detach(); $("#catBar").style.display="none";
@@ -616,21 +665,46 @@
     const {db,collection,getDocs,onSnapshot,query,orderBy,limit,doc,deleteDoc} = window.fb.db;
     try{
       const q = query(collection(db,"actors",actorId,"movies"), orderBy("createdAt","desc"), limit(200));
+
       const render=(movies)=>{
-        if(!movies.length){ host.innerHTML=`<div class="muted">Még nincs film feltöltve.</div>`; return; }
-        host.innerHTML = movies.map(m=>cardHtml(m, admin, {id:m.id, path:["actors",actorId,"movies"]})).join("");
+        /* Expendables 2 statikus link a lista elejére, ha az adott színész érintett */
+        if (EX2_ACTORS.includes(actorId)) {
+          movies = [{
+            id: null,
+            title: "A feláldozhatók 2 (2012)",
+            link: EX2_URL,
+            cover: "",
+            content: ""
+          }, ...movies];
+        }
+
+        if(!movies.length){
+          host.innerHTML=`<div class="muted">Még nincs film feltöltve.</div>`;
+          return;
+        }
+        host.innerHTML = movies.map(m=>{
+          const delMeta = (m.id ? {id:m.id, path:["actors",actorId,"movies"]} : null);
+          return cardHtml(m, admin, delMeta);
+        }).join("");
+
         if(admin){
           host.querySelectorAll(".btn-del").forEach(b=>{
             b.addEventListener("click", async ()=>{
               const id=b.dataset.id; if(!confirm("Biztosan törlöd ezt a filmet?")) return;
-              try{ await deleteDoc(doc(db,"actors",actorId,"movies",id)); document.dispatchEvent(new Event("badges:refresh")); }
-              catch(e){ alert("Törlési hiba: "+(e?.message||e)); }
+              try{
+                await deleteDoc(doc(db,"actors",actorId,"movies",id));
+                document.dispatchEvent(new Event("badges:refresh"));
+              }catch(e){ alert("Törlési hiba: "+(e?.message||e)); }
             });
           });
         }
       };
+
       if(admin){
-        unsub = onSnapshot(q, snap=>{ render(snap.docs.map(d=>({id:d.id,...d.data()}))); const info=document.getElementById("listInfo"); if(info) info.textContent="Valós idejű lista (admin mód)"; }, err=>{ host.innerHTML=`<div class="muted">Hiba (realtime): ${err?.message||err}</div>`; });
+        unsub = onSnapshot(q, snap=>{
+          render(snap.docs.map(d=>({id:d.id,...d.data()})));
+          const info=document.getElementById("listInfo"); if(info) info.textContent="Valós idejű lista (admin mód)";
+        }, err=>{ host.innerHTML=`<div class="muted">Hiba (realtime): ${err?.message||err}</div>`; });
       }else{
         const snap = await getDocs(q);
         render(snap.docs.map(d=>({id:d.id,...d.data()})));
@@ -639,16 +713,16 @@
     }catch(e){ host.innerHTML = `<div class="muted">Hiba: ${e?.message||e}</div>`; }
   }
 
-  /* ----- Navigáció, frissítés ----- */
+  /* --- navigáció + frissítés --- */
   document.addEventListener("DOMContentLoaded", ()=>{
     const top=document.getElementById("topFilters");
     top.addEventListener("click",(e)=>{
       const b=e.target.closest(".chip"); if(!b) return;
       const g=b.dataset.goto;
-      if(g==="krimi") loadCategory("krimi","KRIMI");
-      if(g==="akcio") loadCategory("akcio","AKCIÓ");
+      if(g==="krimi")    loadCategory("krimi","KRIMI");
+      if(g==="akcio")    loadCategory("akcio","AKCIÓ");
       if(g==="thriller") loadCategory("thriller","THRILLER");
-      if(g==="actors") renderActorsGallery();
+      if(g==="actors")   renderActorsGallery();
     });
 
     document.getElementById("btnRefreshAll").addEventListener("click", ()=>{
@@ -660,15 +734,16 @@
     });
   });
 
+  /* ha admin státusz vált, frissítjük a nézetet */
   document.addEventListener("admin:login", ()=>{
-    const v=document.getElementById("view"); const type=v.dataset.type, key=v.dataset.key;
-    if(type==="category" && key) loadCategory(key, catLabel(key));
-    else if(type==="actor" && key) loadActorDetails(key);
+    const v=document.getElementById("view"); const t=v.dataset.type, k=v.dataset.key;
+    if(t==="category"&&k) loadCategory(k, catLabel(k));
+    else if(t==="actor"&&k) loadActorDetails(k);
   });
-  document.addEventListener("admin:logout",()=>{
-    const v=document.getElementById("view"); const type=v.dataset.type, key=v.dataset.key;
-    if(type==="category" && key) loadCategory(key, catLabel(key));
-    else if(type==="actor" && key) loadActorDetails(key);
+  document.addEventListener("admin:logout", ()=>{
+    const v=document.getElementById("view"); const t=v.dataset.type, k=v.dataset.key;
+    if(t==="category"&&k) loadCategory(k, catLabel(k));
+    else if(t==="actor"&&k) loadActorDetails(k);
   });
 })();
 </script>
