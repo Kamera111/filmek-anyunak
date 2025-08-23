@@ -34,7 +34,7 @@
     .chip-thriller{background:linear-gradient(180deg,#e11d48,#be123c)}
     .chip-actors{background:linear-gradient(180deg,#f59e0b,#b45309)}
 
-    /* ÉLŐ kártyarács */
+    /* ÉLŐ kártyarács + általános grid */
     #catBar{padding:12px}
     .cats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
     .cat{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:14px;background:#1f2937;color:#fff;border:1px solid #0f2437;box-shadow:0 4px 14px rgba(0,0,0,.18)}
@@ -44,23 +44,16 @@
     .btn-back{margin-bottom:12px}
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
 
-    /* Modálok (Admin, Vendég kapu) */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
-    .modal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;max-width:460px;width:100%;box-shadow:0 10px 35px rgba(0,0,0,.35)}
-    .modal h3{margin:0 0 10px}
-    .field{display:flex;flex-direction:column;gap:6px;margin:8px 0}
-    .field input{background:#0b1220;color:#fff;border:1px solid #324156;border-radius:10px;padding:10px 12px;font-size:15px;outline:none}
-    .row{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:10px}
-    .hint{font-size:12px;color:var(--muted)}
-    .err{color:#fecaca;font-size:13px;min-height:18px}
-    .show{display:flex}
-
-    /* Feltöltő űrlap */
-    .uploader{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 0 6px}
-    .uploader .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    @media (max-width:680px){ .uploader .two{grid-template-columns:1fr} }
-    .preview{display:flex;gap:10px;align-items:flex-start}
-    .preview img{width:120px;height:72px;object-fit:cover}
+    /* Színész galéria / kártya */
+    .actor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;padding:8px}
+    .actor{background:#1f2937;border:1px solid #0f2437;border-radius:14px;padding:10px;cursor:pointer;transition:transform .12s, box-shadow .12s;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+    .actor:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.22)}
+    .actor img{width:100%;height:180px;object-fit:cover;border-radius:12px}
+    .actor .name{font-weight:800}
+    .actor .sub{font-size:12px;color:var(--muted)}
+    .actor-header{display:flex;gap:12px;align-items:center}
+    .actor-header img{width:72px;height:72px;object-fit:cover;border-radius:12px}
+    .actor-header .who{display:flex;flex-direction:column}
   </style>
   <!-- ========== 1. RÉSZ VÉGE – ALAP STÍLUSOK ========== -->
 </head>
@@ -114,21 +107,20 @@
       <button class="chip chip-krimi"    data-goto="krimi"><div class="chip-title">KRIMI</div><div class="chip-sub">Új:<span id="badge-new-krimi">0</span> · Összes:<span id="badge-all-krimi">0</span></div></button>
       <button class="chip chip-akcio"    data-goto="akcio"><div class="chip-title">AKCIÓ</div><div class="chip-sub">Új:<span id="badge-new-akcio">0</span> · Összes:<span id="badge-all-akcio">0</span></div></button>
       <button class="chip chip-thriller" data-goto="thriller"><div class="chip-title">THRILLER</div><div class="chip-sub">Új:<span id="badge-new-thriller">0</span> · Összes:<span id="badge-all-thriller">0</span></div></button>
-      <button class="chip chip-actors"   data-goto="actors"><div class="chip-title">SZÍNÉSZEK</div><div class="chip-sub">20 név (hamarosan)</div></button>
+      <button class="chip chip-actors"   data-goto="actors"><div class="chip-title">SZÍNÉSZEK</div><div class="chip-sub">Galéria és filmek</div></button>
     </div>
 
     <div id="catBar"><div class="cats-row" id="catsLive"></div></div>
   </div>
 
-  <main id="view" class="view"></main>
+  <main id="view" class="view" data-type=""></main>
 </div>
 <!-- ========== 3. RÉSZ VÉGE – FŐ UI (HEADER + KATEGÓRIÁK) ========== -->
 
 <!-- ========== 3.5. RÉSZ ELEJE – BADGE FRISSÍTŐ (Új/Összes az elmúlt 7 nap alapján) ========== -->
 <script>
 (function(){
-  const NEW_DAYS = 7;
-  const MS_DAY   = 24*60*60*1000;
+  const NEW_DAYS = 7, MS_DAY = 86400000;
 
   async function refreshBadges(){
     try{
@@ -161,7 +153,7 @@
 </script>
 <!-- ========== 3.5. RÉSZ VÉGE – BADGE FRISSÍTŐ ========== -->
 
-<!-- ========== 4. RÉSZ ELEJE – MODÁLOK (Admin belépő + Vendég kapu – frissítve) ========== -->
+<!-- ========== 4. RÉSZ ELEJE – MODÁLOK (Admin belépő + Vendég kapu – automatikus) ========== -->
 <div id="adminModal" class="modal-backdrop" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="admintitle">
     <h3 id="admintitle">Admin belépés</h3>
@@ -186,7 +178,7 @@
 </div>
 <!-- ========== 4. RÉSZ VÉGE – MODÁLOK ========== -->
 
-<!-- ========== 5. RÉSZ ELEJE – ADMIN / VENDÉG VEZÉRLÉS (gombok, kapu, kilépés – frissítve) ========== -->
+<!-- ========== 5. RÉSZ ELEJE – ADMIN / VENDÉG VEZÉRLÉS (gombok, kapu, kilépés) ========== -->
 <script>
 (function(){
   const LS_ADMIN_OK="filmek_anyunak_admin_ok", LS_ADMIN_EMAIL="admin_email", LS_GUEST_OK="filmek_anyunak_guest_ok", GUEST_PIN="195400";
@@ -202,10 +194,7 @@
 
   function ensureGuestGate(){
     if(!loggedIn() && !guestOk()){
-      gusErr.textContent="";
-      gusPin.value="";
-      openModal(gusM);
-      setTimeout(()=>gusPin.focus(),0);
+      gusErr.textContent=""; gusPin.value=""; openModal(gusM); setTimeout(()=>gusPin.focus(),0);
     }
   }
   function setAdminUi(){ btn.textContent=loggedIn()?"Admin kilépés":"A"; btn.title=loggedIn()?"Kijelentkezés és vendég kapu":"Admin belépés"; }
@@ -274,10 +263,10 @@
 <script>
 (function(){
   const list = [
-    {name:"ÉLŐ Vígjáték TV", url:"https://sweet.tv/hu/free_tv/2014-comedy-universe-hd", provider:"sweet"},
-    {name:"ÉLŐ Akció TV",    url:"https://sweet.tv/hu/free_tv/2010-action-zone-hd",     provider:"sweet"},
-    {name:"ÉLŐ Thriller TV", url:"https://sweet.tv/hu/free_tv/2016-thriller-time-hd",    provider:"sweet"},
-    {name:"ÉLŐ TOP Filmek",  url:"https://sweet.tv/hu/free_tv/2967-top-movies-hd",       provider:"sweet"},
+    {name:"ÉLŐ Vígjáték TV", url:"https://sweet.tv/hu/free_tv/2014-comedy-universe-hd"},
+    {name:"ÉLŐ Akció TV",    url:"https://sweet.tv/hu/free_tv/2010-action-zone-hd"},
+    {name:"ÉLŐ Thriller TV", url:"https://sweet.tv/hu/free_tv/2016-thriller-time-hd"},
+    {name:"ÉLŐ TOP Filmek",  url:"https://sweet.tv/hu/free_tv/2967-top-movies-hd"},
     {name:"Mozi+ tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=13"},
     {name:"Film + tv",     url:"https://player.telekomtvgo.hu/player/live?channelNumber=15"},
     {name:"Prime tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=21"},
@@ -304,23 +293,57 @@
 </script>
 <!-- ========== 6. RÉSZ VÉGE – ÉLŐ TV GOMBOK FELTÖLTÉSE ========== -->
 
-<!-- ========== 7. RÉSZ ELEJE – FILMLISTA + FELTÖLTŐ + TÖRLÉS ========== -->
+<!-- ========== 7. RÉSZ ELEJE – FILMLISTA + FELTÖLTŐ + TÖRLÉS + SZÍNÉSZ GALÉRIA ========== -->
 <script>
 (function(){
   const $ = (s,r=document)=>r.querySelector(s);
   const LS_ADMIN_OK = "filmek_anyunak_admin_ok";
-
-  const catLabel = (k)=>({krimi:"KRIMI", akcio:"AKCIÓ", thriller:"THRILLER"})[k]||k.toUpperCase();
   const isAdmin = ()=> { try{ if(window.fb?.auth?.auth?.currentUser) return true; return localStorage.getItem(LS_ADMIN_OK)==="1"; } catch{ return false; } };
+  const catLabel = (k)=>({krimi:"KRIMI", akcio:"AKCIÓ", thriller:"THRILLER"})[k]||k.toUpperCase();
 
-  function goHome(){ $("#catBar").style.display=""; $("#view").innerHTML=""; window.scrollTo({top:0,behavior:"smooth"}); }
+  /* ----- SZÍNÉSZ LISTA (név + fotó URL) ----- */
+  const ACTORS = [
+    {name:"Sylvester Stallone", photo:"https://upload.wikimedia.org/wikipedia/commons/6/6b/Sylvester_Stallone_2014.jpg"},
+    {name:"Jason Statham", photo:"https://upload.wikimedia.org/wikipedia/commons/0/05/Jason_Statham_2018.jpg"},
+    {name:"Jet Li", photo:"https://upload.wikimedia.org/wikipedia/commons/5/5c/Jet_Li_2009.jpg"},
+    {name:"Dolph Lundgren", photo:"https://upload.wikimedia.org/wikipedia/commons/9/91/Dolph_Lundgren_2018.jpg"},
+    {name:"Randy Couture", photo:"https://upload.wikimedia.org/wikipedia/commons/1/1d/Randy_Couture_2008.jpg"},
+    {name:"Terry Crews", photo:"https://upload.wikimedia.org/wikipedia/commons/d/df/Terry_Crews_2019.jpg"},
+    {name:"Mickey Rourke", photo:"https://upload.wikimedia.org/wikipedia/commons/7/71/Mickey_Rourke_2009.jpg"},
+    {name:"Eric Roberts", photo:"https://upload.wikimedia.org/wikipedia/commons/4/47/Eric_Roberts_2013.jpg"},
+    {name:"Bruce Willis", photo:"https://upload.wikimedia.org/wikipedia/commons/8/89/Bruce_Willis_by_Gage_Skidmore.jpg"},
+    {name:"Arnold Schwarzenegger", photo:"https://upload.wikimedia.org/wikipedia/commons/9/98/Arnold_Schwarzenegger_2019.jpg"},
+    {name:"Wesley Snipes", photo:"https://upload.wikimedia.org/wikipedia/commons/4/47/Wesley_Snipes_2014.jpg"},
+    {name:"Antonio Banderas", photo:"https://upload.wikimedia.org/wikipedia/commons/0/0f/Antonio_Banderas_2019.jpg"},
+    {name:"Kelsey Grammer", photo:"https://upload.wikimedia.org/wikipedia/commons/0/0c/Kelsey_Grammer_2010.jpg"},
+    {name:"Kellan Lutz", photo:"https://upload.wikimedia.org/wikipedia/commons/7/74/Kellan_Lutz_2012.jpg"},
+    {name:"Ronda Rousey", photo:"https://upload.wikimedia.org/wikipedia/commons/5/5d/Ronda_Rousey_2018.jpg"},
+    {name:"Glen Powell", photo:"https://upload.wikimedia.org/wikipedia/commons/2/22/Glen_Powell_2019.jpg"},
+    {name:"Victor Ortiz", photo:"https://upload.wikimedia.org/wikipedia/commons/6/6a/Victor_Ortiz_2011.jpg"},
+    {name:"Mel Gibson", photo:"https://upload.wikimedia.org/wikipedia/commons/7/7f/Mel_Gibson_Cannes_2016.jpg"},
+    {name:"Harrison Ford", photo:"https://upload.wikimedia.org/wikipedia/commons/9/9f/Harrison_Ford_2017.jpg"},
+    {name:'Curtis "50 Cent" Jackson', photo:"https://upload.wikimedia.org/wikipedia/commons/b/b0/50_Cent_2018.jpg"},
+    {name:"Megan Fox", photo:"https://upload.wikimedia.org/wikipedia/commons/5/50/Megan_Fox_2009.jpg"},
+    {name:"Tony Jaa", photo:"https://upload.wikimedia.org/wikipedia/commons/3/38/Tony_Jaa_2018.jpg"},
+    {name:"Jacob Scipio", photo:"https://upload.wikimedia.org/wikipedia/commons/0/0c/Jacob_Scipio_2020.jpg"},
+    {name:"Levy Tran", photo:"https://upload.wikimedia.org/wikipedia/commons/8/8e/Levy_Tran_2019.jpg"},
+    {name:"Iko Uwais", photo:"https://upload.wikimedia.org/wikipedia/commons/1/1c/Iko_Uwais_2012.jpg"},
+    {name:"Jean-Claude Van Damme", photo:"https://upload.wikimedia.org/wikipedia/commons/8/80/Jean-Claude_Van_Damme_2012.jpg"},
+    {name:"Chuck Norris", photo:"https://upload.wikimedia.org/wikipedia/commons/3/35/Chuck_Norris_May_2015.jpg"},
+  ].map(a=>({ ...a, id: slug(a.name) }));
 
-  function cardHtml(m, catKey, admin){
+  function slug(s){ return (s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,""); }
+  function findActor(id){ return ACTORS.find(a=>a.id===id); }
+
+  function goHome(){ $("#catBar").style.display=""; const v=$("#view"); v.dataset.type=""; v.dataset.key=""; v.innerHTML=""; window.scrollTo({top:0,behavior:"smooth"}); }
+
+  /* ----- Kártya HTML (film) ----- */
+  function cardHtml(m, admin, delMeta){
     const img = m.cover ? `<img src="${m.cover}" alt="">` : "";
     const title = m.title || "Cím nélkül";
     const content = m.content || "";
     const link = m.link || "#";
-    const delBtn = admin ? `<button class="btn btn-danger btn-del" data-id="${m.id}" data-cat="${catKey}">Törlés</button>` : "";
+    const delBtn = admin ? `<button class="btn btn-danger btn-del" data-id="${delMeta.id}" data-path="${delMeta.path}">Törlés</button>` : "";
     return `<div class="card">${img}<div style="font-weight:800;margin:6px 0">${title}</div><div class="muted" style="margin-bottom:8px">${content}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" href="${link}" target="_blank" rel="noopener">Megnyitás</a>${delBtn}</div></div>`;
   }
 
@@ -329,6 +352,7 @@
     const n = document.getElementById(`badge-new-${catKey}`); if (n) n.textContent="0";
   }
 
+  /* ----- oEmbed meta (YouTube stb.) ----- */
   async function fetchMeta(url){
     const u = String(url||"").trim();
     if (!u) return {};
@@ -337,15 +361,15 @@
       if (/youtube\.com|youtu\.be/.test(u)){ const o=await get(`https://www.youtube.com/oembed?url=${encodeURIComponent(u)}&format=json`); return {title:o.title,cover:o.thumbnail_url}; }
       if (/vimeo\.com/.test(u)){ const o=await get(`https://vimeo.com/api/oembed.json?url=${encodeURIComponent(u)}`); return {title:o.title,cover:o.thumbnail_url}; }
       if (/dailymotion\.com/.test(u)){ const o=await get(`https://www.dailymotion.com/services/oembed?url=${encodeURIComponent(u)}`); return {title:o.title,cover:o.thumbnail_url}; }
-      if (/sweet\.tv/.test(u)){ const p=new URL(u); const last=decodeURIComponent(p.pathname.split("/").filter(Boolean).pop()||"").replace(/[-_]/g," "); return {title:(last||"Sweet.tv film").replace(/\s+hd$/i,""), cover:""}; }
     }catch(e){}
     try{ const p=new URL(u); const last=decodeURIComponent(p.pathname.split("/").filter(Boolean).pop()||""); const guess=last.replace(/[-_]/g," ").replace(/\.\w+$/,""); return {title:guess||p.hostname, cover:""}; }catch{ return {}; }
   }
 
-  function uploaderHtml(catKey){
+  /* ----- Feltöltő (új film) ----- */
+  function uploaderHtml(scopeLabel){
     return `
       <div class="card" style="margin:12px;">
-        <h3 style="margin:0 0 8px">Új film hozzáadása – <span class="muted">${catKey.toUpperCase()}</span></h3>
+        <h3 style="margin:0 0 8px">Új film hozzáadása – <span class="muted">${scopeLabel}</span></h3>
         <div class="uploader">
           <div class="field"><label>Videó/film link</label><input id="upLink" type="url" placeholder="Illeszd be a linket (pl. YouTube)"><div class="hint">Beillesztés után a cím és a borítókép automatikus (ha elérhető).</div></div>
           <div class="two">
@@ -359,8 +383,7 @@
         </div>
       </div>`;
   }
-
-  function bindUploader(catKey, afterAdded){
+  function bindUploader(targetPathBuilder, afterAdded){
     const $id=(x)=>document.getElementById(x);
     const link=$id("upLink"), title=$id("upTitle"), cover=$id("upCover"), desc=$id("upDesc"), prev=$id("upPrev"), err=$id("upErr");
     const updatePrev=()=>{ const u=(cover.value||"").trim(); prev.style.display=u?"block":"none"; prev.src=u||""; };
@@ -385,21 +408,22 @@
       const payload={ link:L, title:(title.value||"").trim()||"Cím nélkül", cover:(cover.value||"").trim()||"", content:(desc.value||"").trim()||"", createdAt: window.fb.db.serverTimestamp() };
       try{
         const { db, collection, addDoc } = window.fb.db;
-        await addDoc(collection(db,"categories",catKey,"movies"), payload);
-        document.dispatchEvent(new Event("badges:refresh"));   // ÚJ számláló azonnal
-        link.value = title.value = cover.value = desc.value = "";
-        updatePrev();
+        const { root, segments } = targetPathBuilder();
+        await addDoc(collection(db, ...root, ...segments), payload);
+        document.dispatchEvent(new Event("badges:refresh"));
+        link.value = title.value = cover.value = desc.value = ""; updatePrev();
         if (typeof afterAdded==="function") afterAdded();
       }catch(e){ err.textContent = e?.message || "Feltöltési hiba."; }
     });
   }
 
+  /* ----- Kategória nézet ----- */
   let unsub=null; const detach=()=>{ if(typeof unsub==="function"){try{unsub();}catch{}} unsub=null; };
 
   async function loadCategory(catKey, label){
     detach(); $("#catBar").style.display="none";
-    const admin=isAdmin(); const uploader=admin?uploaderHtml(catKey):"";
-    $("#view").innerHTML = `
+    const admin=isAdmin(); const uploader=admin?uploaderHtml(catLabel(catKey)):"";
+    const v=$("#view"); v.dataset.type="category"; v.dataset.key=catKey; v.innerHTML = `
       ${uploader}
       <div class="card" style="margin:12px;">
         <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
@@ -408,28 +432,25 @@
         <div id="list-${catKey}" class="grid"></div>
       </div>`;
     $("#btnBackHome").addEventListener("click",()=>{ detach(); goHome(); });
-    if (admin) bindUploader(catKey);
+    if (admin) bindUploader(()=>({root:["categories",catKey], segments:["movies"]}));
 
     const host=document.getElementById(`list-${catKey}`);
-    if(!window.fb?.db){ host.innerHTML=`<div class="muted">Firebase nincs inicializálva.</div>`; return; }
-
     const {db,collection,getDocs,onSnapshot,query,orderBy,limit,doc,deleteDoc} = window.fb.db;
     try{
       const q = query(collection(db,"categories",catKey,"movies"), orderBy("createdAt","desc"), limit(200));
       const render=(movies)=>{
         if(!movies.length){ host.innerHTML=`<div class="muted">Még nincs film ebben a kategóriában.</div>`; updateBadges(catKey,0); return; }
-        host.innerHTML = movies.map(m=>cardHtml(m,catKey,admin)).join(""); updateBadges(catKey,movies.length);
+        host.innerHTML = movies.map(m=>cardHtml(m, admin, {id:m.id, path:["categories",catKey,"movies"]})).join(""); updateBadges(catKey,movies.length);
         if(admin){
           host.querySelectorAll(".btn-del").forEach(b=>{
             b.addEventListener("click", async ()=>{
               const id=b.dataset.id; if(!confirm("Biztosan törlöd ezt a filmet?")) return;
-              try{ await deleteDoc(doc(db,"categories",catKey,"movies",id)); document.dispatchEvent(new Event("badges:refresh")); }
+              try{ await deleteDoc(doc(db,..."categories,".split(","),catKey,"movies",id)); document.dispatchEvent(new Event("badges:refresh")); }
               catch(e){ alert("Törlési hiba: "+(e?.message||e)); }
             });
           });
         }
       };
-
       if(admin){
         unsub = onSnapshot(q, snap=>{ render(snap.docs.map(d=>({id:d.id,...d.data()}))); const info=document.getElementById("listInfo"); if(info) info.textContent="Valós idejű lista (admin mód)"; }, err=>{ host.innerHTML=`<div class="muted">Hiba (realtime): ${err?.message||err}</div>`; });
       }else{
@@ -437,11 +458,86 @@
         render(snap.docs.map(d=>({id:d.id,...d.data()})));
         const info=document.getElementById("listInfo"); if(info) info.textContent="Egyszeri lista (vendég mód)";
       }
-    }catch(e){
-      host.innerHTML = `<div class="muted">Hiba: ${e?.message||e}</div>`;
-    }
+    }catch(e){ host.innerHTML = `<div class="muted">Hiba: ${e?.message||e}</div>`; }
   }
 
+  /* ----- Színész galéria ----- */
+  function renderActorsGallery(){
+    detach(); $("#catBar").style.display="none";
+    const v=$("#view"); v.dataset.type="actors"; v.dataset.key=""; v.innerHTML = `
+      <div class="card" style="margin:12px;">
+        <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
+        <h2 style="margin:4px 0 8px">Színészek</h2>
+        <div class="actor-grid" id="actorGrid"></div>
+      </div>`;
+    $("#btnBackHome").addEventListener("click", goHome);
+    const grid=$("#actorGrid");
+    grid.innerHTML = ACTORS.map(a=>`
+      <div class="actor" data-id="${a.id}">
+        <img src="${a.photo}" alt="${a.name}">
+        <div class="name">${a.name}</div>
+        <div class="sub">kattints</div>
+      </div>`).join("");
+    grid.querySelectorAll(".actor").forEach(el=>{
+      el.addEventListener("click", ()=> loadActorDetails(el.dataset.id));
+    });
+  }
+
+  /* ----- Egy színész filmjei ----- */
+  async function loadActorDetails(actorId){
+    const actor = findActor(actorId); if(!actor){ alert("Ismeretlen színész."); return; }
+    detach(); $("#catBar").style.display="none";
+    const admin=isAdmin(); const uploader=admin?uploaderHtml(actor.name):"";
+    const v=$("#view"); v.dataset.type="actor"; v.dataset.key=actorId;
+    v.innerHTML = `
+      ${uploader}
+      <div class="card" style="margin:12px;">
+        <div class="actor-header">
+          <img src="${actor.photo}" alt="${actor.name}">
+          <div class="who">
+            <div style="font-weight:800;font-size:20px">${actor.name}</div>
+            <div class="muted">Saját filmek</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin:12px 0">
+          <button class="btn btn-danger btn-back" id="btnBackActors">Vissza a színészekhez</button>
+          <button class="btn" id="btnBackHome2">Főoldal</button>
+        </div>
+        <div class="muted" id="listInfo" style="margin-bottom:10px">Lista betöltése…</div>
+        <div id="list-actor-${actorId}" class="grid"></div>
+      </div>`;
+    $("#btnBackActors").addEventListener("click", renderActorsGallery);
+    $("#btnBackHome2").addEventListener("click", goHome);
+    if (admin) bindUploader(()=>({root:["actors",actorId], segments:["movies"]}));
+
+    const host=document.getElementById(`list-actor-${actorId}`);
+    const {db,collection,getDocs,onSnapshot,query,orderBy,limit,doc,deleteDoc} = window.fb.db;
+    try{
+      const q = query(collection(db,"actors",actorId,"movies"), orderBy("createdAt","desc"), limit(200));
+      const render=(movies)=>{
+        if(!movies.length){ host.innerHTML=`<div class="muted">Még nincs film feltöltve.</div>`; return; }
+        host.innerHTML = movies.map(m=>cardHtml(m, admin, {id:m.id, path:["actors",actorId,"movies"]})).join("");
+        if(admin){
+          host.querySelectorAll(".btn-del").forEach(b=>{
+            b.addEventListener("click", async ()=>{
+              const id=b.dataset.id; if(!confirm("Biztosan törlöd ezt a filmet?")) return;
+              try{ await deleteDoc(doc(db,"actors",actorId,"movies",id)); document.dispatchEvent(new Event("badges:refresh")); }
+              catch(e){ alert("Törlési hiba: "+(e?.message||e)); }
+            });
+          });
+        }
+      };
+      if(admin){
+        unsub = onSnapshot(q, snap=>{ render(snap.docs.map(d=>({id:d.id,...d.data()}))); const info=document.getElementById("listInfo"); if(info) info.textContent="Valós idejű lista (admin mód)"; }, err=>{ host.innerHTML=`<div class="muted">Hiba (realtime): ${err?.message||err}</div>`; });
+      }else{
+        const snap = await getDocs(q);
+        render(snap.docs.map(d=>({id:d.id,...d.data()})));
+        const info=document.getElementById("listInfo"); if(info) info.textContent="Egyszeri lista (vendég mód)";
+      }
+    }catch(e){ host.innerHTML = `<div class="muted">Hiba: ${e?.message||e}</div>`; }
+  }
+
+  /* ----- Navigáció, frissítés ----- */
   document.addEventListener("DOMContentLoaded", ()=>{
     const top=document.getElementById("topFilters");
     top.addEventListener("click",(e)=>{
@@ -450,29 +546,31 @@
       if(g==="krimi") loadCategory("krimi","KRIMI");
       if(g==="akcio") loadCategory("akcio","AKCIÓ");
       if(g==="thriller") loadCategory("thriller","THRILLER");
-      if(g==="actors"){
-        detach(); document.getElementById("catBar").style.display="none";
-        document.getElementById("view").innerHTML = `
-          <div class="card" style="margin:12px;">
-            <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
-            <h2 style="margin:4px 0 8px">Színészek</h2>
-            <div class="muted">20 név – hamarosan.</div>
-          </div>`;
-        document.getElementById("btnBackHome").addEventListener("click",()=>{ goHome(); });
-      }
+      if(g==="actors") renderActorsGallery();
     });
 
     document.getElementById("btnRefreshAll").addEventListener("click", ()=>{
-      const openList=document.querySelector('#view [id^="list-"]'); if(!openList) return;
-      const key=openList.id.replace(/^list-/,''); loadCategory(key, catLabel(key));
+      const v=document.getElementById("view");
+      const type=v.dataset.type, key=v.dataset.key;
+      if(type==="category" && key) loadCategory(key, catLabel(key));
+      else if(type==="actor" && key) loadActorDetails(key);
+      else if(type==="actors") renderActorsGallery();
     });
   });
 
-  document.addEventListener("admin:login", ()=>{ const openList=document.querySelector('#view [id^="list-"]'); if(!openList) return; const key=openList.id.replace(/^list-/,''); loadCategory(key, catLabel(key)); });
-  document.addEventListener("admin:logout",()=>{ const openList=document.querySelector('#view [id^="list-"]'); if(!openList) return; const key=openList.id.replace(/^list-/,''); loadCategory(key, catLabel(key)); });
+  document.addEventListener("admin:login", ()=>{
+    const v=document.getElementById("view"); const type=v.dataset.type, key=v.dataset.key;
+    if(type==="category" && key) loadCategory(key, catLabel(key));
+    else if(type==="actor" && key) loadActorDetails(key);
+  });
+  document.addEventListener("admin:logout",()=>{
+    const v=document.getElementById("view"); const type=v.dataset.type, key=v.dataset.key;
+    if(type==="category" && key) loadCategory(key, catLabel(key));
+    else if(type==="actor" && key) loadActorDetails(key);
+  });
 })();
 </script>
-<!-- ========== 7. RÉSZ VÉGE – FILMLISTA + FELTÖLTŐ + TÖRLÉS ========== -->
+<!-- ========== 7. RÉSZ VÉGE – FILMLISTA + FELTÖLTŐ + TÖRLÉS + SZÍNÉSZ GALÉRIA ========== -->
 
 <!-- ========== 8. RÉSZ ELEJE – FAVICON ========== -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='50%' x='50%' dominant-baseline='middle' text-anchor='middle' font-size='44'>🎬</text></svg>">
