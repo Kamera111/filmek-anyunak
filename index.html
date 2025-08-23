@@ -161,7 +161,7 @@
 </script>
 <!-- ========== 3.5. RÉSZ VÉGE – BADGE FRISSÍTŐ ========== -->
 
-<!-- ========== 4. RÉSZ ELEJE – MODÁLOK (Admin belépő + Vendég kapu) ========== -->
+<!-- ========== 4. RÉSZ ELEJE – MODÁLOK (Admin belépő + Vendég kapu – frissítve) ========== -->
 <div id="adminModal" class="modal-backdrop" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="admintitle">
     <h3 id="admintitle">Admin belépés</h3>
@@ -175,28 +175,39 @@
 <div id="guestModal" class="modal-backdrop" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="guesttitle">
     <h3 id="guesttitle">Vendég kapu</h3>
-    <div class="field"><label for="guestPin">PIN (6 számjegy)</label><input id="guestPin" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="pl. 195400"><div class="hint">Helyes PIN: 195400</div></div>
+    <div class="field">
+      <label for="guestPin">PIN (6 számjegy)</label>
+      <input id="guestPin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+             placeholder="Kattints! Ide írd a kódot">
+    </div>
     <div class="err" id="guestErr"></div>
-    <div class="row"><button id="guestCancel" class="btn btn-danger" type="button">Mégse</button><button id="guestSubmit" class="btn" type="button">Belépés vendégként</button></div>
+    <div class="row"><button id="guestCancel" class="btn btn-danger" type="button">Mégse</button></div>
   </div>
 </div>
 <!-- ========== 4. RÉSZ VÉGE – MODÁLOK ========== -->
 
-<!-- ========== 5. RÉSZ ELEJE – ADMIN / VENDÉG VEZÉRLÉS (gombok, kapu, kilépés) ========== -->
+<!-- ========== 5. RÉSZ ELEJE – ADMIN / VENDÉG VEZÉRLÉS (gombok, kapu, kilépés – frissítve) ========== -->
 <script>
 (function(){
   const LS_ADMIN_OK="filmek_anyunak_admin_ok", LS_ADMIN_EMAIL="admin_email", LS_GUEST_OK="filmek_anyunak_guest_ok", GUEST_PIN="195400";
   const btn=document.getElementById("btnAdmin");
   const admM=document.getElementById("adminModal"), admEmail=document.getElementById("admEmail"), admPass=document.getElementById("admPass"), admErr=document.getElementById("admErr");
   const admCancel=document.getElementById("admCancel"), admSubmit=document.getElementById("admSubmit");
-  const gusM=document.getElementById("guestModal"), gusPin=document.getElementById("guestPin"), gusErr=document.getElementById("guestErr"), gusCancel=document.getElementById("guestCancel"), gusSubmit=document.getElementById("guestSubmit");
+  const gusM=document.getElementById("guestModal"), gusPin=document.getElementById("guestPin"), gusErr=document.getElementById("guestErr"), gusCancel=document.getElementById("guestCancel");
 
   const openModal=m=>{m.classList.add("show");m.setAttribute("aria-hidden","false");};
   const closeModal=m=>{m.classList.remove("show");m.setAttribute("aria-hidden","true");};
   const loggedIn=()=> (window.fb?.auth?.auth?.currentUser)||localStorage.getItem(LS_ADMIN_OK)==="1";
   const guestOk=()=> localStorage.getItem(LS_GUEST_OK)==="1";
 
-  function ensureGuestGate(){ if(!loggedIn() && !guestOk()){ gusErr.textContent=""; gusPin.value=""; openModal(gusM); setTimeout(()=>gusPin.focus(),0);} }
+  function ensureGuestGate(){
+    if(!loggedIn() && !guestOk()){
+      gusErr.textContent="";
+      gusPin.value="";
+      openModal(gusM);
+      setTimeout(()=>gusPin.focus(),0);
+    }
+  }
   function setAdminUi(){ btn.textContent=loggedIn()?"Admin kilépés":"A"; btn.title=loggedIn()?"Kijelentkezés és vendég kapu":"Admin belépés"; }
 
   async function doLogin(){
@@ -215,15 +226,36 @@
     setAdminUi(); document.dispatchEvent(new CustomEvent("admin:logout")); localStorage.removeItem(LS_GUEST_OK); ensureGuestGate();
   }
 
+  // Vendég kapu: automatikus belépés helyes PIN-nel (nincs „Belépés” gomb)
+  function normalizeDigits(s){ return (s||"").replace(/\D/g,"").slice(0,6); }
+  gusPin.addEventListener("input", ()=>{
+    const val = normalizeDigits(gusPin.value);
+    if (gusPin.value !== val) gusPin.value = val;
+    gusErr.textContent = "";
+    if (val.length === 6){
+      if (val === GUEST_PIN){
+        localStorage.setItem(LS_GUEST_OK,"1");
+        closeModal(gusM);
+      } else {
+        gusErr.textContent = "Hibás PIN.";
+      }
+    }
+  });
+
   btn.addEventListener("click", ()=> loggedIn()?doLogoutToGuestGate():(admErr.textContent="",admEmail.value=localStorage.getItem(LS_ADMIN_EMAIL)||"",admPass.value="",openModal(admM), setTimeout(()=> (admEmail.value?admPass:admEmail).focus(),0)));
   admCancel.addEventListener("click", ()=>closeModal(admM)); admSubmit.addEventListener("click", doLogin);
   admM.addEventListener("click",(e)=>{ if(e.target===admM) closeModal(admM); });
-  document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"&&admM.classList.contains("show")) closeModal(admM); if(e.key==="Enter"&&admM.classList.contains("show")) doLogin(); });
 
-  function tryGuest(){ gusErr.textContent=""; if((gusPin.value||"").trim()===GUEST_PIN){ localStorage.setItem(LS_GUEST_OK,"1"); closeModal(gusM); } else { gusErr.textContent="Hibás PIN."; } }
-  gusSubmit.addEventListener("click", tryGuest); gusCancel.addEventListener("click", ()=>closeModal(gusM));
+  gusCancel.addEventListener("click", ()=>closeModal(gusM));
   gusM.addEventListener("click",(e)=>{ if(e.target===gusM) closeModal(gusM); });
-  document.addEventListener("keydown",(e)=>{ if(e.key==="Enter"&&gusM.classList.contains("show")) tryGuest(); if(e.key==="Escape"&&gusM.classList.contains("show")) closeModal(gusM); });
+
+  document.addEventListener("keydown",(e)=>{
+    if(e.key==="Escape"){
+      if(admM.classList.contains("show")) closeModal(admM);
+      if(gusM.classList.contains("show")) closeModal(gusM);
+    }
+    if(e.key==="Enter" && admM.classList.contains("show")) doLogin();
+  });
 
   try{
     const o=window.fb?.auth?.onAuthStateChanged, a=window.fb?.auth?.auth;
