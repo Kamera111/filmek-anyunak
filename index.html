@@ -20,6 +20,7 @@
     .card{background:var(--card);border:1px solid #1f2937;border-radius:16px;padding:14px}
     a{color:#a5f3fc;text-decoration:none} a:hover{text-decoration:underline}
     img{max-width:100%;border-radius:10px;border:1px solid #1f2937}
+    [hidden]{display:none !important;}
 
     /* felső színes kategória gombok */
     .top-filters{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px;padding:6px 12px 12px}
@@ -34,7 +35,7 @@
     .chip-thriller{background:linear-gradient(180deg,#e11d48,#be123c)}
     .chip-actors{background:linear-gradient(180deg,#f59e0b,#b45309)}
 
-    /* ÉLŐ kártyarács + általános grid */
+    /* élő kártyák + grid */
     #catBar{padding:12px}
     .cats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
     .cat{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:14px;background:#1f2937;color:#fff;border:1px solid #0f2437;box-shadow:0 4px 14px rgba(0,0,0,.18)}
@@ -54,17 +55,31 @@
     .actor-header{display:flex;gap:12px;align-items:center}
     .actor-header img{width:72px;height:72px;object-fit:cover;border-radius:12px}
     .actor-header .who{display:flex;flex-direction:column}
+
+    /* Feltöltő UI */
+    .field{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+    .field input{background:#0b1224;border:1px solid #22304b;border-radius:10px;color:var(--txt);padding:10px}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .preview{display:flex;gap:10px;align-items:center;margin:10px 0}
+    .preview img{width:160px;height:90px;object-fit:cover;border-radius:10px}
+    .hint{font-size:12px;color:var(--muted)}
+    .err{color:#fecaca;font-weight:700;margin-top:6px}
+
+    /* Modál (admin/vendég kapu) */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.15s}
+    .modal-backdrop.show{opacity:1;pointer-events:auto}
+    .modal{background:#0f172a;border:1px solid #1f2937;border-radius:16px;padding:16px;min-width:300px;max-width:92vw}
   </style>
   <!-- ========== 1. RÉSZ VÉGE – ALAP STÍLUSOK ========== -->
 </head>
 
-<!-- ========== 2. RÉSZ ELEJE – FIREBASE INIT (doc + deleteDoc exportálva) ========== -->
+<!-- ========== 2. RÉSZ ELEJE – FIREBASE INIT (doc + deleteDoc exportokkal) ========== -->
 <script type="module">
   import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import {
     getFirestore, collection, addDoc, getDocs, onSnapshot,
-    query, where, orderBy, limit, serverTimestamp,
-    doc, deleteDoc
+    query, where, orderBy, limit, serverTimestamp, doc, deleteDoc
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
@@ -81,6 +96,12 @@
   const app  = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
   const db   = getFirestore(app);
   const auth = getAuth(app);
+
+  // API-k a film tartalom automatikus kitöltéséhez (opcionális – töltsd ki bármelyiket)
+  window.MOVIE_API = {
+    TMDB_API_KEY: "",  // pl. "xxxxxxxxxxxxxxxxxxxxxxx"
+    OMDB_API_KEY: ""   // pl. "xxxxxxxx"
+  };
 
   window.fb = {
     app,
@@ -154,23 +175,23 @@
 <!-- ========== 3.5. RÉSZ VÉGE – BADGE FRISSÍTŐ ========== -->
 
 <!-- ========== 4. RÉSZ ELEJE – MODÁLOK (Admin belépő + Vendég kapu – automatikus) ========== -->
-<div id="adminModal" class="modal-backdrop" aria-hidden="true">
+<div id="adminModal" class="modal-backdrop" aria-hidden="true" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="admintitle">
     <h3 id="admintitle">Admin belépés</h3>
     <div class="field"><label for="admEmail">Email</label><input id="admEmail" type="email" autocomplete="username" placeholder="pl. te@pelda.hu"></div>
-    <div class="field"><label for="admPass">Jelszó</label><input id="admPass" type="password" autocomplete="current-password" placeholder="••••••••"><div class="hint">A jelszó nincs előtöltve — kézzel írd be.</div></div>
+    <div class="field"><label for="admPass">Jelszó</label><input id="admPass" type="password" autocomplete="new-password" placeholder="••••••••"><div class="hint">A jelszó nincs előtöltve — kézzel írd be.</div></div>
     <div class="err" id="admErr"></div>
     <div class="row"><button id="admCancel" class="btn btn-danger" type="button">Mégse</button><button id="admSubmit" class="btn" type="button">Belépés</button></div>
   </div>
 </div>
 
-<div id="guestModal" class="modal-backdrop" aria-hidden="true">
+<div id="guestModal" class="modal-backdrop" aria-hidden="true" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="guesttitle">
     <h3 id="guesttitle">Vendég kapu</h3>
     <div class="field">
       <label for="guestPin">PIN (6 számjegy)</label>
       <input id="guestPin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6"
-             placeholder="Kattints! Ide írd a kódot">
+             placeholder="Kattints! Ide írd a kódot" autocomplete="one-time-code">
     </div>
     <div class="err" id="guestErr"></div>
     <div class="row"><button id="guestCancel" class="btn btn-danger" type="button">Mégse</button></div>
@@ -187,8 +208,8 @@
   const admCancel=document.getElementById("admCancel"), admSubmit=document.getElementById("admSubmit");
   const gusM=document.getElementById("guestModal"), gusPin=document.getElementById("guestPin"), gusErr=document.getElementById("guestErr"), gusCancel=document.getElementById("guestCancel");
 
-  const openModal=m=>{m.classList.add("show");m.setAttribute("aria-hidden","false");};
-  const closeModal=m=>{m.classList.remove("show");m.setAttribute("aria-hidden","true");};
+  const openModal=m=>{m.classList.add("show");m.removeAttribute("hidden");m.setAttribute("aria-hidden","false");};
+  const closeModal=m=>{m.classList.remove("show");m.setAttribute("hidden","");m.setAttribute("aria-hidden","true");};
   const loggedIn=()=> (window.fb?.auth?.auth?.currentUser)||localStorage.getItem(LS_ADMIN_OK)==="1";
   const guestOk=()=> localStorage.getItem(LS_GUEST_OK)==="1";
 
@@ -293,7 +314,7 @@
 </script>
 <!-- ========== 6. RÉSZ VÉGE – ÉLŐ TV GOMBOK FELTÖLTÉSE ========== -->
 
-<!-- ========== 7. RÉSZ ELEJE – FILMLISTA + FELTÖLTŐ + TÖRLÉS + SZÍNÉSZ GALÉRIA ========== -->
+<!-- ========== 7. RÉSZ ELEJE – FILMEK + FELTÖLTŐ + TÖRLÉS + SZÍNÉSZ GALÉRIA + AUTOMATA TARTALOM ========== -->
 <script>
 (function(){
   const $ = (s,r=document)=>r.querySelector(s);
@@ -302,7 +323,7 @@
   const catLabel = (k)=>({krimi:"KRIMI", akcio:"AKCIÓ", thriller:"THRILLER"})[k]||k.toUpperCase();
 
   /* ----- SZÍNÉSZ LISTA (név + fotó URL) ----- */
-  const ACTORS = [
+  const ACTORS_RAW = [
     {name:"Sylvester Stallone", photo:"https://upload.wikimedia.org/wikipedia/commons/6/6b/Sylvester_Stallone_2014.jpg"},
     {name:"Jason Statham", photo:"https://upload.wikimedia.org/wikipedia/commons/0/05/Jason_Statham_2018.jpg"},
     {name:"Jet Li", photo:"https://upload.wikimedia.org/wikipedia/commons/5/5c/Jet_Li_2009.jpg"},
@@ -330,10 +351,19 @@
     {name:"Iko Uwais", photo:"https://upload.wikimedia.org/wikipedia/commons/1/1c/Iko_Uwais_2012.jpg"},
     {name:"Jean-Claude Van Damme", photo:"https://upload.wikimedia.org/wikipedia/commons/8/80/Jean-Claude_Van_Damme_2012.jpg"},
     {name:"Chuck Norris", photo:"https://upload.wikimedia.org/wikipedia/commons/3/35/Chuck_Norris_May_2015.jpg"},
-  ].map(a=>({ ...a, id: slug(a.name) }));
-
+  ];
+  const ACTORS = ACTORS_RAW.map(a=>({ ...a, id: slug(a.name) }));
   function slug(s){ return (s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,""); }
   function findActor(id){ return ACTORS.find(a=>a.id===id); }
+
+  /* ----- Placeholder kép hibára ----- */
+  const IMG_FALLBACK = "data:image/svg+xml;utf8," + encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'>
+       <rect width='120' height='80' rx='12' fill='#1f2937'/>
+       <circle cx='40' cy='32' r='14' fill='#4b5563'/>
+       <rect x='20' y=' Fifty' width='80' height='18' rx='9' fill='#4b5563'/>
+     </svg>`.replace(" Fifty","50") // csak hogy biztos valid svg legyen
+  );
 
   function goHome(){ $("#catBar").style.display=""; const v=$("#view"); v.dataset.type=""; v.dataset.key=""; v.innerHTML=""; window.scrollTo({top:0,behavior:"smooth"}); }
 
@@ -343,7 +373,7 @@
     const title = m.title || "Cím nélkül";
     const content = m.content || "";
     const link = m.link || "#";
-    const delBtn = admin ? `<button class="btn btn-danger btn-del" data-id="${delMeta.id}" data-path="${delMeta.path}">Törlés</button>` : "";
+    const delBtn = admin ? `<button class="btn btn-danger btn-del" data-id="${delMeta.id}" data-path="${(delMeta.path||[]).join("/")}">Törlés</button>` : "";
     return `<div class="card">${img}<div style="font-weight:800;margin:6px 0">${title}</div><div class="muted" style="margin-bottom:8px">${content}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" href="${link}" target="_blank" rel="noopener">Megnyitás</a>${delBtn}</div></div>`;
   }
 
@@ -352,7 +382,7 @@
     const n = document.getElementById(`badge-new-${catKey}`); if (n) n.textContent="0";
   }
 
-  /* ----- oEmbed meta (YouTube stb.) ----- */
+  /* ----- oEmbed meta (YouTube/Vimeo/Dailymotion) ----- */
   async function fetchMeta(url){
     const u = String(url||"").trim();
     if (!u) return {};
@@ -363,6 +393,33 @@
       if (/dailymotion\.com/.test(u)){ const o=await get(`https://www.dailymotion.com/services/oembed?url=${encodeURIComponent(u)}`); return {title:o.title,cover:o.thumbnail_url}; }
     }catch(e){}
     try{ const p=new URL(u); const last=decodeURIComponent(p.pathname.split("/").filter(Boolean).pop()||""); const guess=last.replace(/[-_]/g," ").replace(/\.\w+$/,""); return {title:guess||p.hostname, cover:""}; }catch{ return {}; }
+  }
+
+  /* ----- AUTOMATA TARTALOM (TMDb/OMDb – opcionális) ----- */
+  async function fetchPlotByTitle(title){
+    const t = (title||"").trim(); if (!t) return "";
+    try{
+      if (window.MOVIE_API?.TMDB_API_KEY){
+        // HU leírás, ha nincs: EN
+        const k = window.MOVIE_API.TMDB_API_KEY;
+        const q = encodeURIComponent(t);
+        const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${k}&language=hu-HU&query=${q}`);
+        const j = await r.json();
+        const m = j?.results?.[0];
+        if (m?.overview) return m.overview;
+        const r2 = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${k}&language=en-US&query=${q}`);
+        const j2 = await r2.json();
+        const m2 = j2?.results?.[0];
+        if (m2?.overview) return m2.overview;
+      }
+      if (window.MOVIE_API?.OMDB_API_KEY){
+        const k = window.MOVIE_API.OMDB_API_KEY;
+        const r = await fetch(`https://www.omdbapi.com/?t=${encodeURIComponent(t)}&plot=short&apikey=${k}`);
+        const j = await r.json();
+        if (j?.Plot && j.Plot !== "N/A") return j.Plot;
+      }
+    }catch(e){}
+    return "";
   }
 
   /* ----- Feltöltő (új film) ----- */
@@ -389,7 +446,8 @@
     const updatePrev=()=>{ const u=(cover.value||"").trim(); prev.style.display=u?"block":"none"; prev.src=u||""; };
     cover.addEventListener("input", updatePrev);
 
-    let timer=null;
+    let timer=null, timerTitle=null;
+
     link.addEventListener("input", ()=>{
       clearTimeout(timer);
       timer=setTimeout(async ()=>{
@@ -397,7 +455,21 @@
         const meta = await fetchMeta(link.value);
         if (meta.title && !title.value) title.value = meta.title;
         if (meta.cover && !cover.value){ cover.value = meta.cover; updatePrev(); }
+        if (!desc.value && title.value){
+          const plot = await fetchPlotByTitle(title.value);
+          if (plot) desc.value = plot;
+        }
       }, 350);
+    });
+
+    title.addEventListener("input", ()=>{
+      clearTimeout(timerTitle);
+      timerTitle=setTimeout(async ()=>{
+        if (!desc.value && title.value){
+          const plot = await fetchPlotByTitle(title.value);
+          if (plot) desc.value = plot;
+        }
+      }, 500);
     });
 
     $id("upCancel").addEventListener("click", ()=>{ link.value=title.value=cover.value=desc.value=""; updatePrev(); err.textContent=""; });
@@ -445,7 +517,7 @@
           host.querySelectorAll(".btn-del").forEach(b=>{
             b.addEventListener("click", async ()=>{
               const id=b.dataset.id; if(!confirm("Biztosan törlöd ezt a filmet?")) return;
-              try{ await deleteDoc(doc(db,..."categories,".split(","),catKey,"movies",id)); document.dispatchEvent(new Event("badges:refresh")); }
+              try{ await deleteDoc(doc(db,"categories",catKey,"movies",id)); document.dispatchEvent(new Event("badges:refresh")); }
               catch(e){ alert("Törlési hiba: "+(e?.message||e)); }
             });
           });
@@ -474,7 +546,8 @@
     const grid=$("#actorGrid");
     grid.innerHTML = ACTORS.map(a=>`
       <div class="actor" data-id="${a.id}">
-        <img src="${a.photo}" alt="${a.name}">
+        <img src="${a.photo}" alt="${a.name}" referrerpolicy="no-referrer"
+             onerror="this.onerror=null;this.src='${IMG_FALLBACK}'">
         <div class="name">${a.name}</div>
         <div class="sub">kattints</div>
       </div>`).join("");
@@ -493,7 +566,8 @@
       ${uploader}
       <div class="card" style="margin:12px;">
         <div class="actor-header">
-          <img src="${actor.photo}" alt="${actor.name}">
+          <img src="${actor.photo}" alt="${actor.name}" referrerpolicy="no-referrer"
+               onerror="this.onerror=null;this.src='${IMG_FALLBACK}'">
           <div class="who">
             <div style="font-weight:800;font-size:20px">${actor.name}</div>
             <div class="muted">Saját filmek</div>
@@ -570,7 +644,7 @@
   });
 })();
 </script>
-<!-- ========== 7. RÉSZ VÉGE – FILMLISTA + FELTÖLTŐ + TÖRLÉS + SZÍNÉSZ GALÉRIA ========== -->
+<!-- ========== 7. RÉSZ VÉGE – FILMEK + FELTÖLTŐ + TÖRLÉS + SZÍNÉSZ GALÉRIA + AUTOMATA TARTALOM ========== -->
 
 <!-- ========== 8. RÉSZ ELEJE – FAVICON ========== -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='50%' x='50%' dominant-baseline='middle' text-anchor='middle' font-size='44'>🎬</text></svg>">
