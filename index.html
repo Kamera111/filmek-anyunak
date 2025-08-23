@@ -119,6 +119,129 @@
   <!-- =========================
        2. RÉSZ VÉGE – FIREBASE INIT + API KULCS HELY
   ========================== -->
+  <!-- ========== 9. RÉSZ ELEJE – ADMIN BELÉPÉS UI + LOGIKA ========== -->
+<style>
+  /* apró kiegészítő a kis „A” gombhoz és a modálhoz */
+  #adminBtnWrap{display:flex;gap:8px;align-items:center;margin-left:auto}
+  #btnAdminOpen{width:42px;height:42px;border-radius:999px;font-weight:800}
+  #btnAdminLogout{display:none}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(2px);display:none;z-index:99}
+  .modal-card{max-width:420px;margin:8vh auto;background:#111827;border:1px solid #1f2937;border-radius:16px;padding:16px;color:#e5e7eb}
+  .modal-card h3{margin:0 0 10px}
+  .modal-row{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+  .modal-row input{padding:10px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:#e5e7eb}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+</style>
+
+<div id="adminLoginModal" class="modal-backdrop">
+  <div class="modal-card">
+    <h3>Admin belépés</h3>
+    <div class="modal-row">
+      <label>Email</label>
+      <input id="adminEmail" type="email" placeholder="admin@email.com" autocomplete="username">
+    </div>
+    <div class="modal-row">
+      <label>Jelszó</label>
+      <input id="adminPass" type="password" placeholder="Jelszó" autocomplete="current-password">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="btnAdminCancel">Mégse</button>
+      <button class="btn" id="btnAdminLogin">Belépés</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function AdminUI(){
+  const fbA = window.fb?.auth;       // { auth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  if(!fbA || !fbA.auth) { console.warn("[AdminUI] Firebase Auth még nincs kész."); return; }
+
+  // 1) Gombok injektálása a fejléc jobb oldalára
+  function ensureHeaderButtons(){
+    const header = document.querySelector(".sticky header") || document.querySelector("header");
+    if(!header) return;
+
+    let wrap = document.getElementById("adminBtnWrap");
+    if(!wrap){
+      wrap = document.createElement("div");
+      wrap.id = "adminBtnWrap";
+      header.appendChild(wrap);
+    }
+    if(!document.getElementById("btnAdminOpen")){
+      const open = document.createElement("button");
+      open.id = "btnAdminOpen";
+      open.className = "btn";
+      open.title = "Admin belépés";
+      open.textContent = "A";
+      wrap.appendChild(open);
+      open.addEventListener("click", openModal);
+    }
+    if(!document.getElementById("btnAdminLogout")){
+      const out = document.createElement("button");
+      out.id = "btnAdminLogout";
+      out.className = "btn btn-danger";
+      out.textContent = "Admin kilépés";
+      out.title = "Kijelentkezés";
+      wrap.appendChild(out);
+      out.addEventListener("click", doSignOut);
+    }
+  }
+
+  // 2) Modál megnyitás/bezárás
+  const modal = document.getElementById("adminLoginModal");
+  const emailI = document.getElementById("adminEmail");
+  const passI  = document.getElementById("adminPass");
+  function openModal(){
+    try{ emailI.value = localStorage.getItem("admin_email") || ""; }catch{}
+    modal.style.display = "block";
+    setTimeout(()=>emailI?.focus(), 20);
+  }
+  function closeModal(){ modal.style.display = "none"; passI.value=""; }
+
+  document.getElementById("btnAdminCancel").addEventListener("click", closeModal);
+  document.getElementById("btnAdminLogin").addEventListener("click", doSignIn);
+  modal.addEventListener("click",(e)=>{ if(e.target===modal) closeModal(); });
+
+  // 3) Be- és kijelentkezés
+  async function doSignIn(){
+    const email = (emailI.value||"").trim();
+    const pass  = passI.value;
+    if(!email || !pass){ alert("Add meg az emailt és jelszót."); return; }
+    try{
+      await fbA.signInWithEmailAndPassword(fbA.auth, email, pass);
+      try{ localStorage.setItem("admin_email", email); }catch{}
+      closeModal();
+    }catch(e){
+      alert("Belépési hiba: " + (e?.message || e));
+    }
+  }
+  async function doSignOut(){
+    try{ await fbA.signOut(fbA.auth); }catch{}
+  }
+
+  // 4) Állapotfigyelő – UI váltás
+  function refreshAuthUI(){
+    const user = fbA.auth.currentUser;
+    const open = document.getElementById("btnAdminOpen");
+    const out  = document.getElementById("btnAdminLogout");
+    if(user){
+      if(out)  out.style.display  = "";
+      if(open) open.style.display = "none";
+    }else{
+      if(out)  out.style.display  = "none";
+      if(open) open.style.display = "";
+    }
+  }
+  fbA.onAuthStateChanged(fbA.auth, refreshAuthUI);
+
+  // induláskor
+  document.addEventListener("DOMContentLoaded", ensureHeaderButtons, { once:true });
+  ensureHeaderButtons();
+  refreshAuthUI();
+})();
+</script>
+<!-- ========== 9. RÉSZ VÉGE – ADMIN BELÉPÉS UI + LOGIKA ========== -->
+
 </head>
 
 <body>
