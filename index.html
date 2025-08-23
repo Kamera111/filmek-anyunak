@@ -97,17 +97,19 @@
   const db   = getFirestore(app);
   const auth = getAuth(app);
 
-  // API-k a film tartalom automatikus kitöltéséhez (opcionális – töltsd ki bármelyiket)
+  /* AUTOMATA TARTALOM (opcionális API-k) – töltsd ki, ha szeretnéd */
   window.MOVIE_API = {
-    TMDB_API_KEY: "",  // pl. "xxxxxxxxxxxxxxxxxxxxxxx"
-    OMDB_API_KEY: ""   // pl. "xxxxxxxx"
+    TMDB_API_KEY: "",  // ide TMDb kulcs
+    OMDB_API_KEY: ""   // ide OMDb kulcs (nem kötelező)
   };
 
+  /* Exportok az oldal többi részének */
   window.fb = {
     app,
     db: { db, collection, addDoc, getDocs, onSnapshot, query, where, orderBy, limit, serverTimestamp, doc, deleteDoc },
     auth: { auth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   };
+
   console.debug("[Firebase] READY – project:", firebaseConfig.projectId);
 </script>
 <!-- ========== 2. RÉSZ VÉGE – FIREBASE INIT ========== -->
