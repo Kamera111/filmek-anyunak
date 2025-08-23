@@ -65,12 +65,13 @@
   <!-- ========== 1. RÉSZ VÉGE – ALAP STÍLUSOK ========== -->
 </head>
 
-<!-- ========== 2. RÉSZ ELEJE – FIREBASE INIT ========== -->
+<!-- ========== 2. RÉSZ ELEJE – FIREBASE INIT (doc + deleteDoc hozzáadva!) ========== -->
 <script type="module">
   import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import {
     getFirestore, collection, addDoc, getDocs, onSnapshot,
-    query, where, orderBy, limit, serverTimestamp
+    query, where, orderBy, limit, serverTimestamp,
+    doc, deleteDoc
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
@@ -88,10 +89,10 @@
   const db   = getFirestore(app);
   const auth = getAuth(app);
 
-  // Globális híd
+  // Globális híd – most már doc + deleteDoc is bent van
   window.fb = {
     app,
-    db: { db, collection, addDoc, getDocs, onSnapshot, query, where, orderBy, limit, serverTimestamp },
+    db: { db, collection, addDoc, getDocs, onSnapshot, query, where, orderBy, limit, serverTimestamp, doc, deleteDoc },
     auth: { auth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   };
   console.debug("[Firebase] READY – project:", firebaseConfig.projectId);
@@ -123,6 +124,32 @@
   <main id="view" class="view"></main>
 </div>
 <!-- ========== 3. RÉSZ VÉGE – FŐ UI (HEADER + KATEGÓRIÁK) ========== -->
+
+<!-- ========== 3.5. RÉSZ ELEJE – BADGE FRISSÍTŐ (Új/Összes) ========== -->
+<script>
+(function(){
+  async function refreshBadges(){
+    try{
+      const fbd = window.fb?.db; if (!fbd) return;
+      const { db, collection, getDocs, query, orderBy, limit } = fbd;
+      const cats = ["krimi","akcio","thriller"];
+      for (const k of cats){
+        // egyszerű darabszám: legfeljebb 1000-ig számolunk (nekünk most elég)
+        const q = query(collection(db,"categories",k,"movies"), orderBy("createdAt","desc"), limit(1000));
+        const snap = await getDocs(q);
+        const total = snap.size || 0;
+        const t = document.getElementById(`badge-all-${k}`); if (t) t.textContent = String(total);
+        const n = document.getElementById(`badge-new-${k}`); if (n) n.textContent = "0";
+      }
+    }catch(e){ console.warn("Badge frissítés hiba:", e); }
+  }
+  document.addEventListener("DOMContentLoaded", refreshBadges);
+  document.addEventListener("admin:login", refreshBadges);
+  document.addEventListener("admin:logout", refreshBadges);
+  document.getElementById("btnRefreshAll").addEventListener("click", refreshBadges);
+})();
+</script>
+<!-- ========== 3.5. RÉSZ VÉGE – BADGE FRISSÍTŐ ========== -->
 
 <!-- ========== 4. RÉSZ ELEJE – MODÁLOK (Admin belépő + Vendég kapu) ========== -->
 <!-- Admin belépő -->
@@ -195,12 +222,11 @@
       return localStorage.getItem(LS_ADMIN_OK)==="1";
     }catch{return false;}
   }
-  function guestOk(){
-    try{ return localStorage.getItem(LS_GUEST_OK)==="1"; }catch{return false;}
-  }
+  function guestOk(){ try{ return localStorage.getItem(LS_GUEST_OK)==="1"; }catch{return false;} }
+
   function ensureGuestGate(){
-    if (loggedIn()) return;        // admin: nincs kapu
-    if (guestOk()) return;         // vendég már beengedve
+    if (loggedIn()) return;
+    if (guestOk()) return;
     gusErr.textContent=""; gusPin.value="";
     openModal(gusM); setTimeout(()=>gusPin.focus(),0);
   }
@@ -242,23 +268,11 @@
     }catch{}
     setAdminUi();
     document.dispatchEvent(new CustomEvent("admin:logout"));
-    // azonnal vendég kapu
     localStorage.removeItem(LS_GUEST_OK);
     ensureGuestGate();
   }
 
-  // --- Gomb viselkedése
-  btn.addEventListener("click", ()=>{
-    if (loggedIn()){
-      doLogoutToGuestGate();
-    } else {
-      admErr.textContent="";
-      admEmail.value = localStorage.getItem(LS_ADMIN_EMAIL)||"";
-      admPass.value = "";
-      openModal(admM);
-      setTimeout(()=> (admEmail.value ? admPass.focus() : admEmail.focus()),0);
-    }
-  });
+  btn.addEventListener("click", ()=> loggedIn() ? doLogoutToGuestGate() : (admErr.textContent="", admEmail.value=localStorage.getItem("admin_email")||"", admPass.value="", openModal(admM), setTimeout(()=> (admEmail.value?admPass:admEmail).focus(),0)));
   admCancel.addEventListener("click", ()=>closeModal(admM));
   admSubmit.addEventListener("click", doLogin);
 
@@ -268,7 +282,6 @@
     if(e.key==="Enter"  && admM.classList.contains("show")) doLogin();
   });
 
-  // --- Vendég kapu
   function tryGuest(){
     gusErr.textContent="";
     const v = (gusPin.value||"").trim();
@@ -287,7 +300,6 @@
     if(e.key==="Escape"&& gusM.classList.contains("show")) closeModal(gusM);
   });
 
-  // --- Firebase auth állapotkövetés
   try{
     const o = window.fb?.auth?.onAuthStateChanged;
     const a = window.fb?.auth?.auth;
@@ -295,7 +307,7 @@
       o(a,(user)=>{
         if (user){
           localStorage.setItem(LS_ADMIN_OK,"1");
-          if (user.email) localStorage.setItem(LS_ADMIN_EMAIL,user.email);
+          if (user.email) localStorage.setItem("admin_email",user.email);
           document.dispatchEvent(new CustomEvent("admin:login"));
         }else{
           localStorage.removeItem(LS_ADMIN_OK);
@@ -306,7 +318,6 @@
     }
   }catch{}
 
-  // induló állapot
   setAdminUi();
   document.addEventListener("DOMContentLoaded", ensureGuestGate, { once:true });
 })();
@@ -347,7 +358,7 @@
 </script>
 <!-- ========== 6. RÉSZ VÉGE – ÉLŐ TV GOMBOK FELTÖLTÉSE ========== -->
 
-<!-- ========== 7. RÉSZ ELEJE – FILMLISTA + ADMIN FELTÖLTŐ (törlés gombbal) ========== -->
+<!-- ========== 7. RÉSZ ELEJE – FILMLISTA + ADMIN FELTÖLTŐ + TÖRLÉS ========== -->
 <script>
 (function(){
   const $ = (s,r=document)=>r.querySelector(s);
@@ -366,25 +377,13 @@
     window.scrollTo({top:0, behavior:"smooth"});
   }
 
-  // ---- Filmkártya HTML
   function cardHtml(m, catKey, admin){
     const img = m.cover ? `<img src="${m.cover}" alt="">` : "";
     const title = m.title || "Cím nélkül";
     const content = m.content || "";
     const link = m.link || "#";
-
-    const delBtn = admin
-      ? `<button class="btn btn-danger btn-del" data-id="${m.id}" data-cat="${catKey}">Törlés</button>`
-      : "";
-
-    return `
-      <div class="card">
-        ${img}
-        <div style="font-weight:800;margin:6px 0">${title}</div>
-        <div class="muted" style="margin-bottom:8px">${content}</div>
-        <a class="btn" href="${link}" target="_blank" rel="noopener">Megnyitás</a>
-        ${delBtn}
-      </div>`;
+    const delBtn = admin ? `<button class="btn btn-danger btn-del" data-id="${m.id}" data-cat="${catKey}">Törlés</button>` : "";
+    return `<div class="card">${img}<div style="font-weight:800;margin:6px 0">${title}</div><div class="muted" style="margin-bottom:8px">${content}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" href="${link}" target="_blank" rel="noopener">Megnyitás</a>${delBtn}</div></div>`;
   }
 
   function updateBadges(catKey, total){
@@ -392,7 +391,6 @@
     const n = document.getElementById(`badge-new-${catKey}`); if (n) n.textContent="0";
   }
 
-  // ---- Meta lekérő (oEmbed + heurisztika)
   async function fetchMeta(url){
     const u = String(url||"").trim();
     if (!u) return {};
@@ -419,8 +417,7 @@
         const last = decodeURIComponent(p.pathname.split("/").filter(Boolean).pop()||"").replace(/[-_]/g," ");
         return { title: (last||"Sweet.tv film").replace(/\s+hd$/i,""), cover: "" };
       }
-    }catch(e){ }
-
+    }catch(e){}
     try{
       const p = new URL(u);
       const last = decodeURIComponent(p.pathname.split("/").filter(Boolean).pop()||"");
@@ -429,7 +426,6 @@
     }catch{ return {}; }
   }
 
-  // ---- Admin feltöltő űrlap
   function uploaderHtml(catKey){
     return `
       <div class="card" style="margin:12px;">
@@ -438,12 +434,13 @@
           <div class="field">
             <label>Videó/film link</label>
             <input id="upLink" type="url" placeholder="Illeszd be a linket (YouTube, Sweet.tv, stb.)">
+            <div class="hint">Beillesztés után a cím és a borítókép automatikusan kitöltődik (ha lehetséges).</div>
           </div>
           <div class="two">
-            <div class="field"><label>Cím</label><input id="upTitle" type="text"></div>
-            <div class="field"><label>Borítókép (URL)</label><input id="upCover" type="url"></div>
+            <div class="field"><label>Cím</label><input id="upTitle" type="text" placeholder="Automatikusan kitöltve"></div>
+            <div class="field"><label>Borítókép (URL)</label><input id="upCover" type="url" placeholder="Automatikusan kitöltve (ha elérhető)"></div>
           </div>
-          <div class="field"><label>Leírás (opcionális)</label><input id="upDesc" type="text"></div>
+          <div class="field"><label>Leírás (opcionális)</label><input id="upDesc" type="text" placeholder="Rövid megjegyzés…"></div>
           <div class="preview"><img id="upPrev" src="" alt="" style="display:none"><div class="muted">Előnézet</div></div>
           <div class="row">
             <button id="upCancel" class="btn btn-danger" type="button">Mégse</button>
@@ -542,6 +539,7 @@
           host.querySelectorAll(".btn-del").forEach(btn=>{
             btn.addEventListener("click", async ()=>{
               const id = btn.dataset.id;
+              if (!confirm("Biztosan törlöd ezt a filmet?")) return;
               try{
                 await deleteDoc(doc(db,"categories",catKey,"movies",id));
               }catch(e){ alert("Törlési hiba: "+(e?.message||e)); }
@@ -569,7 +567,6 @@
     }
   }
 
-  // ---- Kattintások
   document.addEventListener("DOMContentLoaded", ()=>{
     const top = document.getElementById("topFilters");
     top.addEventListener("click",(e)=>{
@@ -613,8 +610,7 @@
   });
 })();
 </script>
-<!-- ========== 7. RÉSZ VÉGE – FILMLISTA + ADMIN FELTÖLTŐ (törlés gombbal) ========== -->
-
+<!-- ========== 7. RÉSZ VÉGE – FILMLISTA + ADMIN FELTÖLTŐ + TÖRLÉS ========== -->
 
 <!-- ========== 8. RÉSZ ELEJE – FAVICON ========== -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='50%' x='50%' dominant-baseline='middle' text-anchor='middle' font-size='44'>🎬</text></svg>">
