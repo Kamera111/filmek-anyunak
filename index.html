@@ -661,3 +661,101 @@
 ========================== -->
 </body>
 </html>
+<!-- ========== 8. RÉSZ ELEJE – KRIMI: 10 YouTube link egyszeri feltöltése ========== -->
+<script>
+/* 8.1 – A feltöltendő filmek (KRIMI kategória) */
+const KRIMI_SEED_YT = [
+  { title:"A múlt árnyai – krimi/thriller (HU)",                link:"https://www.youtube.com/watch?v=MTPP0QJaCls" },
+  { title:"Egy gyilkosság forgatókönyve – krimi (HU)",          link:"https://www.youtube.com/watch?v=4y2er7ywN0k" },
+  { title:"Krimi a Sárga tónál (1990) – magyar szinkron",       link:"https://www.youtube.com/watch?v=Yct_AacWfZs" },
+  { title:"Gyilkosság a hajón – klasszikus krimi (HU)",         link:"https://www.youtube.com/watch?v=KDbtguYZVfw" },
+  { title:"Végzetes éjszaka (1988) – thriller/krimi (HU)",      link:"https://www.youtube.com/watch?v=ZR9ERGMgt0I" },
+  { title:"Szó nélkül – amszterdami krimi (HU)",                link:"https://www.youtube.com/watch?v=kHXJpBxJqJQ" },
+  { title:"Egy rossz lépés – krimi (HU)",                       link:"https://www.youtube.com/watch?v=ayS2MjHmdBE" },
+  { title:"Igazságtevő (1982) – akció-krimi (HU szinkron)",     link:"https://www.youtube.com/watch?v=_kMeJ8E67to" },
+  { title:"A másik asszony (1950) – dráma/krimi (HU)",          link:"https://www.youtube.com/watch?v=ICZrmkgrA5s" },
+  { title:"Tiltott (2017) – thriller/krimi (HU)",               link:"https://www.youtube.com/watch?v=RKRDqtalUH0" }
+];
+
+/* 8.2 – YouTube thumb (borítókép) */
+function ytThumb(url){
+  try{
+    const u = new URL(url);
+    const id = u.searchParams.get("v");
+    return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : "";
+  }catch{ return ""; }
+}
+
+/* 8.3 – Egyszeri KRIMI feltöltő (duplázás ellenőrzéssel) */
+async function seedKrimiYoutube(force=false){
+  const fbd = window.fb?.db;
+  if(!fbd){ alert("Firebase nincs kész."); return; }
+  const { db, collection, addDoc, getDocs, query, where, limit, serverTimestamp } = fbd;
+
+  // opcionális „egyszer lefutott” jelölő (nem kötelező)
+  if(localStorage.getItem("seed_krimi_yt_done") && !force){
+    if(!confirm("Úgy tűnik, már futott ez a feltöltés. Újra próbálod?")) return;
+  }
+
+  const base = collection(db, "categories", "krimi", "movies");
+  let added = 0, skipped = 0, errors = 0;
+
+  for(const item of KRIMI_SEED_YT){
+    try{
+      // duplázás védelem: ugyanazzal a linkkel ne legyen több rekord
+      const q = query(base, where("link","==",item.link), limit(1));
+      const snap = await getDocs(q);
+      if(!snap.empty){ skipped++; continue; }
+
+      const payload = {
+        title:   item.title,
+        link:    item.link,
+        cover:   ytThumb(item.link) || "",
+        content: "",
+        createdAt: serverTimestamp()
+      };
+      await addDoc(base, payload);
+      added++;
+    }catch(e){
+      console.error("KRIMI seed hiba:", e);
+      errors++;
+    }
+  }
+
+  if(added>0) localStorage.setItem("seed_krimi_yt_done","1");
+  alert(`KRIMI seed kész.\nÚj: ${added} · Kihagyva (dupla): ${skipped} · Hiba: ${errors}`);
+}
+
+/* 8.4 – Gomb betűzése a KRIMI nézetbe */
+(function injectKrimiSeedButton(){
+  const host = document.getElementById("view") || document.body;
+
+  function place(){
+    const listEl = document.getElementById("list-krimi");
+    if(!listEl || document.getElementById("seedKrimiBox")) return;
+
+    const box = document.createElement("div");
+    box.id = "seedKrimiBox";
+    box.className = "card";
+    box.style.margin = "12px";
+    box.innerHTML = `
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" id="btnSeedKrimi">10 krimi link feltöltése (YouTube)</button>
+        <span class="muted">Egyszeri művelet – duplázás ellenőrzéssel.</span>
+      </div>`;
+    listEl.parentElement?.insertBefore(box, listEl);
+
+    const btn = document.getElementById("btnSeedKrimi");
+    if(btn) btn.addEventListener("click", ()=>seedKrimiYoutube(false));
+  }
+
+  // Ha a KRIMI nézet már itt van, rakjuk ki azonnal:
+  place();
+
+  // Ha később érkezik meg, figyeljük a DOM-ot:
+  const mo = new MutationObserver(()=>place());
+  mo.observe(host, {childList:true, subtree:true});
+})();
+</script>
+<!-- ========== 8. RÉSZ VÉGE – KRIMI: 10 YouTube link egyszeri feltöltése ========== -->
+
