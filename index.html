@@ -347,7 +347,7 @@
 </script>
 <!-- ========== 6. RÉSZ VÉGE – ÉLŐ TV GOMBOK FELTÖLTÉSE ========== -->
 
-<!-- ========== 7. RÉSZ ELEJE – FILMLISTA + ADMIN FELTÖLTŐ (vendég: egyszeri, admin: realtime) ========== -->
+<!-- ========== 7. RÉSZ ELEJE – FILMLISTA + ADMIN FELTÖLTŐ (törlés gombbal) ========== -->
 <script>
 (function(){
   const $ = (s,r=document)=>r.querySelector(s);
@@ -366,12 +366,25 @@
     window.scrollTo({top:0, behavior:"smooth"});
   }
 
-  function cardHtml(m){
+  // ---- Filmkártya HTML
+  function cardHtml(m, catKey, admin){
     const img = m.cover ? `<img src="${m.cover}" alt="">` : "";
     const title = m.title || "Cím nélkül";
     const content = m.content || "";
     const link = m.link || "#";
-    return `<div class="card">${img}<div style="font-weight:800;margin:6px 0">${title}</div><div class="muted" style="margin-bottom:8px">${content}</div><a class="btn" href="${link}" target="_blank" rel="noopener">Megnyitás</a></div>`;
+
+    const delBtn = admin
+      ? `<button class="btn btn-danger btn-del" data-id="${m.id}" data-cat="${catKey}">Törlés</button>`
+      : "";
+
+    return `
+      <div class="card">
+        ${img}
+        <div style="font-weight:800;margin:6px 0">${title}</div>
+        <div class="muted" style="margin-bottom:8px">${content}</div>
+        <a class="btn" href="${link}" target="_blank" rel="noopener">Megnyitás</a>
+        ${delBtn}
+      </div>`;
   }
 
   function updateBadges(catKey, total){
@@ -401,15 +414,13 @@
         const o = await tryJson(`https://www.dailymotion.com/services/oembed?url=${encodeURIComponent(u)}`);
         return { title:o.title, cover:o.thumbnail_url };
       }
-      // Sweet.tv / egyéb – egyszerűsített cím-előállítás
       if (/sweet\.tv/.test(u)){
         const p = new URL(u);
         const last = decodeURIComponent(p.pathname.split("/").filter(Boolean).pop()||"").replace(/[-_]/g," ");
         return { title: (last||"Sweet.tv film").replace(/\s+hd$/i,""), cover: "" };
       }
-    }catch(e){ /* lenyeljük, jöhet fallback */ }
+    }catch(e){ }
 
-    // Fallback: host + path
     try{
       const p = new URL(u);
       const last = decodeURIComponent(p.pathname.split("/").filter(Boolean).pop()||"");
@@ -427,13 +438,12 @@
           <div class="field">
             <label>Videó/film link</label>
             <input id="upLink" type="url" placeholder="Illeszd be a linket (YouTube, Sweet.tv, stb.)">
-            <div class="hint">Beillesztés után a cím és a borítókép automatikusan kitöltődik (ha lehetséges).</div>
           </div>
           <div class="two">
-            <div class="field"><label>Cím</label><input id="upTitle" type="text" placeholder="Automatikusan kitöltve"></div>
-            <div class="field"><label>Borítókép (URL)</label><input id="upCover" type="url" placeholder="Automatikusan kitöltve (ha elérhető)"></div>
+            <div class="field"><label>Cím</label><input id="upTitle" type="text"></div>
+            <div class="field"><label>Borítókép (URL)</label><input id="upCover" type="url"></div>
           </div>
-          <div class="field"><label>Leírás (opcionális)</label><input id="upDesc" type="text" placeholder="Rövid megjegyzés…"></div>
+          <div class="field"><label>Leírás (opcionális)</label><input id="upDesc" type="text"></div>
           <div class="preview"><img id="upPrev" src="" alt="" style="display:none"><div class="muted">Előnézet</div></div>
           <div class="row">
             <button id="upCancel" class="btn btn-danger" type="button">Mégse</button>
@@ -479,7 +489,6 @@
       try{
         const { db, collection, addDoc } = window.fb.db;
         await addDoc(collection(db,"categories",catKey,"movies"), payload);
-        // töröljük a mezőket
         link.value=title.value=cover.value=desc.value="";
         updatePrev();
         if (typeof afterAdded==="function") afterAdded();
@@ -487,6 +496,7 @@
     });
   }
 
+  // ---- Lista betöltés
   let unsub = null;
   function detach(){
     if (typeof unsub === "function"){ try{unsub();}catch{} }
@@ -510,41 +520,48 @@
 
     $("#btnBackHome").addEventListener("click",()=>{ detach(); goHome(); });
 
-    if (admin){
-      bindUploader(catKey, ()=>{ /* admin realtime-on azonnal látszik */ });
-    }
+    if (admin){ bindUploader(catKey); }
 
     const host = document.getElementById(`list-${catKey}`);
     if (!window.fb?.db){ host.innerHTML = `<div class="muted">Firebase nincs inicializálva.</div>`; return; }
 
-    const { db, collection, getDocs, onSnapshot, query, orderBy, limit } = window.fb.db;
+    const { db, collection, getDocs, onSnapshot, query, orderBy, limit, doc, deleteDoc } = window.fb.db;
     try{
       const q = query(collection(db,"categories",catKey,"movies"), orderBy("createdAt","desc"), limit(200));
 
-      if (admin){
-        unsub = onSnapshot(q, (snap)=>{
-          const movies = snap.docs.map(d=>({ id:d.id, ...d.data() }));
-          if (!movies.length){
-            host.innerHTML = `<div class="muted">Még nincs film ebben a kategóriában.</div>`;
-            updateBadges(catKey, 0);
-            return;
-          }
-          host.innerHTML = movies.map(cardHtml).join("");
-          updateBadges(catKey, movies.length);
-          const info = document.getElementById("listInfo"); if (info) info.textContent = "Valós idejű lista (admin mód)";
-        }, (err)=>{
-          host.innerHTML = `<div class="muted">Hiba (realtime): ${err?.message||err}</div>`;
-        });
-      } else {
-        const snap = await getDocs(q);
-        const movies = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+      const render = (movies)=>{
         if (!movies.length){
           host.innerHTML = `<div class="muted">Még nincs film ebben a kategóriában.</div>`;
           updateBadges(catKey, 0);
           return;
         }
-        host.innerHTML = movies.map(cardHtml).join("");
+        host.innerHTML = movies.map(m=>cardHtml(m,catKey,admin)).join("");
         updateBadges(catKey, movies.length);
+
+        if (admin){
+          host.querySelectorAll(".btn-del").forEach(btn=>{
+            btn.addEventListener("click", async ()=>{
+              const id = btn.dataset.id;
+              try{
+                await deleteDoc(doc(db,"categories",catKey,"movies",id));
+              }catch(e){ alert("Törlési hiba: "+(e?.message||e)); }
+            });
+          });
+        }
+      };
+
+      if (admin){
+        unsub = onSnapshot(q, snap=>{
+          const movies = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+          render(movies);
+          const info = document.getElementById("listInfo"); if (info) info.textContent = "Valós idejű lista (admin mód)";
+        }, err=>{
+          host.innerHTML = `<div class="muted">Hiba (realtime): ${err?.message||err}</div>`;
+        });
+      } else {
+        const snap = await getDocs(q);
+        const movies = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+        render(movies);
         const info = document.getElementById("listInfo"); if (info) info.textContent = "Egyszeri lista (vendég mód)";
       }
     }catch(e){
@@ -552,7 +569,7 @@
     }
   }
 
-  // Felső gombok
+  // ---- Kattintások
   document.addEventListener("DOMContentLoaded", ()=>{
     const top = document.getElementById("topFilters");
     top.addEventListener("click",(e)=>{
@@ -574,7 +591,6 @@
       }
     });
 
-    // Frissítés: ha egy kategória nyitva van, újratölti
     document.getElementById("btnRefreshAll").addEventListener("click", ()=>{
       const openList = document.querySelector('#view [id^="list-"]');
       if (!openList) return;
@@ -583,7 +599,6 @@
     });
   });
 
-  // Admin státuszváltáskor újra-kötjük a realtime-ot / feltöltőt
   document.addEventListener("admin:login", ()=>{
     const openList = document.querySelector('#view [id^="list-"]');
     if (!openList) return;
@@ -598,7 +613,8 @@
   });
 })();
 </script>
-<!-- ========== 7. RÉSZ VÉGE – FILMLISTA + ADMIN FELTÖLTŐ ========== -->
+<!-- ========== 7. RÉSZ VÉGE – FILMLISTA + ADMIN FELTÖLTŐ (törlés gombbal) ========== -->
+
 
 <!-- ========== 8. RÉSZ ELEJE – FAVICON ========== -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='50%' x='50%' dominant-baseline='middle' text-anchor='middle' font-size='44'>🎬</text></svg>">
