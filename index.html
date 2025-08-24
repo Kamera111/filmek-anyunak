@@ -1,557 +1,442 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="hu">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Filmek Anyunak</title>
-
-  <!-- =========================
-       1. RÉSZ – ALAP STÍLUSOK (ELEJE)
-  ========================== -->
   <style>
-    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --txt:#e5e7eb; --green:#16a34a; --blue:#2563eb; --red:#e11d48; --amber:#f59e0b; }
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    .wrap{max-width:1100px;margin:0 auto;padding:16px}
-    .sticky{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(15,23,42,.7) 60%,rgba(15,23,42,0));backdrop-filter:blur(6px)}
-    header{display:flex;align-items:center;gap:12px;padding:10px 0}
-    .title{font-weight:800;font-size:clamp(20px,4.6vw,28px)}
-    .btn{background:#1f2937;color:#fff;border:1px solid #334155;border-radius:12px;padding:9px 13px;cursor:pointer;font-weight:600}
-    .btn:active{transform:scale(.98)}
-    .btn-danger{background:#dc2626;border-color:#b91c1c}
-    .btn-ghost{background:transparent;border:1px solid #334155}
-    .muted{color:var(--muted);font-size:14px}
-    .card{background:var(--card);border:1px solid #1f2937;border-radius:16px;padding:14px}
-    a{color:#a5f3fc;text-decoration:none} a:hover{text-decoration:underline}
-    img{max-width:100%;border-radius:10px;border:1px solid #1f2937}
-
-    /* felső színes kategória gombok */
-    .top-filters{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px;padding:6px 12px 12px}
-    @media (max-width:900px){.top-filters{grid-template-columns:repeat(2,1fr)}}
-    @media (max-width:520px){.top-filters{grid-template-columns:1fr}}
-    .chip{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:14px;color:#fff;border:1px solid rgba(255,255,255,.16);box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer;transition:.12s}
-    .chip:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(0,0,0,.22);filter:brightness(1.03)}
-    .chip-title{font-weight:800}
-    .chip-sub{font-size:14px;opacity:.95}
-    .chip-krimi{background:linear-gradient(180deg,#16a34a,#15803d)}
-    .chip-akcio{background:linear-gradient(180deg,#2563eb,#1e40af)}
-    .chip-thriller{background:linear-gradient(180deg,#e11d48,#be123c)}
-    .chip-actors{background:linear-gradient(180deg,#f59e0b,#b45309)}
-
-    /* ÉLŐ kártyarács */
-    #catBar{padding:12px}
-    .cats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-    .cat{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:14px;background:#1f2937;color:#fff;border:1px solid #0f2437;box-shadow:0 4px 14px rgba(0,0,0,.18)}
-    .cat .name{color:#22c55e;font-weight:700;font-size:18px}
-    .cat .name .live{color:#ef4444;font-weight:900;margin-right:4px}
-    .cat .now{font-size:15px}
-
-    .btn-back{margin-bottom:12px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-
-    /* Gate + Admin modal */
-    .gate-mask,.admin-mask{position:fixed;inset:0;background:rgba(15,23,42,.66);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:30}
-    .gate,.admin{width:min(680px,92vw);background:#0b1220;border:1px solid #1f2937;border-radius:14px;padding:18px}
-    .admin h3,.gate h3{margin:6px 0 12px}
-    .err{color:#f87171;font-weight:600;display:none}
-    input[type="tel"],input[type="email"],input[type="password"]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #334155;background:#0f172a;color:#e5e7eb;font-size:16px}
-    .pill{width:34px;height:34px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #334155;cursor:pointer}
+    :root{
+      --bg:#0b1220; --card:#0e1626; --ink:#e9eefc; --muted:#9db0d8;
+      --line:#21304d; --green:#16934a; --blue:#2b6df6; --red:#cf2746; --amber:#ef8d12;
+      --btn:#1b2740; --btnh:#243355;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:system-ui,Segoe UI,Roboto,Arial; color:var(--ink); background:var(--bg);
+    }
+    .wrap{max-width:1280px; margin:0 auto; padding:16px}
+    h1{margin:8px 0 18px; font-size:42px; font-weight:800}
+    h2{margin:14px 0 10px; font-size:22px}
+    .row{display:flex; gap:14px; flex-wrap:wrap}
+    .pill{
+      flex:1 1 260px; min-height:96px; border-radius:18px; padding:16px 18px;
+      display:flex; flex-direction:column; justify-content:center; line-height:1.25; box-shadow:0 8px 24px rgba(0,0,0,.18);
+      border:1px solid transparent;
+    }
+    .pill.green{background:linear-gradient(180deg,#1aa756,#117b3e)}
+    .pill.blue{background:linear-gradient(180deg,#3976ff,#214ed9)}
+    .pill.red{background:linear-gradient(180deg,#e83e5e,#b21733)}
+    .pill.amber{background:linear-gradient(180deg,#ffa212,#dd7b00)}
+    .pill h3{margin:0 0 10px; font-size:24px; font-weight:800}
+    .pill .meta{opacity:.9}
+    .topbar{display:flex; gap:10px; align-items:center; margin-left:auto}
+    .btn{
+      background:var(--btn); border:1px solid var(--line); color:var(--ink); padding:10px 14px; border-radius:12px; cursor:pointer;
+    }
+    .btn:hover{background:var(--btnh)}
+    .btn.danger{background:#a01a33; border-color:#90142b}
+    .btn.round{width:44px; height:44px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; font-weight:800}
+    .card{
+      background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px;
+    }
+    .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px}
+    figure.thumb{margin:0 0 8px; height:160px; overflow:hidden; border-radius:10px; background:#0b1220}
+    figure.thumb img{width:100%; height:100%; object-fit:cover}
+    small.muted{color:var(--muted)}
+    /* modálok */
+    .mask{
+      position:fixed; inset:0; background:rgba(7,12,24,.68);
+      display:flex; align-items:center; justify-content:center; z-index:50;
+      backdrop-filter: blur(4px);
+    }
+    .modal{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; width:min(720px,95vw)}
+    .f{display:flex; flex-direction:column; gap:10px}
+    .inp{
+      background:#0b1325; border:1px solid #21304d; color:var(--ink); padding:12px 14px; border-radius:12px; width:100%;
+      outline:none;
+    }
+    .inp::placeholder{color:#8094c7}
+    .err{color:#ff6b7d; margin-top:6px}
+    /* rejthető szekciók */
+    [hidden]{display:none !important}
+    .head{display:flex; align-items:center; gap:12px}
   </style>
-  <!-- =========================
-       1. RÉSZ – ALAP STÍLUSOK (VÉGE)
-  ========================== -->
 </head>
-
-<!-- ============== 2. RÉSZ ELEJE – FIREBASE INIT + AUTH ============== -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-  import {
-    getFirestore, collection, doc, addDoc, getDoc, getDocs,
-    onSnapshot, query, orderBy, limit, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
-  import {
-    getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
-
-  // --- a te projekted configja (ez maradjon a sajátod) ---
-  const firebaseConfig = {
-    apiKey:    "<<< a sajat API KEY >>>",
-    authDomain:"<<< ... >>>",
-    projectId: "filmek-fe035",
-    // ha van storage/bármi, maradhat
-  };
-
-  // App + DB + Auth
-  const app   = initializeApp(firebaseConfig);
-  const db    = getFirestore(app);
-  const auth  = getAuth(app);
-
-  // Globálissá tesszük, hogy bárhonnan elérd
-  window.fb = { app, db, auth, collection, doc, addDoc, getDoc, getDocs,
-                onSnapshot, query, orderBy, limit, serverTimestamp,
-                signInWithEmailAndPassword, signOut, onAuthStateChanged };
-
-  // --- film leírás API kulcsok (opcionális) ---
-  window.MOVIE_API = {
-    TMDB_API_KEY: "",  // ha adsz kulcsot, cím alapján húzunk rövid leírást
-    OMDB_API_KEY: ""
-  };
-
-  console.debug("[Firebase] READY – project:", firebaseConfig.projectId);
-</script>
-<!-- ============== 2. RÉSZ VÉGE – FIREBASE INIT + AUTH ============== -->
-
 <body>
-<div id="app" class="wrap">
-<!-- ============== 3. RÉSZ ELEJE – FEJLÉC + „A” + VENDÉG KAPU ============== -->
-<style>
-  .chip{display:inline-flex;align-items:center;justify-content:center;
-        width:42px;height:42px;border-radius:999px;background:#1f2941;
-        color:#fff;font-weight:700;border:1px solid #2d3b5b;cursor:pointer}
-  .gate-mask{position:fixed;inset:0;background:rgba(7,12,22,.82);
-    display:none;align-items:center;justify-content:center;z-index:9999}
-  .gate{background:#0e1626;border:1px solid #2d3b5b;border-radius:16px;
-    padding:28px;min-width: min(860px, 92vw);color:#fff;box-shadow:0 10px 40px rgba(0,0,0,.4)}
-  .err{color:#ff6161;margin-top:8px}
-</style>
+  <div class="wrap">
+    <div class="head">
+      <h1>Filmek Anyunak</h1>
+      <div class="topbar">
+        <button id="logoutAll" class="btn danger" hidden>Kilépés mindből</button>
+        <button id="btnActors" class="btn amber">SZÍNÉSZEK<br><small class="muted">Galéria és filmek</small></button>
+        <button id="btnAdmin" class="btn round">A</button>
+        <button id="btnRefresh" class="btn">Frissítés</button>
+      </div>
+    </div>
 
-<header style="display:flex;gap:14px;align-items:center;justify-content:flex-end;padding:10px 12px;">
-  <button id="logoutAll" class="btn btn-danger" style="display:none">Kilépés mindenhől</button>
-  <button id="adminBtn" class="chip" title="Admin">A</button>
-  <button id="refreshBtn" class="btn">Frissítés</button>
-</header>
+    <!-- ============ HOME (alap nézet) ============ -->
+    <section id="homeView">
+      <div class="row">
+        <div class="pill green">
+          <h3>KRIMI</h3>
+          <div class="meta">Új:<span id="bKrimiNew">0</span> · Összes:<span id="bKrimiAll">0</span></div>
+        </div>
+        <div class="pill blue">
+          <h3>AKCIÓ</h3>
+          <div class="meta">Új:<span id="bAkcioNew">0</span> · Összes:<span id="bAkcioAll">0</span></div>
+        </div>
+        <div class="pill red">
+          <h3>THRILLER</h3>
+          <div class="meta">Új:<span id="bThrillerNew">0</span> · Összes:<span id="bThrillerAll">0</span></div>
+        </div>
+        <div class="pill amber">
+          <h3>SZÍNÉSZEK</h3>
+          <div class="meta">Galéria és filmek</div>
+        </div>
+      </div>
 
-<!-- Vendég kapu -->
-<div id="guestGate" class="gate-mask" aria-modal="true" role="dialog">
-  <div class="gate">
-    <h3 style="margin:0 0 10px">Vendég kapu</h3>
-    <label for="pinIn">PIN (6 számjegy)</label>
-    <input id="pinIn" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="6"
-           placeholder="Kattints! Ide írd a kódot"
-           autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
-           style="width:100%;margin-top:8px" />
-    <div class="hint">Írd be a kódot – a nézet automatikusan megnyílik.</div>
-    <div id="pinErr" class="err" style="display:none">Hibás PIN.</div>
+      <div style="margin:18px 4px 6px; display:flex; align-items:center; gap:10px">
+        <h2 style="margin:0">KRIMI</h2>
+        <button id="seedKrimiBtn" class="btn" hidden>10 krimi link feltöltése (YouTube)</button>
+      </div>
+      <div id="krimiList" class="grid"></div>
+
+      <!-- Itt hagyhatsz később külön Akció/Thriller listát is -->
+    </section>
+
+    <!-- ============ SZÍNÉSZEK (rejtve indul) ============ -->
+    <section id="actorsView" hidden>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 10px">
+        <h2 style="margin:0">Színészek</h2>
+        <button id="actorsBackBtn" class="btn">Vissza a főoldalra</button>
+      </div>
+      <div id="actorsGrid" class="grid"></div>
+    </section>
   </div>
-</div>
 
-<script>
-  // --- Vendég PIN beállítás ---
-  const GATE_PIN = "195400";
-  const gateEl   = document.getElementById('guestGate');
-  const pinIn    = document.getElementById('pinIn');
-  const pinErr   = document.getElementById('pinErr');
+  <!-- ============ VENDÉG KAPU (PIN) ============ -->
+  <div id="guestGate" class="mask" aria-modal="true" role="dialog" hidden>
+    <div class="modal">
+      <h2>Vendég kapu</h2>
+      <div class="f">
+        <label for="pinIn">PIN (6 számjegy)</label>
+        <input id="pinIn" class="inp" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+               placeholder="Kattints! Ide írd a kódot">
+        <div class="err" id="pinErr" hidden>Hibás PIN.</div>
+        <small class="muted">Írd be a kódot – a nézet automatikusan megnyílik.</small>
+      </div>
+    </div>
+  </div>
 
-  function openGateIfNeeded(){
-    const ok = localStorage.getItem('guestOk') === '1';
-    if(!ok){
-      pinIn.value = "";               // biztosan üres, ne legyen előtöltés
-      pinErr.style.display = "none";
-      gateEl.style.display = "flex";  // felugrik a kapu
-      setTimeout(()=>pinIn.focus(), 50);
-    }else{
-      gateEl.style.display = "none";
-    }
-  }
+  <!-- ============ ADMIN BELÉPÉS ============ -->
+  <div id="adminModal" class="mask" aria-modal="true" role="dialog" hidden>
+    <div class="modal">
+      <h2>Admin belépés</h2>
+      <div class="f">
+        <label for="admMail">Email</label>
+        <input id="admMail" class="inp" type="email" placeholder="admin@email.com" />
+        <label for="admPass">Jelszó</label>
+        <input id="admPass" class="inp" type="password" placeholder="********" />
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px">
+          <button id="admCancel" class="btn">Mégse</button>
+          <button id="admLogin" class="btn">Belépés</button>
+        </div>
+        <div class="err" id="admErr" hidden></div>
+      </div>
+    </div>
+  </div>
 
-  pinIn.addEventListener('input', (e)=>{
-    const val = e.target.value.replace(/\D/g,'').slice(0,6);
-    e.target.value = val;
-    if(val.length === 6){
-      if(val === GATE_PIN){
-        localStorage.setItem('guestOk','1');
-        gateEl.style.display = "none";
+  <!-- ============ FIREBASE ============ -->
+  <script type="module">
+    // ---- Firebase importok
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import {
+      getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    import {
+      getFirestore, collection, addDoc, getDocs, serverTimestamp, query
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
+    // ---- Config (TÖLTSD KI a sajátoddal, vagy hagyd a régi értékeket)
+    const firebaseConfig = {
+      /* példa:
+      apiKey: "xxx",
+      authDomain: "xxx.firebaseapp.com",
+      projectId: "xxx",
+      storageBucket: "xxx.appspot.com",
+      messagingSenderId: "123",
+      appId: "1:123:web:abc"
+      */
+    };
+
+    // ---- Init
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    // Exponáljuk
+    window.fb = {
+      app, auth, db,
+      collection, addDoc, getDocs, serverTimestamp, query,
+      signInWithEmailAndPassword, signOut
+    };
+
+    // ---- Egységes elemfogók
+    const $ = (sel)=>document.querySelector(sel);
+    const homeView   = $("#homeView");
+    const actorsView = $("#actorsView");
+    const btnActors  = $("#btnActors");
+    const btnRefresh = $("#btnRefresh");
+    const btnAdmin   = $("#btnAdmin");
+    const logoutAll  = $("#logoutAll");
+    const seedKrimiBtn = $("#seedKrimiBtn");
+
+    const guestGate  = $("#guestGate");
+    const pinIn      = $("#pinIn");
+    const pinErr     = $("#pinErr");
+
+    const adminModal = $("#adminModal");
+    const admMail    = $("#admMail");
+    const admPass    = $("#admPass");
+    const admErr     = $("#admErr");
+    const admLogin   = $("#admLogin");
+    const admCancel  = $("#admCancel");
+
+    // jelzők
+    const PIN_CODE = "195400";
+    const CATS = ["krimi","akcio","thriller"];
+
+    // ===== Vendég-kapu
+    function openGate(){ guestGate.hidden = false; pinIn.focus(); }
+    function closeGate(){ guestGate.hidden = true; }
+    function gateCheck(){
+      const v = pinIn.value.trim();
+      if(v.length===6){
+        if(v===PIN_CODE){
+          localStorage.setItem("guestOK","1");
+          pinErr.hidden = true;
+          closeGate();
+        }else{
+          pinErr.hidden = false;
+        }
       }else{
-        pinErr.style.display = "block";
+        pinErr.hidden = true;
       }
-    }else{
-      pinErr.style.display = "none";
     }
-  });
+    pinIn.addEventListener("input", gateCheck);
 
-  // Frissítés gomb (vizuális újratöltés)
-  document.getElementById('refreshBtn')?.addEventListener('click', ()=>location.reload());
+    // ===== Nézetváltók
+    function showHome(){ homeView.hidden=false; actorsView.hidden=true; }
+    function showActors(){ homeView.hidden=true; actorsView.hidden=false; renderActors(); }
+    $("#actorsBackBtn").addEventListener("click", showHome);
+    btnActors.addEventListener("click", showActors);
 
-  // Admin gomb: bejelentkező modál megnyitása
-  document.getElementById('adminBtn')?.addEventListener('click', ()=> {
-    document.getElementById('adminModal')?.showModal();
-  });
-
-  // Kilépés
-  document.getElementById('logoutAll')?.addEventListener('click', async()=>{
-    try{ await window.fb.signOut(window.fb.auth); }catch(e){}
-    localStorage.removeItem('guestOk');
-    location.reload();
-  });
-
-  // Auth állapot: ha bejelentkezett az admin, mutatjuk a „Kilépés mindenhől” gombot
-  window.fb.onAuthStateChanged(window.fb.auth, (user)=>{
-    document.getElementById('logoutAll').style.display = user ? 'inline-flex' : 'none';
-  });
-
-  // induláskor
-  document.addEventListener('DOMContentLoaded', openGateIfNeeded, {once:true});
-</script>
-<!-- ============== 3. RÉSZ VÉGE – FEJLÉC + „A” + VENDÉG KAPU ============== -->
-
-</div>
-
-<!-- =========================
-     4. RÉSZ – „KILÉPÉS MINDENBŐL” (ELEJE)
-========================== -->
-<script>
-(function(){
-  async function doLogout(){
-    try{
-      localStorage.removeItem("filmek_anyunak_guest_ok");
-      localStorage.removeItem("filmek_anyunak_admin_ok");
-      localStorage.removeItem("admin_email");
-      sessionStorage.clear();
-    }catch{}
-    try{
-      const a = window.fb?.auth?.auth;
-      const so = window.fb?.auth?.signOut;
-      if (a && typeof so === "function"){
-        await Promise.race([ so(a), new Promise(r=>setTimeout(r,1200)) ]);
+    // ===== Admin UI
+    btnAdmin.addEventListener("click", ()=>{ adminModal.hidden=false; admMail.focus(); });
+    admCancel.addEventListener("click", ()=> adminModal.hidden=true);
+    admLogin.addEventListener("click", async ()=>{
+      admErr.hidden = true;
+      try{
+        await signInWithEmailAndPassword(auth, admMail.value.trim(), admPass.value);
+        adminModal.hidden = true;
+      }catch(e){
+        admErr.textContent = "Belépési hiba: " + (e?.message || e);
+        admErr.hidden = false;
       }
-    }catch{}
-    const clean = location.origin + location.pathname;
-    if (location.href !== clean) location.href = clean; else location.reload();
-  }
-  document.addEventListener("click",(e)=>{
-    const b = e.target.closest("#btnLogoutAll,button");
-    if (!b) return;
-    const t = (b.textContent||"") + " " + (b.title||"") + " " + (b.getAttribute?.("aria-label")||"");
-    if (!/(kilép|kijelent|logout|sign\s*out)/i.test(t)) return;
-    e.preventDefault(); e.stopPropagation();
-    doLogout();
-  }, true);
-})();
-</script>
-<!-- =========================
-     4. RÉSZ – „KILÉPÉS MINDENBŐL” (VÉGE)
-========================== -->
+    });
+    logoutAll.addEventListener("click", async ()=>{
+      await signOut(auth);
+    });
 
-<!-- =========================
-     5. RÉSZ – ÉLŐ gombok feltöltése (ELEJE)
-========================== -->
-<script>
-(function(){
-  const list = [
-    {name:"ÉLŐ Vígjáték TV", url:"https://sweet.tv/hu/free_tv/2014-comedy-universe-hd"},
-    {name:"ÉLŐ Akció TV",    url:"https://sweet.tv/hu/free_tv/2010-action-zone-hd"},
-    {name:"ÉLŐ Thriller TV", url:"https://sweet.tv/hu/free_tv/2016-thriller-time-hd"},
-    {name:"ÉLŐ TOP Filmek",  url:"https://sweet.tv/hu/free_tv/2967-top-movies-hd"},
-    {name:"Mozi+ tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=13"},
-    {name:"Film + tv",     url:"https://player.telekomtvgo.hu/player/live?channelNumber=15"},
-    {name:"Prime tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=21"},
-    {name:"RTL 2 tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=24"},
-    {name:"FilmCafe tv",   url:"https://player.telekomtvgo.hu/player/live?channelNumber=28"},
-    {name:"ozone tv",      url:"https://player.telekomtvgo.hu/player/live?channelNumber=30"},
-    {name:"Cool tv",       url:"https://player.telekomtvgo.hu/player/live?channelNumber=60"},
-    {name:"AXN tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=61"},
-    {name:"AMC tv",        url:"https://player.telekomtvgo.hu/player/live?channelNumber=62"},
-    {name:"Paramount tv",  url:"https://player.telekomtvgo.hu/player/live?channelNumber=66"},
-    {name:"FilmMánia tv",  url:"https://player.telekomtvgo.hu/player/live?channelNumber=163"},
-    {name:"Moziverzum tv", url:"https://player.telekomtvgo.hu/player/live?channelNumber=169"}
-  ];
-  const host = document.getElementById("catsLive");
-  if (!host) return;
-  host.innerHTML = "";
-  for (const ch of list){
-    const a = document.createElement("a");
-    a.className="cat"; a.target="_blank"; a.rel="noopener"; a.href=ch.url;
-    const safe = ch.name.replace(/^ÉLŐ(\s+)/, "<span class='live'>ÉLŐ</span>$1");
-    a.innerHTML = `<div class="name">${safe}</div><div class="now"><span class="label">Most megy:</span> <span class="title">Kattints</span></div>`;
-    host.appendChild(a);
-  }
-})();
-</script>
-<!-- =========================
-     5. RÉSZ – ÉLŐ gombok feltöltése (VÉGE)
-========================== -->
+    onAuthStateChanged(auth, (user)=>{
+      // UI: admin gombok
+      const isAdmin = !!user;
+      logoutAll.hidden = !isAdmin;
+      seedKrimiBtn.hidden = !isAdmin;
+      // Admin modált ürítsük
+      admPass.value = "";
+    });
 
-<!-- =========================
-     6. RÉSZ – KATEGÓRIA LISTA + BADGE FRISSÍTÉS (ELEJE)
-========================== -->
-<script>
-(function(){
-  const $ = (s,r=document)=>r.querySelector(s);
+    // ===== Badgek (Új/Összes)
+    async function countCategory(catKey){
+      try{
+        const snap = await getDocs(collection(db,"categories",catKey,"movies"));
+        return snap.size || 0;
+      }catch(e){ return 0; }
+    }
+    function lastSeenKey(cat){ return `seen_${cat}`; }
 
-  function goHome(){
-    $("#catBar").style.display = "";
-    $("#view").innerHTML = "";
-    window.scrollTo({top:0, behavior:"smooth"});
-  }
+    async function refreshBadges(){
+      for(const cat of CATS){
+        const total = await countCategory(cat);
+        const allEl = cat==="krimi"? $("#bKrimiAll"): cat==="akcio"? $("#bAkcioAll"): $("#bThrillerAll");
+        const newEl = cat==="krimi"? $("#bKrimiNew"): cat==="akcio"? $("#bAkcioNew"): $("#bThrillerNew");
+        allEl.textContent = total;
 
-  function updateBadges(catKey, total){
-    const t = document.getElementById(`badge-all-${catKey}`); if (t) t.textContent=String(total||0);
-    const n = document.getElementById(`badge-new-${catKey}`); if (n) n.textContent="0";
-  }
+        // „Új” – egyszerűen total különbség a legutóbbi értékhez képest
+        const prev = Number(localStorage.getItem(lastSeenKey(cat) + "_total") || "0");
+        const diff = Math.max(total - prev, 0);
+        newEl.textContent = diff;
+      }
+    }
+    function markSeen(){
+      CATS.forEach(async (cat)=>{
+        const total = await countCategory(cat);
+        localStorage.setItem(lastSeenKey(cat) + "_total", String(total));
+      });
+    }
 
-  function cardHtml(m, admin=false){
-    const img = m.cover ? `<img src="${m.cover}" alt="">` : "";
-    const del = admin ? `<button class="btn btn-danger" data-del="${m.id}">Törlés</button>` : "";
-    return `<div class="card">${img}
-      <div style="font-weight:800;margin:6px 0">${m.title||"Cím nélkül"}</div>
-      <div class="muted" style="margin-bottom:8px">${m.content||""}</div>
-      <a class="btn" href="${m.link||"#"}" target="_blank" rel="noopener">Megnyitás</a> ${del}
-    </div>`;
-  }
+    // ===== Alap feltöltő
+    async function addMovie(catKey, payload){
+      const doc = {
+        title: (payload?.title || "").trim(),
+        link:  (payload?.link  || "").trim(),
+        cover: (payload?.cover|| "").trim(),
+        desc:  (payload?.desc || "").trim(),
+        createdAt: serverTimestamp()
+      };
+      await addDoc(collection(db,"categories",catKey,"movies"), doc);
+    }
 
-  // Vendég lista (egyszeri lekérés)
-  async function loadCategoryGuest(catKey){
-    const listEl = document.getElementById(`list-${catKey}`);
-    if (!listEl) return;
-    const fbd = window.fb?.db;
-    if (!fbd){ listEl.innerHTML = `<div class="muted">Firebase nincs inicializálva.</div>`; return; }
-    const { db, collection, getDocs, query, orderBy, limit } = fbd;
+    // ===== Krimi seed (10 link) – ADMIN
+    const KRIMI_LINKS = [
+      // Itt 10 YouTube krimi link legyen – minta
+      "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "https://www.youtube.com/watch?v=ysz5S6PUM-U",
+      "https://www.youtube.com/watch?v=oHg5SJYRHA0",
+      "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+      "https://www.youtube.com/watch?v=9bZkp7q19f0",
+      "https://www.youtube.com/watch?v=3GwjfUFyY6M",
+      "https://www.youtube.com/watch?v=fJ9rUzIMcZQ",
+      "https://www.youtube.com/watch?v=Zi_XLOBDo_Y",
+      "https://www.youtube.com/watch?v=OPf0YbXqDm0",
+      "https://www.youtube.com/watch?v=FTQbiNvZqaY"
+    ];
+    seedKrimiBtn.addEventListener("click", async ()=>{
+      try{
+        let ok=0, skip=0, err=0;
+        const snap = await getDocs(collection(db,"categories","krimi","movies"));
+        const existing = new Set();
+        snap.forEach(d=> existing.add((d.data().link||"").trim()));
+        for(const [i,lnk] of KRIMI_LINKS.entries()){
+          if(existing.has(lnk.trim())){ skip++; continue; }
+          try{
+            await addMovie("krimi", {title:`Krimi #${i+1}`, link:lnk, cover:"", desc:"YouTube krimi"});
+            ok++;
+          }catch{ err++; }
+        }
+        await refreshBadges();
+        markSeen();
+        alert(`KRIMI seed kész.\nÚj: ${ok} · Kihagyva (dupla): ${skip} · Hiba: ${err}`);
+      }catch(e){
+        alert("Seed hiba: " + e?.message || e);
+      }
+    });
 
-    listEl.innerHTML = `<div class="muted">Lista betöltése…</div>`;
-    try{
-      const q = query(collection(db,"categories",catKey,"movies"), orderBy("createdAt","desc"), limit(200));
-      const snap = await getDocs(q);
-      const movies = snap.docs.map(d=>({ id:d.id, ...d.data() }));
-      if (!movies.length){
-        listEl.innerHTML = `<div class="muted">Még nincs film ebben a kategóriában.</div>`;
-        updateBadges(catKey, 0);
+    // ===== Színészek – képek + darabszám
+    const ACTOR_PHOTOS = {
+      "Sylvester Stallone": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Sylvester_Stallone_2014.jpg",
+      "Jason Statham": "https://upload.wikimedia.org/wikipedia/commons/0/05/Jason_Statham_2018.jpg",
+      "Jet Li": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Jet_Li_2009.jpg",
+      "Dolph Lundgren": "https://upload.wikimedia.org/wikipedia/commons/9/91/Dolph_Lundgren_2018.jpg",
+      "Randy Couture": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Randy_Couture_2008.jpg",
+      "Terry Crews": "https://upload.wikimedia.org/wikipedia/commons/d/df/Terry_Crews_2019.jpg",
+      "Mickey Rourke": "https://upload.wikimedia.org/wikipedia/commons/7/71/Mickey_Rourke_2009.jpg",
+      "Eric Roberts": "https://upload.wikimedia.org/wikipedia/commons/4/47/Eric_Roberts_2013.jpg",
+      "Bruce Willis": "https://upload.wikimedia.org/wikipedia/commons/8/89/Bruce_Willis_by_Gage_Skidmore.jpg",
+      "Arnold Schwarzenegger": "https://upload.wikimedia.org/wikipedia/commons/9/98/Arnold_Schwarzenegger_2019.jpg",
+      "Wesley Snipes": "https://upload.wikimedia.org/wikipedia/commons/4/47/Wesley_Snipes_2014.jpg",
+      "Antonio Banderas": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Antonio_Banderas_2019.jpg",
+      "Kelsey Grammer": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Kelsey_Grammer_2010.jpg",
+      "Kellan Lutz": "https://upload.wikimedia.org/wikipedia/commons/7/74/Kellan_Lutz_2012.jpg",
+      "Ronda Rousey": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Ronda_Rousey_2018.jpg",
+      "Glen Powell": "https://upload.wikimedia.org/wikipedia/commons/2/22/Glen_Powell_2019.jpg",
+      "Victor Ortiz": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Victor_Ortiz_2011.jpg",
+      "Mel Gibson": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Mel_Gibson_Cannes_2016.jpg",
+      "Harrison Ford": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Harrison_Ford_2017.jpg",
+      "50 Cent": "https://upload.wikimedia.org/wikipedia/commons/b/b0/50_Cent_2018.jpg",
+      "Megan Fox": "https://upload.wikimedia.org/wikipedia/commons/5/50/Megan_Fox_2009.jpg",
+      "Tony Jaa": "https://upload.wikimedia.org/wikipedia/commons/3/38/Tony_Jaa_2018.jpg",
+      "Jacob Scipio": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Jacob_Scipio_2020.jpg",
+      "Levy Tran": "https://upload.wikimedia.org/wikipedia/commons/8/8e/Levy_Tran_2019.jpg",
+      "Iko Uwais": "https://upload.wikimedia.org/wikipedia/commons/1/1c/Iko_Uwais_2012.jpg",
+      "Jean-Claude Van Damme": "https://upload.wikimedia.org/wikipedia/commons/8/80/Jean-Claude_Van_Damme_2012.jpg",
+      "Chuck Norris": "https://upload.wikimedia.org/wikipedia/commons/3/35/Chuck_Norris_May_2015.jpg",
+      "Lucy Liu": "https://upload.wikimedia.org/wikipedia/commons/6/6c/LucyLiu.webp"
+    };
+    const ACTORS = Object.keys(ACTOR_PHOTOS);
+    const prox = (u)=> u ? `https://images.weserv.nl/?url=${encodeURIComponent(u.replace(/^https?:\/\//,''))}` : "";
+
+    async function countMoviesForActor(name){
+      try{
+        const snap = await getDocs(collection(db,"actors",name,"movies"));
+        return snap.size || 0;
+      }catch{ return 0; }
+    }
+
+    async function renderActors(){
+      const grid = $("#actorsGrid"); grid.innerHTML = "";
+      for(const name of ACTORS){
+        const films = await countMoviesForActor(name);
+        const url = ACTOR_PHOTOS[name] || "";
+        const fb  = prox(url);
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <figure class="thumb"><img referrerpolicy="no-referrer" src="${url}" onerror="this.onerror=null;this.src='${fb}'" alt="${name}"></figure>
+          <div style="font-weight:800">${name}</div>
+          <small class="muted">${films} film</small><br>
+          <button class="btn" style="margin-top:8px">Megnyitás</button>
+        `;
+        card.querySelector("button").addEventListener("click", ()=>{
+          alert(`${name} – ide jön a saját filmnézet (később).`);
+        });
+        grid.appendChild(card);
+      }
+    }
+
+    // ===== Krimi lista (nagyon egyszerű demó)
+    async function renderKrimi(){
+      const box = $("#krimiList"); box.innerHTML = "";
+      const snap = await getDocs(collection(db,"categories","krimi","movies"));
+      if(snap.empty){
+        box.innerHTML = `<div class="card">Még nincs film ebben a kategóriában.</div>`;
         return;
       }
-      listEl.innerHTML = movies.map(m=>cardHtml(m,false)).join("");
-      updateBadges(catKey, movies.length);
-    }catch(e){
-      listEl.innerHTML = `<div class="muted">Hiba: ${e?.message||e}</div>`;
-    }
-  }
-
-  // Nézetek
-  function renderCategory(catKey, label){
-    $("#catBar").style.display = "none";
-    $("#view").innerHTML = `
-      <div class="card" style="margin:12px;">
-        <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
-        <h2 style="margin:4px 0 8px">${label}</h2>
-        <div class="muted" style="margin-bottom:10px">Egyszeri lista (vendég mód)</div>
-        <div id="list-${catKey}" class="grid"></div>
-      </div>`;
-    $("#btnBackHome").addEventListener("click", goHome);
-    loadCategoryGuest(catKey);
-  }
-
-  // Színészek – csak rács, darabszámokkal
-  const ACTOR_IMAGES = {
-    "Sylvester Stallone":"https://upload.wikimedia.org/wikipedia/commons/6/6b/Sylvester_Stallone_2014.jpg",
-    "Jason Statham":"https://upload.wikimedia.org/wikipedia/commons/0/05/Jason_Statham_2018.jpg",
-    "Jet Li":"https://upload.wikimedia.org/wikipedia/commons/5/5c/Jet_Li_2009.jpg",
-    "Dolph Lundgren":"https://upload.wikimedia.org/wikipedia/commons/9/91/Dolph_Lundgren_2018.jpg",
-    "Randy Couture":"https://upload.wikimedia.org/wikipedia/commons/1/1d/Randy_Couture_2008.jpg",
-    "Terry Crews":"https://upload.wikimedia.org/wikipedia/commons/d/df/Terry_Crews_2019.jpg",
-    "Mickey Rourke":"https://upload.wikimedia.org/wikipedia/commons/7/71/Mickey_Rourke_2009.jpg",
-    "Eric Roberts":"https://upload.wikimedia.org/wikipedia/commons/4/47/Eric_Roberts_2013.jpg",
-    "Bruce Willis":"https://upload.wikimedia.org/wikipedia/commons/8/89/Bruce_Willis_by_Gage_Skidmore.jpg",
-    "Arnold Schwarzenegger":"https://upload.wikimedia.org/wikipedia/commons/9/98/Arnold_Schwarzenegger_2019.jpg",
-    "Wesley Snipes":"https://upload.wikimedia.org/wikipedia/commons/4/47/Wesley_Snipes_2014.jpg",
-    "Antonio Banderas":"https://upload.wikimedia.org/wikipedia/commons/0/0f/Antonio_Banderas_2019.jpg",
-    "Kelsey Grammer":"https://upload.wikimedia.org/wikipedia/commons/0/0c/Kelsey_Grammer_2010.jpg",
-    "Kellan Lutz":"https://upload.wikimedia.org/wikipedia/commons/7/74/Kellan_Lutz_2012.jpg",
-    "Ronda Rousey":"https://upload.wikimedia.org/wikipedia/commons/5/5d/Ronda_Rousey_2018.jpg",
-    "Glen Powell":"https://upload.wikimedia.org/wikipedia/commons/2/22/Glen_Powell_2019.jpg",
-    "Victor Ortiz":"https://upload.wikimedia.org/wikipedia/commons/6/6a/Victor_Ortiz_2011.jpg",
-    "Mel Gibson":"https://upload.wikimedia.org/wikipedia/commons/7/7f/Mel_Gibson_Cannes_2016.jpg",
-    "Harrison Ford":"https://upload.wikimedia.org/wikipedia/commons/9/9f/Harrison_Ford_2017.jpg",
-    "50 Cent":"https://upload.wikimedia.org/wikipedia/commons/b/b0/50_Cent_2018.jpg",
-    "Megan Fox":"https://upload.wikimedia.org/wikipedia/commons/5/50/Megan_Fox_2009.jpg",
-    "Tony Jaa":"https://upload.wikimedia.org/wikipedia/commons/3/38/Tony_Jaa_2018.jpg",
-    "Jacob Scipio":"https://upload.wikimedia.org/wikipedia/commons/0/0c/Jacob_Scipio_2020.jpg",
-    "Levy Tran":"https://upload.wikimedia.org/wikipedia/commons/8/8e/Levy_Tran_2019.jpg",
-    "Iko Uwais":"https://upload.wikimedia.org/wikipedia/commons/1/1c/Iko_Uwais_2012.jpg",
-    "Jean-Claude Van Damme":"https://upload.wikimedia.org/wikipedia/commons/8/80/Jean-Claude_Van_Damme_2012.jpg",
-    "Chuck Norris":"https://upload.wikimedia.org/wikipedia/commons/3/35/Chuck_Norris_May_2015.jpg",
-    "Lucy Liu":"https://upload.wikimedia.org/wikipedia/commons/3/3b/LucyLiu2012.jpg"
-  };
-
-  async function countActorMovies(actor){
-    try{
-      const { db, collection, getDocs } = window.fb.db;
-      const snap = await getDocs(collection(db,"actors",actor,"movies"));
-      return snap.size || 0;
-    }catch(_){ return 0; }
-  }
-
-  async function renderActors(){
-    $("#catBar").style.display = "none";
-    const names = Object.keys(ACTOR_IMAGES);
-    $("#view").innerHTML = `
-      <div class="card" style="margin:12px;">
-        <button class="btn btn-danger btn-back" id="btnBackHome">Vissza a főoldalra</button>
-        <h2 style="margin:4px 0 8px">Színészek</h2>
-        <div class="grid" id="actorGrid"></div>
-      </div>`;
-    $("#btnBackHome").addEventListener("click", goHome);
-
-    const host = $("#actorGrid");
-    host.innerHTML = "<div class='muted'>Töltés…</div>";
-    const items = await Promise.all(names.map(async n=>{
-      const cnt = await countActorMovies(n);
-      const img = ACTOR_IMAGES[n];
-      return `<div class="card">
-        <img src="${img}" alt="${n}">
-        <div style="font-weight:800;margin:6px 0">${n}</div>
-        <div class="muted">${cnt} film</div>
-      </div>`;
-    }));
-    host.innerHTML = items.join("");
-  }
-
-  // Kattintások
-  document.addEventListener("DOMContentLoaded", ()=>{
-    $("#topFilters").addEventListener("click",(e)=>{
-      const b = e.target.closest(".chip"); if(!b) return;
-      const g = b.dataset.goto;
-      if (g==="krimi")    renderCategory("krimi","KRIMI");
-      if (g==="akcio")    renderCategory("akcio","AKCIÓ");
-      if (g==="thriller") renderCategory("thriller","THRILLER");
-      if (g==="actors")   renderActors();
-    });
-    $("#btnRefreshAll").addEventListener("click", ()=>{
-      const list = document.querySelector('#view [id^="list-"]');
-      if (!list) return;
-      const catKey = list.id.replace(/^list-/,'');
-      loadCategoryGuest(catKey);
-    });
-  });
-})();
-</script>
-<!-- =========================
-     6. RÉSZ – KATEGÓRIA LISTA + BADGE FRISSÍTÉS (VÉGE)
-========================== -->
-
-<!-- ============== 7. RÉSZ ELEJE – SZÍNÉSZ GALÉRIA ============== -->
-<section id="actorsView" style="padding:12px 16px">
-  <h2>Színészek</h2>
-  <div id="actorsGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;"></div>
-</section>
-
-<script>
-  // stabil képlinkek (ha nincs találat, placeholder)
-  const ACTOR_PHOTOS = {
-    "Sylvester Stallone": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Sylvester_Stallone_2014.jpg",
-    "Jason Statham": "https://upload.wikimedia.org/wikipedia/commons/0/05/Jason_Statham_2018.jpg",
-    "Jet Li": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Jet_Li_2009.jpg",
-    "Dolph Lundgren": "https://upload.wikimedia.org/wikipedia/commons/9/91/Dolph_Lundgren_2018.jpg",
-    "Randy Couture": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Randy_Couture_2008.jpg",
-    "Terry Crews": "https://upload.wikimedia.org/wikipedia/commons/d/df/Terry_Crews_2019.jpg",
-    "Mickey Rourke": "https://upload.wikimedia.org/wikipedia/commons/7/71/Mickey_Rourke_2009.jpg",
-    "Eric Roberts": "https://upload.wikimedia.org/wikipedia/commons/4/47/Eric_Roberts_2013.jpg",
-    "Bruce Willis": "https://upload.wikimedia.org/wikipedia/commons/8/89/Bruce_Willis_by_Gage_Skidmore.jpg",
-    "Arnold Schwarzenegger": "https://upload.wikimedia.org/wikipedia/commons/9/98/Arnold_Schwarzenegger_2019.jpg",
-    "Wesley Snipes": "https://upload.wikimedia.org/wikipedia/commons/4/47/Wesley_Snipes_2014.jpg",
-    "Antonio Banderas": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Antonio_Banderas_2019.jpg",
-    "Kelsey Grammer": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Kelsey_Grammer_2010.jpg",
-    "Kellan Lutz": "https://upload.wikimedia.org/wikipedia/commons/7/74/Kellan_Lutz_2012.jpg",
-    "Ronda Rousey": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Ronda_Rousey_2018.jpg",
-    "Glen Powell": "https://upload.wikimedia.org/wikipedia/commons/2/22/Glen_Powell_2019.jpg",
-    "Victor Ortiz": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Victor_Ortiz_2011.jpg",
-    "Mel Gibson": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Mel_Gibson_Cannes_2016.jpg",
-    "Harrison Ford": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Harrison_Ford_2017.jpg",
-    "50 Cent": "https://upload.wikimedia.org/wikipedia/commons/b/b0/50_Cent_2018.jpg",
-    "Megan Fox": "https://upload.wikimedia.org/wikipedia/commons/5/50/Megan_Fox_2009.jpg",
-    "Tony Jaa": "https://upload.wikimedia.org/wikipedia/commons/3/38/Tony_Jaa_2018.jpg",
-    "Jacob Scipio": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Jacob_Scipio_2020.jpg",
-    "Levy Tran": "https://upload.wikimedia.org/wikipedia/commons/8/8e/Levy_Tran_2019.jpg",
-    "Iko Uwais": "https://upload.wikimedia.org/wikipedia/commons/1/1c/Iko_Uwais_2012.jpg",
-    "Jean-Claude Van Damme": "https://upload.wikimedia.org/wikipedia/commons/8/80/Jean-Claude_Van_Damme_2012.jpg",
-    "Chuck Norris": "https://upload.wikimedia.org/wikipedia/commons/3/35/Chuck_Norris_May_2015.jpg",
-    "Lucy Liu": "https://upload.wikimedia.org/wikipedia/commons/6/6c/LucyLiu.webp"
-  };
-
-  // A listát simán az ACTOR_PHOTOS kulcsai adják:
-  const ACTORS = Object.keys(ACTOR_PHOTOS);
-
-  async function countMoviesForActor(name){
-    // Firestore: /actors/{actor}/movies  -> dokumentumok száma = filmek száma
-    const {db, collection, getDocs} = window.fb;
-    const snap = await getDocs(collection(db,"actors",name,"movies"));
-    return snap.size || 0;
-  }
-
-  async function renderActors(){
-    const grid = document.getElementById('actorsGrid');
-    if(!grid) return;
-    grid.innerHTML = "";
-    for(const name of ACTORS){
-      const n = await countMoviesForActor(name).catch(()=>0);
-      const card = document.createElement('div');
-      card.style.cssText="background:#0e1626;border:1px solid #2d3b5b;border-radius:12px;padding:12px";
-      card.innerHTML = `
-        <figure style="margin:0 0 8px;height:160px;overflow:hidden;border-radius:10px;background:#0b1220">
-          <img referrerpolicy="no-referrer" src="${ACTOR_PHOTOS[name]||''}"
-               alt="${name}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">
-        </figure>
-        <div style="font-weight:700">${name}</div>
-        <div style="opacity:.8">${n} film</div>
-        <button class="btn" style="margin-top:8px" data-actor="${name}">Megnyitás</button>
-      `;
-      card.querySelector('button').addEventListener('click',()=>{
-        // ide nyílik az adott színész film-oldala (ha van külön nézeted)
-        // pl.: location.href = `#actor=${encodeURIComponent(name)}`;
-        alert(`${name} – saját filmnézet itt nyílna meg.`);
+      snap.forEach(doc=>{
+        const d = doc.data();
+        const item = document.createElement("div");
+        item.className = "card";
+        item.innerHTML = `
+          <div style="font-weight:700">${d.title||"Cím nélkül"}</div>
+          <small class="muted">${d.link||""}</small>
+        `;
+        box.appendChild(item);
       });
-      grid.appendChild(card);
     }
-  }
 
-  document.addEventListener('DOMContentLoaded', renderActors, {once:true});
-</script>
-<!-- ============== 7. RÉSZ VÉGE – SZÍNÉSZ GALÉRIA ============== -->
+    // ===== Frissítés gomb
+    btnRefresh.addEventListener("click", async ()=>{
+      await refreshBadges();
+      await renderKrimi();
+    });
 
-<!-- ============== 9. RÉSZ ELEJE – ADMIN LOGIN MODÁL + LOGIKA ============== -->
-<dialog id="adminModal" style="background:#0e1626;color:#fff;border:1px solid #2d3b5b;border-radius:16px;min-width:min(680px,92vw);padding:22px">
-  <form method="dialog">
-    <h3 style="margin-top:0">Admin belépés</h3>
+    // ===== Indulás
+    document.addEventListener("DOMContentLoaded", async ()=>{
+      // Vendég-kapu elsőre
+      if(!localStorage.getItem("guestOK")) openGate();
 
-    <label for="adminEmail">Email</label>
-    <input id="adminEmail" type="email" placeholder="admin@email.com"
-           autocomplete="username" style="width:100%;margin-bottom:10px">
+      showHome();
+      await refreshBadges();
+      await renderKrimi();
 
-    <label for="adminPass">Jelszó</label>
-    <input id="adminPass" type="password" placeholder="********"
-           autocomplete="new-password" style="width:100%">
+      // amikor bezártad/használtad az oldalt, jelöld látottnak (Új számláló nullázás)
+      window.addEventListener("beforeunload", markSeen);
+    });
 
-    <div id="adminErr" class="err" style="display:none"></div>
-
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-      <button value="cancel" class="btn">Mégse</button>
-      <button id="doLogin" class="btn btn-primary" value="default">Belépés</button>
-    </div>
-  </form>
-</dialog>
-
-<script>
-  const adminModal = document.getElementById('adminModal');
-  const adminEmail = document.getElementById('adminEmail');
-  const adminPass  = document.getElementById('adminPass');
-  const adminErr   = document.getElementById('adminErr');
-  const doLoginBtn = document.getElementById('doLogin');
-
-  doLoginBtn?.addEventListener('click', async (e)=>{
-    e.preventDefault();
-    adminErr.style.display = "none";
-    try{
-      await window.fb.signInWithEmailAndPassword(window.fb.auth, adminEmail.value.trim(), adminPass.value);
-      adminModal.close();
-    }catch(err){
-      adminErr.textContent = "Belépési hiba: " + (err?.message || err);
-      adminErr.style.display = "block";
-    }
-  });
-
-  // Auth állapot alapján fejléc frissítés
-  window.fb.onAuthStateChanged(window.fb.auth, (user)=>{
-    const a = document.getElementById('adminBtn');
-    if(a) a.title = user ? "Admin (bejelentkezve)" : "Admin belépés";
-  });
-</script>
-<!-- ============== 9. RÉSZ VÉGE – ADMIN LOGIN MODÁL + LOGIKA ============== -->
-
+    // Hely az automata leírás-húzáshoz (TMDb/OMDb)
+    window.MOVIE_API = { TMDB_API_KEY:"", OMDB_API_KEY:"" };
+  </script>
 </body>
 </html>
