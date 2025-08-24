@@ -61,83 +61,138 @@
   ========================== -->
 </head>
 
-<!-- =========================
-     2. RÉSZ – FIREBASE INIT + API KULCS HELY (ELEJE)
-     (KÖZVETLENÜL a </head> után legyen)
-========================== -->
+<!-- ============== 2. RÉSZ ELEJE – FIREBASE INIT + AUTH ============== -->
 <script type="module">
-  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
   import {
-    getFirestore, collection, addDoc, getDocs, onSnapshot,
-    query, where, orderBy, limit, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    getFirestore, collection, doc, addDoc, getDoc, getDocs,
+    onSnapshot, query, orderBy, limit, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
   import {
     getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+  } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
+  // --- a te projekted configja (ez maradjon a sajátod) ---
   const firebaseConfig = {
-    apiKey: "AIzaSyBDSI-z3a4IFAIoKCVZVcUyue7GMoO5acY",
-    authDomain: "filmek-fe035.firebaseapp.com",
+    apiKey:    "<<< a sajat API KEY >>>",
+    authDomain:"<<< ... >>>",
     projectId: "filmek-fe035",
-    storageBucket: "filmek-fe035.appspot.com",
-    messagingSenderId: "302167835367",
-    appId: "1:302167835367:web:6e0fd4304c4496612c1842",
-    measurementId: "G-QBG7LG0ZQH"
+    // ha van storage/bármi, maradhat
   };
 
-  const app  = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-  const db   = getFirestore(app);
-  const auth = getAuth(app);
+  // App + DB + Auth
+  const app   = initializeApp(firebaseConfig);
+  const db    = getFirestore(app);
+  const auth  = getAuth(app);
 
-  // Globális segéd
-  window.firebaseConfig = firebaseConfig;
-  window.fb = Object.freeze({
-    app,
-    db: { db, collection, addDoc, getDocs, onSnapshot, query, where, orderBy, limit, serverTimestamp },
-    auth: { auth, getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
-  });
+  // Globálissá tesszük, hogy bárhonnan elérd
+  window.fb = { app, db, auth, collection, doc, addDoc, getDoc, getDocs,
+                onSnapshot, query, orderBy, limit, serverTimestamp,
+                signInWithEmailAndPassword, signOut, onAuthStateChanged };
 
-  // Film tartalomhoz opcionális API kulcsok (hagyd üresen, ha nem kell)
+  // --- film leírás API kulcsok (opcionális) ---
   window.MOVIE_API = {
-    TMDB_API_KEY: "",   // opcionális
-    OMDB_API_KEY: ""    // opcionális
+    TMDB_API_KEY: "",  // ha adsz kulcsot, cím alapján húzunk rövid leírást
+    OMDB_API_KEY: ""
   };
 
   console.debug("[Firebase] READY – project:", firebaseConfig.projectId);
 </script>
-<!-- =========================
-     2. RÉSZ – FIREBASE INIT + API KULCS HELY (VÉGE)
-========================== -->
+<!-- ============== 2. RÉSZ VÉGE – FIREBASE INIT + AUTH ============== -->
 
 <body>
 <div id="app" class="wrap">
-  <!-- =========================
-       3. RÉSZ – UI: FEJLÉC + TOP KATEGÓRIÁK + NÉZET (ELEJE)
-  ========================== -->
-  <div class="sticky">
-    <header>
-      <div class="title">Filmek Anyunak</div>
-      <div style="margin-left:auto;display:flex;gap:8px">
-        <button id="btnLogoutAll" class="btn btn-danger" title="Kijelentkezés és vissza">Kilépés mindenből</button>
-        <button id="btnAdminOpen" class="pill" title="Admin"><span> A </span></button>
-        <button id="btnRefreshAll" class="btn">Frissítés</button>
-      </div>
-    </header>
+<!-- ============== 3. RÉSZ ELEJE – FEJLÉC + „A” + VENDÉG KAPU ============== -->
+<style>
+  .chip{display:inline-flex;align-items:center;justify-content:center;
+        width:42px;height:42px;border-radius:999px;background:#1f2941;
+        color:#fff;font-weight:700;border:1px solid #2d3b5b;cursor:pointer}
+  .gate-mask{position:fixed;inset:0;background:rgba(7,12,22,.82);
+    display:none;align-items:center;justify-content:center;z-index:9999}
+  .gate{background:#0e1626;border:1px solid #2d3b5b;border-radius:16px;
+    padding:28px;min-width: min(860px, 92vw);color:#fff;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+  .err{color:#ff6161;margin-top:8px}
+</style>
 
-    <div id="topFilters" class="top-filters">
-      <button class="chip chip-krimi"    data-goto="krimi"><div class="chip-title">KRIMI</div><div class="chip-sub">Új:<span id="badge-new-krimi">0</span> · Összes:<span id="badge-all-krimi">0</span></div></button>
-      <button class="chip chip-akcio"    data-goto="akcio"><div class="chip-title">AKCIÓ</div><div class="chip-sub">Új:<span id="badge-new-akcio">0</span> · Összes:<span id="badge-all-akcio">0</span></div></button>
-      <button class="chip chip-thriller" data-goto="thriller"><div class="chip-title">THRILLER</div><div class="chip-sub">Új:<span id="badge-new-thriller">0</span> · Összes:<span id="badge-all-thriller">0</span></div></button>
-      <button class="chip chip-actors"   data-goto="actors"><div class="chip-title">SZÍNÉSZEK</div><div class="chip-sub">Galéria és filmek</div></button>
-    </div>
+<header style="display:flex;gap:14px;align-items:center;justify-content:flex-end;padding:10px 12px;">
+  <button id="logoutAll" class="btn btn-danger" style="display:none">Kilépés mindenhől</button>
+  <button id="adminBtn" class="chip" title="Admin">A</button>
+  <button id="refreshBtn" class="btn">Frissítés</button>
+</header>
 
-    <div id="catBar"><div class="cats-row" id="catsLive"></div></div>
+<!-- Vendég kapu -->
+<div id="guestGate" class="gate-mask" aria-modal="true" role="dialog">
+  <div class="gate">
+    <h3 style="margin:0 0 10px">Vendég kapu</h3>
+    <label for="pinIn">PIN (6 számjegy)</label>
+    <input id="pinIn" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+           placeholder="Kattints! Ide írd a kódot"
+           autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+           style="width:100%;margin-top:8px" />
+    <div class="hint">Írd be a kódot – a nézet automatikusan megnyílik.</div>
+    <div id="pinErr" class="err" style="display:none">Hibás PIN.</div>
   </div>
+</div>
 
-  <main id="view" class="view"></main>
-  <!-- =========================
-       3. RÉSZ – UI: FEJLÉC + TOP KATEGÓRIÁK + NÉZET (VÉGE)
-  ========================== -->
+<script>
+  // --- Vendég PIN beállítás ---
+  const GATE_PIN = "195400";
+  const gateEl   = document.getElementById('guestGate');
+  const pinIn    = document.getElementById('pinIn');
+  const pinErr   = document.getElementById('pinErr');
+
+  function openGateIfNeeded(){
+    const ok = localStorage.getItem('guestOk') === '1';
+    if(!ok){
+      pinIn.value = "";               // biztosan üres, ne legyen előtöltés
+      pinErr.style.display = "none";
+      gateEl.style.display = "flex";  // felugrik a kapu
+      setTimeout(()=>pinIn.focus(), 50);
+    }else{
+      gateEl.style.display = "none";
+    }
+  }
+
+  pinIn.addEventListener('input', (e)=>{
+    const val = e.target.value.replace(/\D/g,'').slice(0,6);
+    e.target.value = val;
+    if(val.length === 6){
+      if(val === GATE_PIN){
+        localStorage.setItem('guestOk','1');
+        gateEl.style.display = "none";
+      }else{
+        pinErr.style.display = "block";
+      }
+    }else{
+      pinErr.style.display = "none";
+    }
+  });
+
+  // Frissítés gomb (vizuális újratöltés)
+  document.getElementById('refreshBtn')?.addEventListener('click', ()=>location.reload());
+
+  // Admin gomb: bejelentkező modál megnyitása
+  document.getElementById('adminBtn')?.addEventListener('click', ()=> {
+    document.getElementById('adminModal')?.showModal();
+  });
+
+  // Kilépés
+  document.getElementById('logoutAll')?.addEventListener('click', async()=>{
+    try{ await window.fb.signOut(window.fb.auth); }catch(e){}
+    localStorage.removeItem('guestOk');
+    location.reload();
+  });
+
+  // Auth állapot: ha bejelentkezett az admin, mutatjuk a „Kilépés mindenhől” gombot
+  window.fb.onAuthStateChanged(window.fb.auth, (user)=>{
+    document.getElementById('logoutAll').style.display = user ? 'inline-flex' : 'none';
+  });
+
+  // induláskor
+  document.addEventListener('DOMContentLoaded', openGateIfNeeded, {once:true});
+</script>
+<!-- ============== 3. RÉSZ VÉGE – FEJLÉC + „A” + VENDÉG KAPU ============== -->
+
 </div>
 
 <!-- =========================
@@ -370,132 +425,133 @@
      6. RÉSZ – KATEGÓRIA LISTA + BADGE FRISSÍTÉS (VÉGE)
 ========================== -->
 
-<!-- =========================
-     7. RÉSZ – VENDÉG PIN KAPU (ELEJE)
-========================== -->
-<div id="guestGate" class="gate-mask" aria-modal="true" role="dialog">
-  <div class="gate">
-    <h3>Vendég kapu</h3>
-    <label for="pinIn">PIN (6 számjegy)</label>
-    <input id="pinIn" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="Kattints! Ide írd a kódot">
-    <div class="hint">Írd be a kódot – a nézet automatikusan megnyílik.</div>
-    <div id="pinErr" class="err">Hibás PIN.</div>
-  </div>
-</div>
+<!-- ============== 7. RÉSZ ELEJE – SZÍNÉSZ GALÉRIA ============== -->
+<section id="actorsView" style="padding:12px 16px">
+  <h2>Színészek</h2>
+  <div id="actorsGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;"></div>
+</section>
 
 <script>
-(function(){
-  const OKPIN = "195400";
-  const mask = document.getElementById("guestGate");
-  const inp  = document.getElementById("pinIn");
-  const err  = document.getElementById("pinErr");
+  // stabil képlinkek (ha nincs találat, placeholder)
+  const ACTOR_PHOTOS = {
+    "Sylvester Stallone": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Sylvester_Stallone_2014.jpg",
+    "Jason Statham": "https://upload.wikimedia.org/wikipedia/commons/0/05/Jason_Statham_2018.jpg",
+    "Jet Li": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Jet_Li_2009.jpg",
+    "Dolph Lundgren": "https://upload.wikimedia.org/wikipedia/commons/9/91/Dolph_Lundgren_2018.jpg",
+    "Randy Couture": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Randy_Couture_2008.jpg",
+    "Terry Crews": "https://upload.wikimedia.org/wikipedia/commons/d/df/Terry_Crews_2019.jpg",
+    "Mickey Rourke": "https://upload.wikimedia.org/wikipedia/commons/7/71/Mickey_Rourke_2009.jpg",
+    "Eric Roberts": "https://upload.wikimedia.org/wikipedia/commons/4/47/Eric_Roberts_2013.jpg",
+    "Bruce Willis": "https://upload.wikimedia.org/wikipedia/commons/8/89/Bruce_Willis_by_Gage_Skidmore.jpg",
+    "Arnold Schwarzenegger": "https://upload.wikimedia.org/wikipedia/commons/9/98/Arnold_Schwarzenegger_2019.jpg",
+    "Wesley Snipes": "https://upload.wikimedia.org/wikipedia/commons/4/47/Wesley_Snipes_2014.jpg",
+    "Antonio Banderas": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Antonio_Banderas_2019.jpg",
+    "Kelsey Grammer": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Kelsey_Grammer_2010.jpg",
+    "Kellan Lutz": "https://upload.wikimedia.org/wikipedia/commons/7/74/Kellan_Lutz_2012.jpg",
+    "Ronda Rousey": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Ronda_Rousey_2018.jpg",
+    "Glen Powell": "https://upload.wikimedia.org/wikipedia/commons/2/22/Glen_Powell_2019.jpg",
+    "Victor Ortiz": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Victor_Ortiz_2011.jpg",
+    "Mel Gibson": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Mel_Gibson_Cannes_2016.jpg",
+    "Harrison Ford": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Harrison_Ford_2017.jpg",
+    "50 Cent": "https://upload.wikimedia.org/wikipedia/commons/b/b0/50_Cent_2018.jpg",
+    "Megan Fox": "https://upload.wikimedia.org/wikipedia/commons/5/50/Megan_Fox_2009.jpg",
+    "Tony Jaa": "https://upload.wikimedia.org/wikipedia/commons/3/38/Tony_Jaa_2018.jpg",
+    "Jacob Scipio": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Jacob_Scipio_2020.jpg",
+    "Levy Tran": "https://upload.wikimedia.org/wikipedia/commons/8/8e/Levy_Tran_2019.jpg",
+    "Iko Uwais": "https://upload.wikimedia.org/wikipedia/commons/1/1c/Iko_Uwais_2012.jpg",
+    "Jean-Claude Van Damme": "https://upload.wikimedia.org/wikipedia/commons/8/80/Jean-Claude_Van_Damme_2012.jpg",
+    "Chuck Norris": "https://upload.wikimedia.org/wikipedia/commons/3/35/Chuck_Norris_May_2015.jpg",
+    "Lucy Liu": "https://upload.wikimedia.org/wikipedia/commons/6/6c/LucyLiu.webp"
+  };
 
-  function show(){ mask.style.display="flex"; inp.value=""; err.style.display="none"; setTimeout(()=>inp.focus(),100); }
-  function hide(){ mask.style.display="none"; }
+  // A listát simán az ACTOR_PHOTOS kulcsai adják:
+  const ACTORS = Object.keys(ACTOR_PHOTOS);
 
-  function check(){
-    const v = (inp.value||"").trim();
-    if (v.length===6){
-      if (v===OKPIN){
-        localStorage.setItem("filmek_anyunak_guest_ok","1");
-        hide();
-      }else{
-        err.style.display="block";
-        inp.select();
-      }
-    }
+  async function countMoviesForActor(name){
+    // Firestore: /actors/{actor}/movies  -> dokumentumok száma = filmek száma
+    const {db, collection, getDocs} = window.fb;
+    const snap = await getDocs(collection(db,"actors",name,"movies"));
+    return snap.size || 0;
   }
 
-  inp.addEventListener("input", check);
-
-  // start
-  const ok = localStorage.getItem("filmek_anyunak_guest_ok")==="1";
-  if (!ok) show();
-})();
-</script>
-<!-- =========================
-     7. RÉSZ – VENDÉG PIN KAPU (VÉGE)
-========================== -->
-
-<!-- =========================
-     8. RÉSZ – ADMIN BELÉPÉS UI + LOGIKA (ELEJE)
-========================== -->
-<div id="adminGate" class="admin-mask" aria-modal="true" role="dialog">
-  <div class="admin">
-    <h3>Admin belépés</h3>
-    <label for="admEmail">Email</label>
-    <input id="admEmail" type="email" placeholder="admin@email.com">
-    <div style="height:8px"></div>
-    <label for="admPass">Jelszó</label>
-    <input id="admPass" type="password" placeholder="********">
-    <div id="admErr" class="err">Belépési hiba.</div>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button id="admClose" class="btn btn-danger">Mégse</button>
-      <button id="admLogin" class="btn">Belépés</button>
-    </div>
-  </div>
-</div>
-
-<script>
-(function(){
-  const mask  = document.getElementById("adminGate");
-  const openB = document.getElementById("btnAdminOpen");
-  const eInp  = document.getElementById("admEmail");
-  const pInp  = document.getElementById("admPass");
-  const err   = document.getElementById("admErr");
-  const bIn   = document.getElementById("admLogin");
-  const bCl   = document.getElementById("admClose");
-
-  function show(){
-    mask.style.display="flex";
-    // email előtöltés (ha van), JELSZÓ NINCS előtöltve
-    try{ eInp.value = localStorage.getItem("admin_email")||""; }catch{}
-    pInp.value = "";
-    err.style.display="none";
-    setTimeout(()=> (eInp.value? pInp.focus(): eInp.focus()), 80);
-  }
-  function hide(){ mask.style.display="none"; }
-
-  openB.addEventListener("click",(e)=>{ e.preventDefault(); show(); });
-  bCl.addEventListener("click",(e)=>{ e.preventDefault(); hide(); });
-
-  async function doLogin(){
-    err.style.display="none";
-    const email = (eInp.value||"").trim();
-    const pass  = pInp.value||"";
-    if (!email || !pass){ err.textContent="Hiányzó adatok."; err.style.display="block"; return; }
-    try{
-      const a = window.fb?.auth?.auth;
-      const signIn = window.fb?.auth?.signInWithEmailAndPassword;
-      if (!a || typeof signIn!=="function") throw new Error("Auth nincs inicializálva.");
-      await signIn(a, email, pass);
-      try{ localStorage.setItem("admin_email", email); }catch{}
-      localStorage.setItem("filmek_anyunak_admin_ok","1");
-      hide();
-      alert("Sikeres belépés.");
-    }catch(ex){
-      err.textContent = "Belépési hiba: " + (ex?.message||ex);
-      err.style.display="block";
-      console.error(ex);
-    }
-  }
-  bIn.addEventListener("click",(e)=>{ e.preventDefault(); doLogin(); });
-
-  // állapot figyelés – csak visszajelzésekhez
-  try{
-    const onAuthStateChanged = window.fb?.auth?.onAuthStateChanged;
-    const a = window.fb?.auth?.auth;
-    if (typeof onAuthStateChanged==="function" && a){
-      onAuthStateChanged(a, (user)=>{
-        openB.title = user ? ("Admin: " + (user.email||"")) : "Admin";
+  async function renderActors(){
+    const grid = document.getElementById('actorsGrid');
+    if(!grid) return;
+    grid.innerHTML = "";
+    for(const name of ACTORS){
+      const n = await countMoviesForActor(name).catch(()=>0);
+      const card = document.createElement('div');
+      card.style.cssText="background:#0e1626;border:1px solid #2d3b5b;border-radius:12px;padding:12px";
+      card.innerHTML = `
+        <figure style="margin:0 0 8px;height:160px;overflow:hidden;border-radius:10px;background:#0b1220">
+          <img referrerpolicy="no-referrer" src="${ACTOR_PHOTOS[name]||''}"
+               alt="${name}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">
+        </figure>
+        <div style="font-weight:700">${name}</div>
+        <div style="opacity:.8">${n} film</div>
+        <button class="btn" style="margin-top:8px" data-actor="${name}">Megnyitás</button>
+      `;
+      card.querySelector('button').addEventListener('click',()=>{
+        // ide nyílik az adott színész film-oldala (ha van külön nézeted)
+        // pl.: location.href = `#actor=${encodeURIComponent(name)}`;
+        alert(`${name} – saját filmnézet itt nyílna meg.`);
       });
+      grid.appendChild(card);
     }
-  }catch{}
-})();
+  }
+
+  document.addEventListener('DOMContentLoaded', renderActors, {once:true});
 </script>
-<!-- =========================
-     8. RÉSZ – ADMIN BELÉPÉS UI + LOGIKA (VÉGE)
-========================== -->
+<!-- ============== 7. RÉSZ VÉGE – SZÍNÉSZ GALÉRIA ============== -->
+
+<!-- ============== 9. RÉSZ ELEJE – ADMIN LOGIN MODÁL + LOGIKA ============== -->
+<dialog id="adminModal" style="background:#0e1626;color:#fff;border:1px solid #2d3b5b;border-radius:16px;min-width:min(680px,92vw);padding:22px">
+  <form method="dialog">
+    <h3 style="margin-top:0">Admin belépés</h3>
+
+    <label for="adminEmail">Email</label>
+    <input id="adminEmail" type="email" placeholder="admin@email.com"
+           autocomplete="username" style="width:100%;margin-bottom:10px">
+
+    <label for="adminPass">Jelszó</label>
+    <input id="adminPass" type="password" placeholder="********"
+           autocomplete="new-password" style="width:100%">
+
+    <div id="adminErr" class="err" style="display:none"></div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button value="cancel" class="btn">Mégse</button>
+      <button id="doLogin" class="btn btn-primary" value="default">Belépés</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  const adminModal = document.getElementById('adminModal');
+  const adminEmail = document.getElementById('adminEmail');
+  const adminPass  = document.getElementById('adminPass');
+  const adminErr   = document.getElementById('adminErr');
+  const doLoginBtn = document.getElementById('doLogin');
+
+  doLoginBtn?.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    adminErr.style.display = "none";
+    try{
+      await window.fb.signInWithEmailAndPassword(window.fb.auth, adminEmail.value.trim(), adminPass.value);
+      adminModal.close();
+    }catch(err){
+      adminErr.textContent = "Belépési hiba: " + (err?.message || err);
+      adminErr.style.display = "block";
+    }
+  });
+
+  // Auth állapot alapján fejléc frissítés
+  window.fb.onAuthStateChanged(window.fb.auth, (user)=>{
+    const a = document.getElementById('adminBtn');
+    if(a) a.title = user ? "Admin (bejelentkezve)" : "Admin belépés";
+  });
+</script>
+<!-- ============== 9. RÉSZ VÉGE – ADMIN LOGIN MODÁL + LOGIKA ============== -->
 
 </body>
 </html>
